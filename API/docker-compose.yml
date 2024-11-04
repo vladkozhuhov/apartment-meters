@@ -1,0 +1,6 @@
+﻿services:
+  apartment-meters.api:
+    image: apartment-meters.api
+    build:
+      context: .
+      dockerfile: apartment-meters.API/Dockerfile
