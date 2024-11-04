@@ -19,4 +19,10 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Configurations\Manifest\" />
+      <Folder Include="Controllers\v1\" />
+      <Folder Include="ODataControllers\v1\" />
+    </ItemGroup>
+
 </Project>

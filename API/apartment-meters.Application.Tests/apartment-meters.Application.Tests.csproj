@@ -21,4 +21,10 @@
         <Using Include="Xunit"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="CQRS\Commands\" />
+      <Folder Include="CQRS\Validators\" />
+      <Folder Include="Services\" />
+    </ItemGroup>
+
 </Project>

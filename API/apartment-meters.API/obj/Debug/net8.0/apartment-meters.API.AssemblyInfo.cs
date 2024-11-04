@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("apartment-meters.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c350cf1e1a91f751305611bb8316a33992d3457a")]
 [assembly: System.Reflection.AssemblyProductAttribute("apartment-meters.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("apartment-meters.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

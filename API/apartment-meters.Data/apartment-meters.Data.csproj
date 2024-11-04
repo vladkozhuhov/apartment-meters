@@ -7,4 +7,10 @@
         <RootNamespace>Data</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="Configurations\" />
+      <Folder Include="Repositories\" />
+      <Folder Include="Services\" />
+    </ItemGroup>
+
 </Project>
