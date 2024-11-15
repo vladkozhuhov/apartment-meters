@@ -2,15 +2,15 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "apartment-meters.API", "apartment-meters.API\apartment-meters.API.csproj", "{A66DE663-0648-42EB-A9D9-C2A1FF1E7457}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{28D7076E-5969-4C93-A64F-15BEE1240369}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "apartment-meters.Tests", "apartment-meters.Tests\apartment-meters.Tests.csproj", "{A19D1AB5-440C-4197-A166-422681AF114E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "apartment-meters.Application.Tests", "apartment-meters.Application.Tests\apartment-meters.Application.Tests.csproj", "{A19D1AB5-440C-4197-A166-422681AF114E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "apartment-meters.Persistence", "apartment-meters.Persistence\apartment-meters.Persistence.csproj", "{9D8C5C57-2A61-4813-9482-E2291DA5D9B3}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{DE9E1259-BDF6-433B-B8C5-8704FF47413A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "apartment-meters.Infrastructure", "apartment-meters.Infrastructure\apartment-meters.Infrastructure.csproj", "{35837E5F-0A37-47EF-BDA4-A3BAFE93736D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{B6D1C930-2D72-4FC2-ACDA-83577A8A17C2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "apartment-meters.Domain", "apartment-meters.Domain\apartment-meters.Domain.csproj", "{C77272D1-8891-41C8-A42F-EBDED47E3258}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "apartment-meters.Data", "apartment-meters.Data\apartment-meters.Data.csproj", "{9D8C5C57-2A61-4813-9482-E2291DA5D9B3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "apartment-meters.Application", "apartment-meters.Application\apartment-meters.Application.csproj", "{3DC7517B-5AA4-43E9-BDFC-A81FBBCE7E2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,10 +30,19 @@ Global
 		{9D8C5C57-2A61-4813-9482-E2291DA5D9B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D8C5C57-2A61-4813-9482-E2291DA5D9B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D8C5C57-2A61-4813-9482-E2291DA5D9B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35837E5F-0A37-47EF-BDA4-A3BAFE93736D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35837E5F-0A37-47EF-BDA4-A3BAFE93736D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35837E5F-0A37-47EF-BDA4-A3BAFE93736D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35837E5F-0A37-47EF-BDA4-A3BAFE93736D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C77272D1-8891-41C8-A42F-EBDED47E3258}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C77272D1-8891-41C8-A42F-EBDED47E3258}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C77272D1-8891-41C8-A42F-EBDED47E3258}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C77272D1-8891-41C8-A42F-EBDED47E3258}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DC7517B-5AA4-43E9-BDFC-A81FBBCE7E2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DC7517B-5AA4-43E9-BDFC-A81FBBCE7E2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DC7517B-5AA4-43E9-BDFC-A81FBBCE7E2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DC7517B-5AA4-43E9-BDFC-A81FBBCE7E2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{A19D1AB5-440C-4197-A166-422681AF114E} = {28D7076E-5969-4C93-A64F-15BEE1240369}
-		{A66DE663-0648-42EB-A9D9-C2A1FF1E7457} = {DE9E1259-BDF6-433B-B8C5-8704FF47413A}
-		{9D8C5C57-2A61-4813-9482-E2291DA5D9B3} = {B6D1C930-2D72-4FC2-ACDA-83577A8A17C2}
 	EndGlobalSection
 EndGlobal

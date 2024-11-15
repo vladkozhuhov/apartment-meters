@@ -298,6 +298,29 @@
         "build": {
           "buildTransitive/net6.0/_._": {}
         }
+      },
+      "apartment-meters.Application/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "apartment-meters.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/apartment-meters.Application.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/apartment-meters.Application.dll": {}
+        }
+      },
+      "apartment-meters.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/apartment-meters.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/apartment-meters.Domain.dll": {}
+        }
       }
     }
   },
@@ -1001,12 +1024,23 @@
         "system.io.pipelines.nuspec",
         "useSharedDesignerContext.txt"
       ]
+    },
+    "apartment-meters.Application/1.0.0": {
+      "type": "project",
+      "path": "../apartment-meters.Application/apartment-meters.Application.csproj",
+      "msbuildProject": "../apartment-meters.Application/apartment-meters.Application.csproj"
+    },
+    "apartment-meters.Domain/1.0.0": {
+      "type": "project",
+      "path": "../apartment-meters.Domain/apartment-meters.Domain.csproj",
+      "msbuildProject": "../apartment-meters.Domain/apartment-meters.Domain.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
       "Microsoft.AspNetCore.Authentication.Negotiate >= 8.0.3",
-      "Swashbuckle.AspNetCore >= 6.4.0"
+      "Swashbuckle.AspNetCore >= 6.4.0",
+      "apartment-meters.Application >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -1035,7 +1069,11 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Project\\FullStack\\apartment-meters\\API\\apartment-meters.Application\\apartment-meters.Application.csproj": {
+              "projectPath": "C:\\Project\\FullStack\\apartment-meters\\API\\apartment-meters.Application\\apartment-meters.Application.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
