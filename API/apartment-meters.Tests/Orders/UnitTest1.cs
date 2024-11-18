@@ -1,4 +1,4 @@
-namespace Application.Tests.Orders;
+namespace Tests.Orders;
 
 public class UnitTest1
 {

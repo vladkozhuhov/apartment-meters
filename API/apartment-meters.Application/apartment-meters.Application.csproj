@@ -2,24 +2,23 @@
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
+        <RootNamespace>Application</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RootNamespace>Persistence</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Migrations\" />
+      <Folder Include="Interfaces\Commands\" />
+      <Folder Include="Interfaces\Queries\" />
+      <Folder Include="Orders\" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\apartment-meters.Application\apartment-meters.Application.csproj" />
       <ProjectReference Include="..\apartment-meters.Domain\apartment-meters.Domain.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="MediatR" Version="12.2.0" />
-      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
-      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" Version="1.1.0" />
     </ItemGroup>
 
 </Project>

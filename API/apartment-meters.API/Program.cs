@@ -1,4 +1,6 @@
+using Infrastructure;
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,10 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = options.DefaultPolicy;
 });
 
+// Настройка подключения к PostgreSQL и другим сервисам
+builder.Services.AddPersistenceServices(builder.Configuration);
+builder.Services.AddInfrastructureServices();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -30,9 +36,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

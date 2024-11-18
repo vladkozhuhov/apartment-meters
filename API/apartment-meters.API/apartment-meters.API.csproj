@@ -4,12 +4,14 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <RootNamespace>apartment_meters.API</RootNamespace>
+        <RootNamespace>API</RootNamespace>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="8.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.8" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     </ItemGroup>
 
@@ -20,12 +22,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Controllers\v1\" />
-      <Folder Include="ODataControllers\v1\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\apartment-meters.Application\apartment-meters.Application.csproj" />
+      <ProjectReference Include="..\apartment-meters.Infrastructure\apartment-meters.Infrastructure.csproj" />
+      <ProjectReference Include="..\apartment-meters.Persistence\apartment-meters.Persistence.csproj" />
     </ItemGroup>
 
 </Project>
