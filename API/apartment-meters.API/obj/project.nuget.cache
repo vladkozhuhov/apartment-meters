@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "S1D2mmIIkWA/r3baqNiSn3LyRK4Th4PlZlyMGgTqgSq1ZEqHvP6FJUZjmBTTRjOcPzX3ittgRd9GANOcbySqLw==",
+  "dgSpecHash": "71qyA4xJn4XaO/KJrYqTFColWgi8lD0brs2xhIac3kueq9qPxkcS5HProYiHmfZEOAN76jKvU3lvky0b5iQ+Aw==",
   "success": true,
   "projectFilePath": "C:\\Project\\FullStack\\apartment-meters\\API\\apartment-meters.API\\apartment-meters.API.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Владислав\\.nuget\\packages\\mediatr\\12.2.0\\mediatr.12.2.0.nupkg.sha512",
-    "C:\\Users\\Владислав\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
+    "C:\\Users\\Владислав\\.nuget\\packages\\mediatr\\11.0.0\\mediatr.11.0.0.nupkg.sha512",
+    "C:\\Users\\Владислав\\.nuget\\packages\\mediatr.contracts\\1.0.1\\mediatr.contracts.1.0.1.nupkg.sha512",
     "C:\\Users\\Владислав\\.nuget\\packages\\mediatr.extensions.microsoft.dependencyinjection\\11.0.0\\mediatr.extensions.microsoft.dependencyinjection.11.0.0.nupkg.sha512",
     "C:\\Users\\Владислав\\.nuget\\packages\\microsoft.aspnetcore.authentication.negotiate\\8.0.3\\microsoft.aspnetcore.authentication.negotiate.8.0.3.nupkg.sha512",
     "C:\\Users\\Владислав\\.nuget\\packages\\microsoft.aspnetcore.connections.abstractions\\8.0.3\\microsoft.aspnetcore.connections.abstractions.8.0.3.nupkg.sha512",

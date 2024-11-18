@@ -132,7 +132,7 @@
           "dependencies": {
             "MediatR": {
               "target": "Package",
-              "version": "[12.2.0, )"
+              "version": "[11.0.0, )"
             }
           },
           "imports": [
@@ -320,7 +320,7 @@
           "dependencies": {
             "MediatR": {
               "target": "Package",
-              "version": "[12.2.0, )"
+              "version": "[11.0.0, )"
             },
             "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
