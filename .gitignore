@@ -21,6 +21,9 @@ out/
 *.user
 *.userosscache
 *.sln.docstates
+*.AssemblyInfoInputs.cache
+*.nuget.cache
+*.csproj.nuget.*
 
 # Папки для временных файлов и кэша
 .vscode/
