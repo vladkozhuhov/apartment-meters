@@ -5,14 +5,24 @@ namespace Persistence.Contexts;
 
 public class ApplicationDbContext : DbContext
 {
-    public DbSet<User> Users { get; set; }
-    public DbSet<WaterMeterReading> WaterMeterReadings { get; set; }
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<MeterReading> MeterReadings { get; set; } = null!;
+    public DbSet<AdminAction> AdminActions { get; set; } = null!;
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<User>().HasIndex(u => u.ApartmentNumber).IsUnique();
+
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.MeterReadings)
+            .WithOne(mr => mr.User)
+            .HasForeignKey(mr => mr.UserId);
+
+        modelBuilder.Entity<AdminAction>()
+            .HasOne(aa => aa.Admin)
+            .WithMany()
+            .HasForeignKey(aa => aa.AdminId);
     }
 }

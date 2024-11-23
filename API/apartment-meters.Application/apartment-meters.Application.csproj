@@ -8,12 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Interfaces\Commands\" />
-      <Folder Include="Interfaces\Queries\" />
-      <Folder Include="Orders\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\apartment-meters.Domain\apartment-meters.Domain.csproj" />
     </ItemGroup>
 
