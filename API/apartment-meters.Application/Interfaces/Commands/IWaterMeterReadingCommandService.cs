@@ -1,4 +1,4 @@
-using Domain.Entities;
+using Application.Models;
 
 namespace Application.Interfaces.Commands;
 
@@ -10,7 +10,14 @@ public interface IWaterMeterReadingCommandService
     /// <summary>
     /// Добавить показание водомера
     /// </summary>
-    /// <param name="meterReading">Сущность показания водомера</param>
+    /// <param name="dto">Данные для добавления показания</param>
     /// <returns>Task</returns>
-    Task AddMeterReadingAsync(MeterReading meterReading);
+    Task AddMeterReadingAsync(AddWaterMeterReadingDto dto);
+    
+    /// <summary>
+    /// Удалить показание.
+    /// </summary>
+    /// <param name="id">Идентификатор показания</param>
+    /// <returns>Task</returns>
+    Task DeleteMeterReadingAsync(Guid id);
 }

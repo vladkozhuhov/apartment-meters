@@ -1,4 +1,5 @@
 using Application.Interfaces.Commands;
+using Application.Models;
 using Domain.Entities;
 using Domain.Repositories;
 
@@ -21,8 +22,30 @@ public class WaterMeterReadingCommandService : IWaterMeterReadingCommandService
     }
 
     /// <inheritdoc />
-    public async Task AddMeterReadingAsync(MeterReading meterReading)
+    public async Task AddMeterReadingAsync(AddWaterMeterReadingDto dto)
     {
+        var meterReading = new MeterReading
+        {
+            Id = Guid.NewGuid(),
+            UserId = dto.UserId,
+            ColdWaterValue = dto.ColdWaterValue,
+            HotWaterValue = dto.HotWaterValue,
+            ReadingDate = dto.ReadingDate,
+            CreatedAt = DateTime.UtcNow
+        };
+
         await _repository.AddAsync(meterReading);
+    }
+    
+    /// <inheritdoc />
+    public async Task DeleteMeterReadingAsync(Guid id)
+    {
+        var meterReading = await _repository.GetByIdAsync(id);
+        if (meterReading == null)
+        {
+            throw new KeyNotFoundException($"Показание с ID {id} не найдено.");
+        }
+
+        await _repository.DeleteAsync(meterReading);
     }
 }

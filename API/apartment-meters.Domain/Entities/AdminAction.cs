@@ -1,34 +1,37 @@
 namespace Domain.Entities;
 
+/// <summary>
+/// Сущность для представления действий администратора
+/// </summary>
 public class AdminAction
 {
     /// <summary>
-    /// Идентификатор груза
+    /// Уникальный идентификатор действия
     /// </summary>
     public Guid Id { get; set; }
-    
+
     /// <summary>
-    /// Идентификатор груза
+    /// Уникальный идентификатор администратора, совершившего действие
     /// </summary>
     public Guid AdminId { get; set; }
-    
+
     /// <summary>
-    /// Идентификатор груза
+    /// Тип действия (например, "Создание пользователя")
     /// </summary>
     public string ActionType { get; set; } = null!;
-    
+
     /// <summary>
-    /// Идентификатор груза
+    /// Детали действия (дополнительная информация о выполненной операции)
     /// </summary>
     public string ActionDetails { get; set; } = null!;
-    
+
     /// <summary>
-    /// Идентификатор груза
+    /// Дата и время совершения действия (UTC)
     /// </summary>
     public DateTime ActionDate { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// навигационное свойство
+    /// Связанный администратор (навигационное свойство)
     /// </summary>
     public User Admin { get; set; } = null!;
 }
