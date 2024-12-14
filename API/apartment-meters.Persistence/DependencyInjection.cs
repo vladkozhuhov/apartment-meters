@@ -19,7 +19,11 @@ public static class DependencyInjection
     {
         // Регистрация DbContext с использованием PostgreSQL
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("SecurityDb")));
+            options.UseNpgsql(
+                configuration.GetConnectionString("SecurityDb"),
+                b => b.MigrationsAssembly("apartment-meters.Persistence") // сборка для миграций
+            )
+        );
 
         // Регистрация репозитория
         services.AddScoped<IUserRepository, UserRepository>();

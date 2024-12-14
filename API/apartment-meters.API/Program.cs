@@ -1,6 +1,15 @@
+using Application.Interfaces.Commands;
+using Application.Interfaces.Queries;
+using Application.Orders.Commands;
+using Application.Orders.Queries;
+using Application.Services;
+using Domain.Repositories;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.EntityFrameworkCore;
 using Persistence;
+using Persistence.Contexts;
+using Persistence.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,21 +19,43 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-// builder.Services.AddInfrastructureServices(builder.Configuration);
-// builder.Services.AddPersistenceServices(builder.Configuration);
 
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
     .AddNegotiate();
 
 builder.Services.AddAuthorization(options =>
 {
-    // By default, all incoming requests will be authorized according to the default policy.
     options.FallbackPolicy = options.DefaultPolicy;
 });
 
-// Настройка подключения к PostgreSQL и другим сервисам
+#region Настройка подключения к PostgreSQL и другим сервисам
+
 builder.Services.AddPersistenceServices(builder.Configuration);
-builder.Services.AddInfrastructureServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("SecurityDb")));
+
+#endregion
+
+#region Register repositories
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IWaterMeterReadingRepository, WaterMeterReadingRepository>();
+
+#endregion
+
+#region Register services
+
+builder.Services.AddScoped<IUserCommandService, UserCommandService>();
+builder.Services.AddScoped<IUserQueryService, UserQueryService>();
+
+builder.Services.AddScoped<IWaterMeterReadingCommandService, WaterMeterReadingCommandService>();
+builder.Services.AddScoped<IWaterMeterReadingQueryService, WaterMeterReadingQueryService>();
+
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+
+#endregion
 
 var app = builder.Build();
 

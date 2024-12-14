@@ -5,11 +5,11 @@ namespace Persistence.Contexts;
 
 public class ApplicationDbContext : DbContext
 {
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+    
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<MeterReading> MeterReadings { get; set; } = null!;
     public DbSet<AdminAction> AdminActions { get; set; } = null!;
-
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

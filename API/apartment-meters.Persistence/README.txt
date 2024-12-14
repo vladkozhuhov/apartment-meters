@@ -1,9 +1,22 @@
-#обновить/создать бд
-dotnet ef database update -c apartment-meters.API.Persistence.Contexts.ApplicationDbContext --project apartment-meters.API
+#Обновить/создать бд
+dotnet ef database update --project apartment-meters.Persistence --startup-project apartment-meters.API
 
-#добавить миграцию
-dotnet ef migrations add CreateCategoryTable -c apartment-meters.API.Persistence.Contexts.ApplicationDbContext --project apartment-meters.API
-dotnet ef migration add CreateCategoryTable
+#Добавить миграцию
+dotnet ef migrations add InitialCreate -c ApplicationDbContext --project apartment-meters.Persistence --startup-project apartment-meters.API --output-dir Migrations
 
-#удалить миграцию
+#Удалить миграцию
 dotnet ef migrations remove
+
+
+
+
+
+
+#Добавление пользователя
+{
+  "apartmentNumber": 128,
+  "fullName": "ГАГАБУДЖА",
+  "password": "128128",
+  "phoneNumber": "1234123443",
+  "role": 0
+}

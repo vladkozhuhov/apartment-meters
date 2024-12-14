@@ -13,10 +13,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\apartment-meters.Application\apartment-meters.Application.csproj" />
+      <ProjectReference Include="..\apartment-meters.Persistence\apartment-meters.Persistence.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
     </ItemGroup>
 
 </Project>
