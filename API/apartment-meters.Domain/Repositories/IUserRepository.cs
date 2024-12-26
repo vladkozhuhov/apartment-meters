@@ -25,7 +25,7 @@ public interface IUserRepository
     /// </summary>
     /// <param name="user">Пользователь для добавления</param>
     /// <returns>Задача, которая завершится после добавления</returns>
-    Task AddAsync(User user);
+    Task<User> AddAsync(User user);
 
     /// <summary>
     /// Обновить информацию о пользователе

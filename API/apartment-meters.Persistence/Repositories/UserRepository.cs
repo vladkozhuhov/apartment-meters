@@ -39,16 +39,19 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users.ToListAsync();
     }
+    
 
     /// <summary>
     /// Добавить нового пользователя
     /// </summary>
     /// <param name="user">Пользователь для добавления</param>
     /// <returns>Задача, которая завершится после добавления</returns>
-    public async Task AddAsync(User user)
+    public async Task<User> AddAsync(User user)
     {
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
+
+        return user;
     }
 
     /// <summary>

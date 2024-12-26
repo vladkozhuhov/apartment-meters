@@ -22,10 +22,11 @@ public class UserCommandService : IUserCommandService
     }
 
     /// <inheritdoc />
-    public async Task<Guid> AddUserAsync(AddUserDto dto)
+    public async Task<User> AddUserAsync(AddUserDto dto)
     {
         var user = new User
         {
+            Id = Guid.NewGuid(),
             FullName = dto.FullName,
             ApartmentNumber = dto.ApartmentNumber,
             Password = dto.Password,
@@ -34,7 +35,13 @@ public class UserCommandService : IUserCommandService
         };
 
         await _userRepository.AddAsync(user);
-        return user.Id;
+        return user;
+    }
+    
+    /// <inheritdoc />
+    public async Task<User?> GetUserByIdAsync(Guid id)
+    {
+        return await _userRepository.GetByIdAsync(id);
     }
 
     /// <inheritdoc />

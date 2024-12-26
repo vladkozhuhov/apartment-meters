@@ -1,4 +1,5 @@
 using Application.Models;
+using Domain.Entities;
 
 namespace Application.Interfaces.Commands;
 
@@ -12,8 +13,15 @@ public interface IUserCommandService
     /// </summary>
     /// <param name="dto">DTO с данными нового пользователя</param>
     /// <returns>Идентификатор добавленного пользователя</returns>
-    Task<Guid> AddUserAsync(AddUserDto dto);
+    Task<User> AddUserAsync(AddUserDto dto);
 
+    /// <summary>
+    /// Получить данные пользователя по идентификатору
+    /// </summary>
+    /// <param name="id">Идентификатор пользователя</param>
+    /// <returns>Задача, содержащая данные пользователя или null, если пользователь не найден</returns>
+    Task<User> GetUserByIdAsync(Guid id);
+    
     /// <summary>
     /// Обновить данные пользователя.
     /// </summary>

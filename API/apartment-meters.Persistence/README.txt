@@ -11,11 +11,31 @@ dotnet ef migrations remove
 
 
 
-
 #Добавление пользователя
 {
-  "apartmentNumber": 128,
+  "apartmentNumber": 90,
   "fullName": "ГАГАБУДЖА",
+  "password": "128128",
+  "phoneNumber": "1234123443",
+  "role": 0
+}
+{
+  "apartmentNumber": 33,
+  "fullName": "лдлаовылдлыв",
+  "password": "128128",
+  "phoneNumber": "1234123443",
+  "role": 0
+}
+{
+  "apartmentNumber": 55,
+  "fullName": "1234пппп",
+  "password": "128128",
+  "phoneNumber": "1234123443",
+  "role": 0
+}
+{
+  "apartmentNumber": 120,
+  "fullName": "ПУПУПУ",
   "password": "128128",
   "phoneNumber": "1234123443",
   "role": 0
