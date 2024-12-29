@@ -23,16 +23,16 @@ public interface IWaterMeterReadingRepository
     /// <summary>
     /// Получить показание по идентификатору
     /// </summary>
-    /// <param name="id">Идентификатор показания</param>
+    /// <param name="id">Идентификатор показании водомеров</param>
     /// <returns>Показание водомера</returns>
     Task<MeterReading?> GetByIdAsync(Guid id);
 
     /// <summary>
-    /// Получить список всех показаний для пользователя
+    /// Получить список всех показаний водомеров для пользователя
     /// </summary>
-    /// <param name="userId">Идентификатор пользователя</param>
-    /// <returns>Список показаний</returns>
-    Task<IEnumerable<MeterReading>> GetByUserIdAsync(Guid userId);
+    /// <param name="meterReading">Обновленная информация о показании водомеров</param>
+    /// <returns>Список показаний водомеров</returns>
+    Task UpdateAsync(MeterReading meterReading);
 
     /// <summary>
     /// Удалить показание водомера

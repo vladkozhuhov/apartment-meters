@@ -16,6 +16,12 @@ public interface IUserCommandService
     Task<User> AddUserAsync(AddUserDto dto);
 
     /// <summary>
+    /// Получить всех пользователей
+    /// </summary>
+    /// <returns>Коллекция пользователей</returns>
+    Task<IEnumerable<User>> GetAllUsersAsync();
+    
+    /// <summary>
     /// Получить данные пользователя по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор пользователя</param>
@@ -23,7 +29,7 @@ public interface IUserCommandService
     Task<User> GetUserByIdAsync(Guid id);
     
     /// <summary>
-    /// Обновить данные пользователя.
+    /// Обновить данные пользователя
     /// </summary>
     /// <param name="dto">DTO с обновленными данными пользователя</param>
     /// <returns>Task для отслеживания операции</returns>

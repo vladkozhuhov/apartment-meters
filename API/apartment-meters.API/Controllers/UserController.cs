@@ -14,16 +14,13 @@ public class UserController : ControllerBase
 {
     private readonly IUserCommandService _commandService;
     private readonly IUserQueryService _queryService;
-
-
+    
     /// <summary>
-    /// Конструктор контроллера.
+    /// Конструктор контроллера
     /// </summary>
     /// <param name="commandService">Сервис для выполнения команд над пользователями</param>
     /// <param name="queryService">Сервис для выполнения запросов о пользователях</param>
-    public UserController(
-        IUserCommandService commandService, 
-        IUserQueryService queryService)
+    public UserController(IUserCommandService commandService, IUserQueryService queryService)
     {
         _commandService = commandService;
         _queryService = queryService;

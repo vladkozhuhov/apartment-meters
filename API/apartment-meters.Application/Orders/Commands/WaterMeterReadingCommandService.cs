@@ -10,7 +10,7 @@ namespace Application.Orders.Commands;
 /// </summary>
 public class WaterMeterReadingCommandService : IWaterMeterReadingCommandService
 {
-    private readonly IWaterMeterReadingRepository _repository;
+    private readonly IWaterMeterReadingRepository _waterMeterReadingRepository;
 
     /// <summary>
     /// Конструктор сервиса
@@ -18,11 +18,11 @@ public class WaterMeterReadingCommandService : IWaterMeterReadingCommandService
     /// <param name="repository">Репозиторий показаний водомеров</param>
     public WaterMeterReadingCommandService(IWaterMeterReadingRepository repository)
     {
-        _repository = repository;
+        _waterMeterReadingRepository = repository;
     }
 
     /// <inheritdoc />
-    public async Task AddMeterReadingAsync(AddWaterMeterReadingDto dto)
+    public async Task<MeterReading> AddMeterReadingAsync(AddWaterMeterReadingDto dto)
     {
         var meterReading = new MeterReading
         {
@@ -34,18 +34,45 @@ public class WaterMeterReadingCommandService : IWaterMeterReadingCommandService
             CreatedAt = DateTime.UtcNow
         };
 
-        await _repository.AddAsync(meterReading);
+        await _waterMeterReadingRepository.AddAsync(meterReading);
+        return meterReading;
+    }
+    
+    /// <inheritdoc />
+    public async Task<MeterReading?> GetMeterReadingByIdAsync(Guid id)
+    {
+        return await _waterMeterReadingRepository.GetByIdAsync(id);
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<MeterReading>> GetAllMeterReadingAsync()
+    {
+        return await _waterMeterReadingRepository.GetAllAsync();
+    }
+    
+    /// <inheritdoc />
+    public async Task UpdateMeterReadingAsync(UpdateWaterMeterReadingDto dto)
+    {
+        var waterReading = await _waterMeterReadingRepository.GetByIdAsync(dto.UserId);
+        if (waterReading == null)
+            throw new KeyNotFoundException($"MeterReading with user ID {dto.UserId} not found");
+
+        waterReading.ColdWaterValue = dto.ColdWaterValue;
+        waterReading.HotWaterValue = dto.HotWaterValue;
+        waterReading.ReadingDate = dto.ReadingDate;
+
+        await _waterMeterReadingRepository.UpdateAsync(waterReading);
     }
     
     /// <inheritdoc />
     public async Task DeleteMeterReadingAsync(Guid id)
     {
-        var meterReading = await _repository.GetByIdAsync(id);
+        var meterReading = await _waterMeterReadingRepository.GetByIdAsync(id);
         if (meterReading == null)
         {
             throw new KeyNotFoundException($"Показание с ID {id} не найдено.");
         }
 
-        await _repository.DeleteAsync(meterReading);
+        await _waterMeterReadingRepository.DeleteAsync(meterReading);
     }
 }

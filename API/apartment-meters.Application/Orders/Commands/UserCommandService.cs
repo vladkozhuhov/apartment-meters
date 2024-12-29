@@ -45,6 +45,12 @@ public class UserCommandService : IUserCommandService
     }
 
     /// <inheritdoc />
+    public async Task<IEnumerable<User>> GetAllUsersAsync()
+    {
+        return await _userRepository.GetAllAsync();
+    }
+    
+    /// <inheritdoc />
     public async Task UpdateUserAsync(UpdateUserDto dto)
     {
         var user = await _userRepository.GetByIdAsync(dto.Id);

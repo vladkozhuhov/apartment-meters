@@ -10,15 +10,15 @@ namespace Persistence.Repositories;
 /// </summary>
 public class UserRepository : IUserRepository
 {
-    private readonly ApplicationDbContext _context;
+    private readonly ApplicationDbContext _dbContext;
 
     /// <summary>
     /// Конструктор репозитория
     /// </summary>
-    /// <param name="context">Контекст базы данных</param>
-    public UserRepository(ApplicationDbContext context)
+    /// <param name="dbContext">Контекст базы данных</param>
+    public UserRepository(ApplicationDbContext dbContext)
     {
-        _context = context;
+        _dbContext = dbContext;
     }
 
     /// <summary>
@@ -28,7 +28,7 @@ public class UserRepository : IUserRepository
     /// <returns>Пользователь или null, если не найден</returns>
     public async Task<User?> GetByIdAsync(Guid id)
     {
-        return await _context.Users.FindAsync(id);
+        return await _dbContext.Users.FindAsync(id);
     }
 
     /// <summary>
@@ -37,9 +37,8 @@ public class UserRepository : IUserRepository
     /// <returns>Список всех пользователей</returns>
     public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await _context.Users.ToListAsync();
+        return await _dbContext.Users.ToListAsync();
     }
-    
 
     /// <summary>
     /// Добавить нового пользователя
@@ -48,8 +47,8 @@ public class UserRepository : IUserRepository
     /// <returns>Задача, которая завершится после добавления</returns>
     public async Task<User> AddAsync(User user)
     {
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
+        await _dbContext.Users.AddAsync(user);
+        await _dbContext.SaveChangesAsync();
 
         return user;
     }
@@ -61,8 +60,8 @@ public class UserRepository : IUserRepository
     /// <returns>Задача, которая завершится после обновления</returns>
     public async Task UpdateAsync(User user)
     {
-        _context.Users.Update(user);
-        await _context.SaveChangesAsync();
+        _dbContext.Users.Update(user);
+        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -72,8 +71,8 @@ public class UserRepository : IUserRepository
     /// <returns>Задача, которая завершится после удаления</returns>
     public async Task DeleteAsync(User user)
     {
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
+        _dbContext.Users.Remove(user);
+        await _dbContext.SaveChangesAsync();
     }
     
     /// <summary>
@@ -83,6 +82,6 @@ public class UserRepository : IUserRepository
     /// <returns>Получение пользователя по номеру квартиры</returns>
     public async Task<User?> GetByApartmentNumberAsync(int apartmentNumber)
     {
-        return await _context.Users.FirstOrDefaultAsync(u => u.ApartmentNumber == apartmentNumber);
+        return await _dbContext.Users.FirstOrDefaultAsync(u => u.ApartmentNumber == apartmentNumber);
     }
 }

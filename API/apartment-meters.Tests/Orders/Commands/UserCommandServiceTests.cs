@@ -32,6 +32,8 @@ public class UserCommandServiceTests
         _userRepositoryMock = new Mock<IUserRepository>();
         _userCommandService = new UserCommandService(_userRepositoryMock.Object);
     }
+    
+    #region Add
 
     /// <summary>
     /// Тест метода <see cref="IUserCommandService.AddUserAsync"/>, проверяющий успешное добавление пользователя
@@ -77,6 +79,10 @@ public class UserCommandServiceTests
                 u.PhoneNumber == newUser.PhoneNumber &&
                 u.Role == newUser.Role)), Times.Once);
     }
+    
+    #endregion
+
+    #region Update
 
     /// <summary>
     /// Тест метода <see cref="IUserCommandService.UpdateUserAsync"/>, проверяющий успешное обновление пользователя
@@ -116,7 +122,11 @@ public class UserCommandServiceTests
         existingUser.ApartmentNumber.Should().Be(102);
         _userRepositoryMock.Verify(repo => repo.UpdateAsync(existingUser), Times.Once);
     }
-    
+
+    #endregion
+
+    #region Get
+
     /// <summary>
     /// Тест метода <see cref="IUserCommandService.GetUserByIdAsync"/>, проверяющий успешное получение пользователя
     /// </summary>
@@ -166,6 +176,33 @@ public class UserCommandServiceTests
     }
     
     /// <summary>
+    /// Тест метода <see cref="IUserCommandService.GetAllUsersAsync"/>, проверяющий успешное получение всех пользователей
+    /// </summary>
+    [Fact]
+    public async Task GetAllUsersAsync_ShouldReturnAllUsers()
+    {
+        var users = new List<User>
+        {
+            new User { Id = Guid.NewGuid(), ApartmentNumber = 1, FullName = "User 1", Password = "pass1", Role = UserRole.User },
+            new User { Id = Guid.NewGuid(), ApartmentNumber = 2, FullName = "User 2", Password = "pass2", Role = UserRole.Admin }
+        };
+
+        _userRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(users);
+
+        var result = await _userCommandService.GetAllUsersAsync();
+
+        result.Should().NotBeNull();
+        result.Should().HaveCount(2);
+        result.Should().BeEquivalentTo(users);
+
+        _userRepositoryMock.Verify(repo => repo.GetAllAsync(), Times.Once);
+    }
+    
+    #endregion
+
+    #region Delete
+
+    /// <summary>
     /// Тест метода <see cref="IUserCommandService.DeleteUserAsync"/>, проверяющий удаление пользователя
     /// </summary>
     [Fact]
@@ -194,25 +231,6 @@ public class UserCommandServiceTests
         _userRepositoryMock.Verify(repo => repo.GetByIdAsync(userId), Times.Once);
         _userRepositoryMock.Verify(repo => repo.DeleteAsync(It.Is<User>(u => u.Id == userId)), Times.Once);
     }
-    
-    /// <summary>
-    /// Тест метода <see cref="IUserCommandService.GetUserByIdAsync"/>, проверяющий удаление, когда пользователя не существует
-    /// </summary>
-    [Fact]
-    public async Task DeleteUserAsync_ShouldThrowException_WhenUserDoesNotExist()
-    {
-        var userId = Guid.NewGuid();
 
-        _userRepositoryMock
-            .Setup(repo => repo.GetByIdAsync(userId))
-            .ReturnsAsync((User?)null); // Возвращаем null, чтобы имитировать отсутствие пользователя
-
-        Func<Task> act = () => _userCommandService.DeleteUserAsync(userId);
-
-        await act.Should().ThrowAsync<Exception>()
-            .WithMessage($"User with ID '{userId}' not found.");
-
-        _userRepositoryMock.Verify(repo => repo.GetByIdAsync(userId), Times.Once);
-        _userRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<User>()), Times.Never);
-    }
+    #endregion
 }

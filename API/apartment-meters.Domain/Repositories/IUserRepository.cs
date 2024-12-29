@@ -8,24 +8,24 @@ namespace Domain.Repositories;
 public interface IUserRepository
 {
     /// <summary>
-    /// Получить пользователя по идентификатору
-    /// </summary>
-    /// <param name="id">Идентификатор пользователя</param>
-    /// <returns>Пользователь или null, если не найден</returns>
-    Task<User?> GetByIdAsync(Guid id);
-
-    /// <summary>
-    /// Получить всех пользователей
-    /// </summary>
-    /// <returns>Список пользователей</returns>
-    Task<IEnumerable<User>> GetAllAsync();
-
-    /// <summary>
     /// Добавить нового пользователя
     /// </summary>
     /// <param name="user">Пользователь для добавления</param>
     /// <returns>Задача, которая завершится после добавления</returns>
     Task<User> AddAsync(User user);
+    
+    /// <summary>
+    /// Получить всех пользователей
+    /// </summary>
+    /// <returns>Список пользователей</returns>
+    Task<IEnumerable<User>> GetAllAsync();
+    
+    /// <summary>
+    /// Получить пользователя по идентификатору
+    /// </summary>
+    /// <param name="id">Идентификатор пользователя</param>
+    /// <returns>Пользователь или null, если не найден</returns>
+    Task<User?> GetByIdAsync(Guid id);
 
     /// <summary>
     /// Обновить информацию о пользователе

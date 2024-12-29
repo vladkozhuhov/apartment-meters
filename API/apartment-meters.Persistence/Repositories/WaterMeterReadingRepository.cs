@@ -42,11 +42,10 @@ public class WaterMeterReadingRepository : IWaterMeterReadingRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<MeterReading>> GetByUserIdAsync(Guid userId)
+    public async Task UpdateAsync(MeterReading meterReading)
     {
-        return await _dbContext.MeterReadings
-            .Where(x => x.UserId == userId)
-            .ToListAsync();
+        _dbContext.MeterReadings.Remove(meterReading);
+        await _dbContext.SaveChangesAsync();
     }
 
     /// <inheritdoc />
