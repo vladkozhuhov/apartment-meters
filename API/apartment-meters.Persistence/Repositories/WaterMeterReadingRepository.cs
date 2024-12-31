@@ -22,10 +22,12 @@ public class WaterMeterReadingRepository : IWaterMeterReadingRepository
     }
 
     /// <inheritdoc />
-    public async Task AddAsync(MeterReading meterReading)
+    public async Task<MeterReading> AddAsync(MeterReading meterReading)
     {
         await _dbContext.MeterReadings.AddAsync(meterReading);
         await _dbContext.SaveChangesAsync();
+
+        return meterReading;
     }
     
     /// <inheritdoc />

@@ -12,7 +12,7 @@ public interface IWaterMeterReadingRepository
     /// </summary>
     /// <param name="meterReading">Сущность показания водомера</param>
     /// <returns>Task</returns>
-    Task AddAsync(MeterReading meterReading);
+    Task<MeterReading> AddAsync(MeterReading meterReading);
 
     /// <summary>
     /// Получить все показания водомеров
