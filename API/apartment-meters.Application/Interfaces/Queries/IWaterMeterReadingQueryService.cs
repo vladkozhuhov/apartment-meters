@@ -10,13 +10,13 @@ public interface IWaterMeterReadingQueryService
     /// <summary>
     /// Получить все показания водомеров
     /// </summary>
-    /// <returns>Список показаний водомеров</returns>
-    Task<IEnumerable<MeterReading>> GetAllMeterReadingsAsync();
+    /// <returns>Коллекция показаний водомеров</returns>
+    Task<IEnumerable<MeterReading>> GetAllMeterReadingAsync();
 
     /// <summary>
-    /// Получить показание водомера по идентификатору
+    /// Получить данные показания водомеров по идентификатору
     /// </summary>
-    /// <param name="id">Идентификатор показания</param>
-    /// <returns>Сущность показания водомера</returns>
-    Task<MeterReading?> GetMeterReadingByIdAsync(Guid id);
+    /// <param name="userId">Идентификатор пользователя</param>
+    /// <returns>Задача, содержащая данные показания водомеров или null, если показания водомеров не найден</returns>
+    Task<MeterReading> GetMeterReadingByUserIdAsync(Guid userId);
 }

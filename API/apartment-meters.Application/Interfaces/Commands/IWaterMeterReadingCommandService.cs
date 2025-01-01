@@ -16,19 +16,6 @@ public interface IWaterMeterReadingCommandService
     Task<MeterReading> AddMeterReadingAsync(AddWaterMeterReadingDto dto);
     
     /// <summary>
-    /// Получить все показания водомеров
-    /// </summary>
-    /// <returns>Коллекция показаний водомеров</returns>
-    Task<IEnumerable<MeterReading>> GetAllMeterReadingAsync();
-    
-    /// <summary>
-    /// Получить данные показания водомеров по идентификатору
-    /// </summary>
-    /// <param name="id">Идентификатор пользователя</param>
-    /// <returns>Задача, содержащая данные показания водомеров или null, если показания водомеров не найден</returns>
-    Task<MeterReading> GetMeterReadingByIdAsync(Guid id);
-    
-    /// <summary>
     /// Обновить данные пользователя
     /// </summary>
     /// <param name="dto">DTO с обновленными данными пользователя</param>

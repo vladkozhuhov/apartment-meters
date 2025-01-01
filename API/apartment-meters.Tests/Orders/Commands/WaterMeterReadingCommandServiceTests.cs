@@ -1,4 +1,5 @@
 using Application.Interfaces.Commands;
+using Application.Interfaces.Queries;
 using Application.Models;
 using Application.Orders.Commands;
 using Domain.Entities;
@@ -22,6 +23,11 @@ public class WaterMeterReadingCommandServiceTests
     /// Сервис для выполнения команд водомеров
     /// </summary>
     private readonly IWaterMeterReadingCommandService _waterMeterReadingCommandService;
+    
+    /// <summary>
+    /// Сервис для извлечения данных водомеров
+    /// </summary>
+    private readonly IWaterMeterReadingQueryService _waterMeterReadingQueryService;
 
     /// <summary>
     /// Инициализация тестового класса <see cref="WaterMeterReadingCommandServiceTests"/>
@@ -118,10 +124,10 @@ public class WaterMeterReadingCommandServiceTests
     #region Update
 
     /// <summary>
-    /// Тест метода <see cref="IWaterMeterReadingCommandService.GetMeterReadingByIdAsync"/>, проверяющий успешное получение показателей водомеров
+    /// Тест метода <see cref="IWaterMeterReadingCommandService.GetMeterReadingByUserIdAsync"/>, проверяющий успешное получение показателей водомеров по пользователю
     /// </summary>
     [Fact]
-    public async Task GetWaterMeterReadingByIdAsync_Should_Return_WaterMeterReading_When_Exists()
+    public async Task GetWaterMeterReadingByUserIdAsync_Should_Return_WaterMeterReading_When_Exists()
     {
         var userId = Guid.NewGuid();
         var existingWaterMeterReading = new MeterReading
@@ -136,7 +142,7 @@ public class WaterMeterReadingCommandServiceTests
             .Setup(repo => repo.GetByIdAsync(userId))
             .ReturnsAsync(existingWaterMeterReading);
 
-        var result = await _waterMeterReadingCommandService.GetMeterReadingByIdAsync(userId);
+        var result = await _waterMeterReadingQueryService.GetMeterReadingByUserIdAsync(userId);
 
         result.Should().NotBeNull();
         result.Id.Should().Be(userId);
@@ -146,10 +152,10 @@ public class WaterMeterReadingCommandServiceTests
     }
     
     /// <summary>
-    /// Тест метода <see cref="IWaterMeterReadingCommandService.GetMeterReadingByIdAsync"/>, проверяющий отсутствие показателей водомеров
+    /// Тест метода <see cref="IWaterMeterReadingCommandService.GetMeterReadingByUserIdAsync"/>, проверяющий отсутствие показателей водомеров по пользователю
     /// </summary>
     [Fact]
-    public async Task GetWaterMeterReadingByIdAsync_Should_Return_Null_When_WaterMeterReading_Does_Not_Exist()
+    public async Task GetWaterMeterReadingByUserIdAsync_Should_Return_Null_When_WaterMeterReading_Does_Not_Exist()
     {
         var userId = Guid.NewGuid();
 
@@ -157,7 +163,7 @@ public class WaterMeterReadingCommandServiceTests
             .Setup(repo => repo.GetByIdAsync(userId))
             .ReturnsAsync((MeterReading)null);
 
-        var result = await _waterMeterReadingCommandService.GetMeterReadingByIdAsync(userId);
+        var result = await _waterMeterReadingQueryService.GetMeterReadingByUserIdAsync(userId);
 
         result.Should().BeNull();
         _waterMeterReadingRepositoryMock.Verify(repo => repo.GetByIdAsync(userId), Times.Once);
@@ -177,7 +183,7 @@ public class WaterMeterReadingCommandServiceTests
 
         _waterMeterReadingRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(waterMeterReading);
 
-        var result = await _waterMeterReadingCommandService.GetAllMeterReadingAsync();
+        var result = await _waterMeterReadingQueryService.GetAllMeterReadingAsync();
 
         result.Should().NotBeNull();
         result.Should().HaveCount(2);

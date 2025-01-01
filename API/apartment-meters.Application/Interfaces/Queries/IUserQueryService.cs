@@ -1,4 +1,5 @@
 using Application.Models;
+using Domain.Entities;
 
 namespace Application.Interfaces.Queries;
 
@@ -10,13 +11,13 @@ public interface IUserQueryService
     /// <summary>
     /// Получить всех пользователей
     /// </summary>
-    /// <returns>Список пользователей в формате UserDto</returns>
-    Task<IEnumerable<UserDto>> GetUsersAsync();
-
+    /// <returns>Коллекция пользователей</returns>
+    Task<IEnumerable<User>> GetAllUsersAsync();
+    
     /// <summary>
-    /// Получить пользователя по идентификатору
+    /// Получить данные пользователя по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор пользователя</param>
-    /// <returns>Данные пользователя в формате UserDto</returns>
-    Task<UserDto> GetUserByIdAsync(Guid id);
+    /// <returns>Задача, содержащая данные пользователя или null, если пользователь не найден</returns>
+    Task<User> GetUserByIdAsync(Guid id);
 }

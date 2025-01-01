@@ -39,18 +39,6 @@ public class WaterMeterReadingCommandService : IWaterMeterReadingCommandService
     }
     
     /// <inheritdoc />
-    public async Task<MeterReading?> GetMeterReadingByIdAsync(Guid id)
-    {
-        return await _waterMeterReadingRepository.GetByIdAsync(id);
-    }
-
-    /// <inheritdoc />
-    public async Task<IEnumerable<MeterReading>> GetAllMeterReadingAsync()
-    {
-        return await _waterMeterReadingRepository.GetAllAsync();
-    }
-    
-    /// <inheritdoc />
     public async Task UpdateMeterReadingAsync(UpdateWaterMeterReadingDto dto)
     {
         var waterReading = await _waterMeterReadingRepository.GetByIdAsync(dto.UserId);

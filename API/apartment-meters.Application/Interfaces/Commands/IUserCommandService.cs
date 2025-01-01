@@ -14,19 +14,6 @@ public interface IUserCommandService
     /// <param name="dto">DTO с данными нового пользователя</param>
     /// <returns>Идентификатор добавленного пользователя</returns>
     Task<User> AddUserAsync(AddUserDto dto);
-
-    /// <summary>
-    /// Получить всех пользователей
-    /// </summary>
-    /// <returns>Коллекция пользователей</returns>
-    Task<IEnumerable<User>> GetAllUsersAsync();
-    
-    /// <summary>
-    /// Получить данные пользователя по идентификатору
-    /// </summary>
-    /// <param name="id">Идентификатор пользователя</param>
-    /// <returns>Задача, содержащая данные пользователя или null, если пользователь не найден</returns>
-    Task<User> GetUserByIdAsync(Guid id);
     
     /// <summary>
     /// Обновить данные пользователя

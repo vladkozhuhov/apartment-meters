@@ -1,4 +1,5 @@
 using Application.Interfaces.Commands;
+using Application.Interfaces.Queries;
 using Application.Models;
 using Application.Orders.Commands;
 using Domain.Entities;
@@ -23,6 +24,11 @@ public class UserCommandServiceTests
     /// Сервис для выполнения команд пользователей
     /// </summary>
     private readonly IUserCommandService _userCommandService;
+    
+    /// <summary>
+    /// Сервис для выполнения команд пользователей
+    /// </summary>
+    private readonly IUserQueryService _userQueryService;
 
     /// <summary>
     /// Инициализация тестового класса <see cref="UserCommandServiceTests"/>
@@ -128,7 +134,7 @@ public class UserCommandServiceTests
     #region Get
 
     /// <summary>
-    /// Тест метода <see cref="IUserCommandService.GetUserByIdAsync"/>, проверяющий успешное получение пользователя
+    /// Тест метода <see cref="IUserQueryService.GetUserByIdAsync"/>, проверяющий успешное получение пользователя
     /// </summary>
     [Fact]
     public async Task GetUserByIdAsync_Should_Return_User_When_Exists()
@@ -148,7 +154,7 @@ public class UserCommandServiceTests
             .Setup(repo => repo.GetByIdAsync(userId))
             .ReturnsAsync(existingUser);
 
-        var result = await _userCommandService.GetUserByIdAsync(userId);
+        var result = await _userQueryService.GetUserByIdAsync(userId);
 
         result.Should().NotBeNull();
         result.Id.Should().Be(userId);
@@ -158,7 +164,7 @@ public class UserCommandServiceTests
     }
     
     /// <summary>
-    /// Тест метода <see cref="IUserCommandService.GetUserByIdAsync"/>, проверяющий отсутствие пользователя
+    /// Тест метода <see cref="IUserQueryService.GetUserByIdAsync"/>, проверяющий отсутствие пользователя
     /// </summary>
     [Fact]
     public async Task GetUserByIdAsync_Should_Return_Null_When_User_Does_Not_Exist()
@@ -169,14 +175,14 @@ public class UserCommandServiceTests
             .Setup(repo => repo.GetByIdAsync(userId))
             .ReturnsAsync((User)null);
 
-        var result = await _userCommandService.GetUserByIdAsync(userId);
+        var result = await _userQueryService.GetUserByIdAsync(userId);
 
         result.Should().BeNull();
         _userRepositoryMock.Verify(repo => repo.GetByIdAsync(userId), Times.Once);
     }
     
     /// <summary>
-    /// Тест метода <see cref="IUserCommandService.GetAllUsersAsync"/>, проверяющий успешное получение всех пользователей
+    /// Тест метода <see cref="IUserQueryService.GetAllUsersAsync"/>, проверяющий успешное получение всех пользователей
     /// </summary>
     [Fact]
     public async Task GetAllUsersAsync_ShouldReturnAllUsers()
@@ -189,7 +195,7 @@ public class UserCommandServiceTests
 
         _userRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(users);
 
-        var result = await _userCommandService.GetAllUsersAsync();
+        var result = await _userQueryService.GetAllUsersAsync();
 
         result.Should().NotBeNull();
         result.Should().HaveCount(2);

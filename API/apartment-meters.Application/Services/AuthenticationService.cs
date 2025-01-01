@@ -23,13 +23,11 @@ public class AuthenticationService : IAuthenticationService
     /// <returns>Признак успешной авторизации</returns>
     public async Task<bool> LoginAsync(LoginDto loginDto)
     {
-        // Поиск пользователя по номеру квартиры
         var user = await _userRepository.GetByApartmentNumberAsync(loginDto.ApartmentNumber);
 
-        if (user == null)
+        if (user == null || user.Password != loginDto.Password)
             return false;
 
-        // Проверка пароля
-        return user.Password == loginDto.Password;
+        return true;
     }
 }

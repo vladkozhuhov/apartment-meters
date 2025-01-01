@@ -27,31 +27,44 @@ public class UserController : ControllerBase
     }
 
     /// <summary>
+    /// Получить пользователя по идентификатору
+    /// </summary>
+    /// <returns>Список пользователей</returns>
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetUserById(Guid id)
+    {
+        var user = await _queryService.GetUserByIdAsync(id);
+        return user != null ? Ok(user) : NotFound("User not found");
+    }
+    
+    /// <summary>
     /// Получить список всех пользователей
     /// </summary>
     /// <returns>Список пользователей</returns>
     [HttpGet]
-    public async Task<IActionResult> GetUsers()
+    public async Task<IActionResult> GetAllUser()
     {
-        var users = await _queryService.GetUsersAsync();
-        return Ok(users);
+        var user = await _queryService.GetAllUsersAsync();
+        return user != null ? Ok(user) : NotFound("User not found");
     }
 
     /// <summary>
     /// Добавить нового пользователя
     /// </summary>
     /// <param name="addUserDto">Данные нового пользователя</param>
+    /// <returns>Нового пользователя</returns>
     [HttpPost]
     public async Task<IActionResult> AddUser([FromBody] AddUserDto addUserDto)
     {
         await _commandService.AddUserAsync(addUserDto);
-        return CreatedAtAction(nameof(GetUsers), new { id = addUserDto.FullName }, addUserDto);
+        return CreatedAtAction(nameof(GetUserById), new { id = addUserDto.FullName }, addUserDto);
     }
 
     /// <summary>
     /// Обновить данные пользователя
     /// </summary>
     /// <param name="updateUserDto">Обновленные данные пользователя</param>
+    /// <returns>Результат операции</returns>
     [HttpPut]
     public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDto updateUserDto)
     {
@@ -63,6 +76,7 @@ public class UserController : ControllerBase
     /// Удалить пользователя по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор пользователя</param>
+    /// <returns>Результат операции</returns>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {

@@ -9,26 +9,26 @@ namespace Application.Orders.Queries;
 /// </summary>
 public class WaterMeterReadingQueryService : IWaterMeterReadingQueryService
 {
-    private readonly IWaterMeterReadingRepository _repository;
+    private readonly IWaterMeterReadingRepository _waterMeterReadingRepository;
 
     /// <summary>
     /// Конструктор сервиса
     /// </summary>
     /// <param name="repository">Репозиторий показаний водомеров</param>
-    public WaterMeterReadingQueryService(IWaterMeterReadingRepository repository)
+    public WaterMeterReadingQueryService(IWaterMeterReadingRepository waterMeterReadingRepository)
     {
-        _repository = repository;
+        _waterMeterReadingRepository = waterMeterReadingRepository;
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<MeterReading>> GetAllMeterReadingsAsync()
+    public async Task<MeterReading?> GetMeterReadingByUserIdAsync(Guid userId)
     {
-        return await _repository.GetAllAsync();
+        return await _waterMeterReadingRepository.GetByIdAsync(userId);
     }
 
     /// <inheritdoc />
-    public async Task<MeterReading?> GetMeterReadingByIdAsync(Guid id)
+    public async Task<IEnumerable<MeterReading>> GetAllMeterReadingAsync()
     {
-        return await _repository.GetByIdAsync(id);
+        return await _waterMeterReadingRepository.GetAllAsync();
     }
 }
