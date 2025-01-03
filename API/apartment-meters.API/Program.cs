@@ -66,14 +66,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors(builder =>
-    builder.WithOrigins("http://localhost:3000")
-        .AllowAnyMethod()
-        .AllowAnyHeader());
-
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+app.UseCors(builder =>
+{
+    builder.WithHeaders().AllowAnyHeader();
+    builder.WithOrigins("http://localhost:3000");
+    builder.WithMethods().AllowAnyMethod();
+});
 
 app.Run();
