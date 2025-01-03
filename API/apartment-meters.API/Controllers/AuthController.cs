@@ -1,3 +1,4 @@
+using System.Net;
 using Application.Interfaces.Commands;
 using Application.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,8 @@ public class AuthController : ControllerBase
     /// Авторизация пользователя
     /// </summary>
     /// <param name="loginDto">Данные для входа</param>
-    /// <returns>Результат авторизации</returns>
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {

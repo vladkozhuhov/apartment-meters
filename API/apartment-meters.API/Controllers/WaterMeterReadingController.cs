@@ -1,3 +1,4 @@
+using System.Net;
 using Application.Interfaces.Commands;
 using Application.Interfaces.Queries;
 using Application.Models;
@@ -24,8 +25,9 @@ public class WaterMeterReadingController : ControllerBase
     /// <summary>
     /// Получить все показания водомеров
     /// </summary>
-    /// <returns>Список показаний</returns>
     [HttpGet]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetAllWaterMeterReadings()
     {
         var readings = await _queryService.GetAllMeterReadingAsync();
@@ -36,8 +38,9 @@ public class WaterMeterReadingController : ControllerBase
     /// Получить все показания водомеров по пользователю
     /// </summary>
     /// <param name="userId">Идентификатор пользователя</param>
-    /// <returns>Список показаний</returns>
-    [HttpGet("{userId}")]
+    [HttpGet("{userId:guid}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetMeterReadingsByUserId(Guid userId)
     {
         var readings = await _queryService.GetMeterReadingByUserIdAsync(userId);
@@ -48,8 +51,9 @@ public class WaterMeterReadingController : ControllerBase
     /// Добавить новое показание
     /// </summary>
     /// <param name="request">Модель добавления показания</param>
-    /// <returns>Результат операции</returns>
     [HttpPost]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> AddWaterMeterReading([FromBody] AddWaterMeterReadingDto request)
     {
         await _commandService.AddMeterReadingAsync(request);
@@ -59,12 +63,14 @@ public class WaterMeterReadingController : ControllerBase
     /// <summary>
     /// Обновить данные показания водомеров
     /// </summary>
+    /// <param name="id">Идентификатор пользователя</param>
     /// <param name="updateWaterMeterReadingDto">Обновленные данные показания водомера</param>
-    /// <returns>Результат операции</returns>
-    [HttpPut]
-    public async Task<IActionResult> UpdateWaterMeterReading([FromBody] UpdateWaterMeterReadingDto updateWaterMeterReadingDto)
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+    public async Task<IActionResult> UpdateWaterMeterReading(Guid id, [FromBody] UpdateWaterMeterReadingDto updateWaterMeterReadingDto)
     {
-        await _commandService.UpdateMeterReadingAsync(updateWaterMeterReadingDto);
+        await _commandService.UpdateMeterReadingAsync(id, updateWaterMeterReadingDto);
         return NoContent();
     }
 
@@ -72,8 +78,9 @@ public class WaterMeterReadingController : ControllerBase
     /// Удалить показание
     /// </summary>
     /// <param name="id">Идентификатор показания</param>
-    /// <returns>Результат операции</returns>
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> DeleteWaterMeterReading(Guid id)
     {
         await _commandService.DeleteMeterReadingAsync(id);

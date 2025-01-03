@@ -37,7 +37,9 @@ public class UserRepository : IUserRepository
     /// <returns>Список всех пользователей</returns>
     public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await _dbContext.Users.ToListAsync();
+        return await _dbContext.Users
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     /// <summary>

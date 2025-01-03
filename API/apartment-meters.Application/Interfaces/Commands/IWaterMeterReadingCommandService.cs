@@ -20,7 +20,7 @@ public interface IWaterMeterReadingCommandService
     /// </summary>
     /// <param name="dto">DTO с обновленными данными пользователя</param>
     /// <returns>Task для отслеживания операции</returns>
-    Task UpdateMeterReadingAsync(UpdateWaterMeterReadingDto dto);
+    Task UpdateMeterReadingAsync(Guid id, UpdateWaterMeterReadingDto dto);
     
     /// <summary>
     /// Удалить показание

@@ -122,7 +122,7 @@ public class UserCommandServiceTests
             .Setup(repo => repo.UpdateAsync(It.IsAny<User>()))
             .Returns(Task.CompletedTask);
 
-        await _userCommandService.UpdateUserAsync(updateUserDto);
+        await _userCommandService.UpdateUserAsync(userId, updateUserDto);
 
         existingUser.FullName.Should().Be("Jane Doe");
         existingUser.ApartmentNumber.Should().Be(102);
@@ -193,7 +193,9 @@ public class UserCommandServiceTests
             new User { Id = Guid.NewGuid(), ApartmentNumber = 2, FullName = "User 2", Password = "pass2", Role = UserRole.Admin }
         };
 
-        _userRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(users);
+        _userRepositoryMock
+            .Setup(repo => repo.GetAllAsync())
+            .ReturnsAsync(users);
 
         var result = await _userQueryService.GetAllUsersAsync();
 
@@ -201,7 +203,8 @@ public class UserCommandServiceTests
         result.Should().HaveCount(2);
         result.Should().BeEquivalentTo(users);
 
-        _userRepositoryMock.Verify(repo => repo.GetAllAsync(), Times.Once);
+        _userRepositoryMock
+            .Verify(repo => repo.GetAllAsync(), Times.Once);
     }
     
     #endregion
@@ -234,8 +237,10 @@ public class UserCommandServiceTests
 
         await _userCommandService.DeleteUserAsync(userId);
 
-        _userRepositoryMock.Verify(repo => repo.GetByIdAsync(userId), Times.Once);
-        _userRepositoryMock.Verify(repo => repo.DeleteAsync(It.Is<User>(u => u.Id == userId)), Times.Once);
+        _userRepositoryMock
+            .Verify(repo => repo.GetByIdAsync(userId), Times.Once);
+        _userRepositoryMock
+            .Verify(repo => repo.DeleteAsync(It.Is<User>(u => u.Id == userId)), Times.Once);
     }
 
     #endregion

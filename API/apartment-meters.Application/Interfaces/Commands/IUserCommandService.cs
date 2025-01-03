@@ -20,7 +20,7 @@ public interface IUserCommandService
     /// </summary>
     /// <param name="dto">DTO с обновленными данными пользователя</param>
     /// <returns>Task для отслеживания операции</returns>
-    Task UpdateUserAsync(UpdateUserDto dto);
+    Task UpdateUserAsync(Guid userId, UpdateUserDto dto);
 
     /// <summary>
     /// Удалить пользователя.

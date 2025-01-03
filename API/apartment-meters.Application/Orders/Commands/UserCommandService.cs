@@ -39,11 +39,11 @@ public class UserCommandService : IUserCommandService
     }
     
     /// <inheritdoc />
-    public async Task UpdateUserAsync(UpdateUserDto dto)
+    public async Task UpdateUserAsync(Guid id, UpdateUserDto dto)
     {
-        var user = await _userRepository.GetByIdAsync(dto.Id);
+        var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
-            throw new KeyNotFoundException($"User with ID {dto.Id} not found");
+            throw new KeyNotFoundException($"User with ID {id} not found");
 
         user.FullName = dto.FullName ?? user.FullName;
         user.ApartmentNumber = dto.ApartmentNumber ?? user.ApartmentNumber;

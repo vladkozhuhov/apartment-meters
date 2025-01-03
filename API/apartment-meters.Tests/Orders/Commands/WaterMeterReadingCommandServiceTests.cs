@@ -79,7 +79,7 @@ public class WaterMeterReadingCommandServiceTests
 
     #endregion
     
-    #region Get
+    #region Update
 
     /// <summary>
     /// Тест метода <see cref="IWaterMeterReadingCommandService.UpdateMeterReadingAsync"/>, проверяющий успешное обновление показателей водомеров
@@ -95,24 +95,24 @@ public class WaterMeterReadingCommandServiceTests
             HotWaterValue = 25,
             ReadingDate = DateTime.UtcNow
         };
-
+    
         var updateWaterMeterReadingDto = new UpdateWaterMeterReadingDto()
         {
             UserId = userId,
             ColdWaterValue = 37,
             HotWaterValue = 29,
         };
-
+    
         _waterMeterReadingRepositoryMock
             .Setup(repo => repo.GetByIdAsync(userId))
             .ReturnsAsync(existingWaterMeterReading);
-
+    
         _waterMeterReadingRepositoryMock
             .Setup(repo => repo.UpdateAsync(It.IsAny<MeterReading>()))
             .Returns(Task.CompletedTask);
-
-        await _waterMeterReadingCommandService.UpdateMeterReadingAsync(updateWaterMeterReadingDto);
-
+    
+        await _waterMeterReadingCommandService.UpdateMeterReadingAsync(userId, updateWaterMeterReadingDto);
+    
         existingWaterMeterReading.ColdWaterValue.Should().Be(37);
         existingWaterMeterReading.HotWaterValue.Should().Be(29);
         _waterMeterReadingRepositoryMock.Verify(repo => 
@@ -121,7 +121,7 @@ public class WaterMeterReadingCommandServiceTests
 
     #endregion
     
-    #region Update
+    #region Get
 
     /// <summary>
     /// Тест метода <see cref="IWaterMeterReadingCommandService.GetMeterReadingByUserIdAsync"/>, проверяющий успешное получение показателей водомеров по пользователю

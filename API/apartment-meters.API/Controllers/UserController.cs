@@ -1,3 +1,4 @@
+using System.Net;
 using Application.Interfaces.Commands;
 using Application.Interfaces.Queries;
 using Application.Models;
@@ -30,7 +31,9 @@ public class UserController : ControllerBase
     /// Получить пользователя по идентификатору
     /// </summary>
     /// <returns>Список пользователей</returns>
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetUserById(Guid id)
     {
         var user = await _queryService.GetUserByIdAsync(id);
@@ -42,6 +45,8 @@ public class UserController : ControllerBase
     /// </summary>
     /// <returns>Список пользователей</returns>
     [HttpGet]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetAllUser()
     {
         var user = await _queryService.GetAllUsersAsync();
@@ -50,10 +55,12 @@ public class UserController : ControllerBase
 
     /// <summary>
     /// Добавить нового пользователя
-    /// </summary>
+    /// </summary> 
     /// <param name="addUserDto">Данные нового пользователя</param>
     /// <returns>Нового пользователя</returns>
     [HttpPost]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> AddUser([FromBody] AddUserDto addUserDto)
     {
         await _commandService.AddUserAsync(addUserDto);
@@ -63,12 +70,15 @@ public class UserController : ControllerBase
     /// <summary>
     /// Обновить данные пользователя
     /// </summary>
+    /// <param name="id">Идентификатор пользователя</param>
     /// <param name="updateUserDto">Обновленные данные пользователя</param>
     /// <returns>Результат операции</returns>
-    [HttpPut]
-    public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDto updateUserDto)
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto updateUserDto)
     {
-        await _commandService.UpdateUserAsync(updateUserDto);
+        await _commandService.UpdateUserAsync(id, updateUserDto);
         return NoContent();
     }
 
@@ -77,7 +87,9 @@ public class UserController : ControllerBase
     /// </summary>
     /// <param name="id">Идентификатор пользователя</param>
     /// <returns>Результат операции</returns>
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
         await _commandService.DeleteUserAsync(id);

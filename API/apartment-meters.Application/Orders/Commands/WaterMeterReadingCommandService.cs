@@ -39,9 +39,9 @@ public class WaterMeterReadingCommandService : IWaterMeterReadingCommandService
     }
     
     /// <inheritdoc />
-    public async Task UpdateMeterReadingAsync(UpdateWaterMeterReadingDto dto)
+    public async Task UpdateMeterReadingAsync(Guid id, UpdateWaterMeterReadingDto dto)
     {
-        var waterReading = await _waterMeterReadingRepository.GetByIdAsync(dto.UserId);
+        var waterReading = await _waterMeterReadingRepository.GetByIdAsync(id);
         if (waterReading == null)
             throw new KeyNotFoundException($"MeterReading with user ID {dto.UserId} not found");
 
