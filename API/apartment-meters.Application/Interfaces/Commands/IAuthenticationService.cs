@@ -1,4 +1,5 @@
 using Application.Models;
+using Domain.Entities;
 
 namespace Application.Interfaces.Commands;
 
@@ -12,5 +13,5 @@ public interface IAuthenticationService
     /// </summary>
     /// <param name="loginDto">Данные для авторизации</param>
     /// <returns>Признак успешной авторизации</returns>
-    Task<bool> LoginAsync(LoginDto loginDto);
+    Task<User> LoginAsync(LoginDto loginDto);
 }

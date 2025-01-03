@@ -25,11 +25,11 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
-        var isAuthenticated = await _authService.LoginAsync(loginDto);
+        var authenticatedUser = await _authService.LoginAsync(loginDto);
 
-        if (!isAuthenticated)
+        if (authenticatedUser == null)
             return Unauthorized("Неверный номер квартиры или пароль.");
 
-        return Ok("Вы успешно авторизовались.");
+        return Ok(authenticatedUser);
     }
 }

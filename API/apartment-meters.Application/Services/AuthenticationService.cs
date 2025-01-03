@@ -1,5 +1,6 @@
 using Application.Interfaces.Commands;
 using Application.Models;
+using Domain.Entities;
 using Domain.Repositories;
 
 namespace Application.Services;
@@ -21,13 +22,13 @@ public class AuthenticationService : IAuthenticationService
     /// </summary>
     /// <param name="loginDto">Данные для авторизации</param>
     /// <returns>Признак успешной авторизации</returns>
-    public async Task<bool> LoginAsync(LoginDto loginDto)
+    public async Task<User> LoginAsync(LoginDto loginDto)
     {
         var user = await _userRepository.GetByApartmentNumberAsync(loginDto.ApartmentNumber);
 
         if (user == null || user.Password != loginDto.Password)
-            return false;
+            return null;
 
-        return true;
+        return user;
     }
 }
