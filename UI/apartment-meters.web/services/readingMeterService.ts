@@ -1,7 +1,6 @@
-import { headers } from "next/headers";
 import api from "./api";
 
-export interface IMeterReading {
+export interface MeterReadingRequest {
     id: string;
     userId: string;
     coldWaterValue: number;
@@ -12,37 +11,23 @@ export interface IMeterReading {
 export const getAllMeterReading = async () => {
     const response = await api.post('/api/WaterMeterReading');
 
-    return response.json();
+    return response.data;
 };
 
 export const getMeterReadingByUserId = async (userId: string) => {
-    const response = await api.post('/api/WaterMeterReading/${userId}');
+    const response = await api.post(`/api/WaterMeterReading/${userId}`);
 
-    return response.json();
+    return response.data;
 };
 
 export const addMeterReading = async (id: string, meterReadingRequest: MeterReadingRequest) => {
-    await api.post('/api/WaterMeterReading'), {
-        method: "POST",
-        headers: {
-            "content-type": "application?json",
-        },
-        body: JSON.stringify(meterReadingRequest),
-    }
+    await api.post('/api/WaterMeterReading', meterReadingRequest);
 };
 
 export const updateMeterReading = async (id: string, meterReadingRequest: MeterReadingRequest) => {
-    await api.post('/api/WaterMeterReading/${id}'), {
-        method: "PUT",
-        headers: {
-            "content-type": "application?json",
-        },
-        body: JSON.stringify(meterReadingRequest),
-    }
+    await api.post(`/api/WaterMeterReading/${id}`, meterReadingRequest);
 };
 
 export const deleteMeterReading = async (id: string) => {
-    await api.post('/api/WaterMeterReading/${id}'), {
-        method: "DELETE"
-    }
+    await api.post(`/api/WaterMeterReading/${id}`);
 };

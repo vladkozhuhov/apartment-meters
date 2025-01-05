@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import api from '../services/api';
 
-const Login: React.FC = () => {
+const LoginPage: React.FC = () => {
   const [apartmentNumber, setApartmentNumber] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,22 +13,31 @@ const Login: React.FC = () => {
     setError(''); // Очистка предыдущих ошибок
 
     try {
-      const response = await api.post('/api/auth/login', {
-        apartmentNumber,
-        password,
-      });
+      const response = await api.post('/api/Auth/login', 
+        {
+          apartmentNumber: Number(apartmentNumber), // Преобразуем строку в число
+          password,
+        }, 
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (response.status === 200) {
         const userData = response.data;
 
         // Проверяем роль пользователя
         if (userData.role === 0) {
+          localStorage.setItem('id', response.data.id); // Сохраняем userId в localStorage
           router.push('/user'); // Переход на страницу пользователя
         } else if (userData.role === 1) {
           router.push('/admin'); // Переход на страницу админа
         }
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Ошибка авторизации:', err);
       setError('Неверный номер квартиры или пароль.');
     }
   };
@@ -107,4 +116,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default LoginPage;

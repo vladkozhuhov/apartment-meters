@@ -1,7 +1,6 @@
-import { headers } from "next/headers";
 import api from "./api";
 
-export interface IUser {
+export interface UserRequest {
     id: number;
     apartmentNumber: number;
     fullName: string;
@@ -9,39 +8,25 @@ export interface IUser {
 }
 
 export const getAllUser = async () => {
-    const response = await api.post('/api/User');
+    const response = await api.get('/api/User');
 
-    return response.json();
+    return response.data;
 };
 
 export const getUserById = async (id: string) => {
-    const response = await api.post('/api/User${id}');
+    const response = await api.get(`/api/User/${id}`);
 
-    return response.json();
+    return response.data;
 };
 
 export const addUser = async (id: string, userRequest: UserRequest) => {
-    await api.post('/api/User'), {
-        method: "POST",
-        headers: {
-            "content-type": "application?json",
-        },
-        body: JSON.stringify(userRequest),
-    }
+    await api.post('/api/User', userRequest);
 };
 
 export const updateUser = async (id: string, userRequest: UserRequest) => {
-    await api.post('/api/User/${id}'), {
-        method: "PUT",
-        headers: {
-            "content-type": "application?json",
-        },
-        body: JSON.stringify(userRequest),
-    }
+    await api.put(`/api/User/${id}`, userRequest);
 };
 
 export const deleteUser = async (id: string) => {
-    await api.post('/api/User/${id}'), {
-        method: "DELETE"
-    }
+    await api.delete(`/api/User/${id}`);
 };
