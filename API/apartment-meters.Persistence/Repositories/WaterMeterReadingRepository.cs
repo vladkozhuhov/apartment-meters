@@ -42,6 +42,14 @@ public class WaterMeterReadingRepository : IWaterMeterReadingRepository
         return await _dbContext.MeterReadings
             .FirstOrDefaultAsync(x => x.Id == id);
     }
+    
+    /// <inheritdoc />
+    public async Task<IEnumerable<MeterReading>> GetByUserIdAsync(Guid userId)
+    {
+        return await _dbContext.MeterReadings
+            .Where(x => x.UserId == userId)
+            .ToListAsync();
+    }
 
     /// <inheritdoc />
     public async Task UpdateAsync(MeterReading meterReading)

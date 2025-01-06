@@ -63,8 +63,8 @@ public class UserController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> AddUser([FromBody] AddUserDto addUserDto)
     {
-        await _commandService.AddUserAsync(addUserDto);
-        return CreatedAtAction(nameof(GetUserById), new { id = addUserDto.FullName }, addUserDto);
+        var createdUser = await _commandService.AddUserAsync(addUserDto);
+        return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
     }
 
     /// <summary>

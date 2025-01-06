@@ -14,16 +14,22 @@ public class WaterMeterReadingQueryService : IWaterMeterReadingQueryService
     /// <summary>
     /// Конструктор сервиса
     /// </summary>
-    /// <param name="repository">Репозиторий показаний водомеров</param>
+    /// <param name="waterMeterReadingRepository">Репозиторий показаний водомеров</param>
     public WaterMeterReadingQueryService(IWaterMeterReadingRepository waterMeterReadingRepository)
     {
         _waterMeterReadingRepository = waterMeterReadingRepository;
     }
 
     /// <inheritdoc />
-    public async Task<MeterReading?> GetMeterReadingByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<MeterReading>> GetMeterReadingByUserIdAsync(Guid userId)
     {
-        return await _waterMeterReadingRepository.GetByIdAsync(userId);
+        return await _waterMeterReadingRepository.GetByUserIdAsync(userId);
+    }
+    
+    /// <inheritdoc />
+    public async Task<MeterReading> GetMeterReadingByIdAsync(Guid id)
+    {
+        return await _waterMeterReadingRepository.GetByIdAsync(id);
     }
 
     /// <inheritdoc />

@@ -38,12 +38,25 @@ public class WaterMeterReadingController : ControllerBase
     /// Получить все показания водомеров по пользователю
     /// </summary>
     /// <param name="userId">Идентификатор пользователя</param>
-    [HttpGet("{userId:guid}")]
+    [HttpGet("by-user/{userId:guid}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetMeterReadingsByUserId(Guid userId)
     {
         var readings = await _queryService.GetMeterReadingByUserIdAsync(userId);
+        return Ok(readings);
+    }
+    
+    /// <summary>
+    /// Получить все показания водомеров по пользователю
+    /// </summary>
+    /// <param name="id">Идентификатор показания водомера</param>
+    [HttpGet("by-id/{id:guid}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+    public async Task<IActionResult> GetMeterReadingsById(Guid id)
+    {
+        var readings = await _queryService.GetMeterReadingByIdAsync(id);
         return Ok(readings);
     }
 
