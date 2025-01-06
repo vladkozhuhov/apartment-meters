@@ -9,13 +9,19 @@ export interface MeterReadingRequest {
 }
 
 export const getAllMeterReading = async () => {
-    const response = await api.post('/api/WaterMeterReading');
+    const response = await api.get('/api/WaterMeterReading');
 
     return response.data;
 };
 
 export const getMeterReadingByUserId = async (userId: string) => {
-    const response = await api.post(`/api/WaterMeterReading/${userId}`);
+    const response = await api.get(`/api/WaterMeterReading/by-user/${userId}`);
+
+    return response.data;
+};
+
+export const getMeterReadingById = async (id: string) => {
+    const response = await api.get(`/api/WaterMeterReading/by-id/${id}`);
 
     return response.data;
 };
