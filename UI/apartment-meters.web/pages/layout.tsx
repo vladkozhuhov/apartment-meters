@@ -10,7 +10,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="flex flex-col min-h-screen">
         <header className="bg-blue-600 text-white py-4 px-8">
           <h1 className="text-2xl font-bold">
-            My Application
+            
           </h1>
         </header>
         <main className="flex-grow container mx-auto px-4 py-6">

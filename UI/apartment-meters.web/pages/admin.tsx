@@ -67,7 +67,7 @@ const AdminPage: React.FC = () => {
 
   return (
     <div className="p-5">
-      <h1 className="text-2xl font-bold mb-4">Страница администратора</h1>
+      {/* <h1 className="text-2xl font-bold mb-4">Страница администратора</h1> */}
       <div className="mb-4">
         <label>
           Квартира:

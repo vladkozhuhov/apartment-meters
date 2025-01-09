@@ -13,7 +13,7 @@ const LoginPage: React.FC = () => {
     setError(''); // Очистка предыдущих ошибок
 
     try {
-      const response = await api.post('/api/Auth/login', 
+      const response = await api.post('/api/function/login', 
         {
           apartmentNumber: Number(apartmentNumber), // Преобразуем строку в число
           password,
