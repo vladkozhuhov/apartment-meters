@@ -11,12 +11,12 @@ public interface IUserQueryService
     /// Получить всех пользователей
     /// </summary>
     /// <returns>Коллекция пользователей</returns>
-    Task<IEnumerable<User>> GetAllUsersAsync();
+    Task<IEnumerable<UserEntity>> GetAllUsersAsync();
     
     /// <summary>
     /// Получить данные пользователя по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор пользователя</param>
     /// <returns>Задача, содержащая данные пользователя или null, если пользователь не найден</returns>
-    Task<User> GetUserByIdAsync(Guid id);
+    Task<UserEntity> GetUserByIdAsync(Guid id);
 }

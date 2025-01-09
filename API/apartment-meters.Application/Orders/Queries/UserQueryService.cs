@@ -21,13 +21,13 @@ public class UserQueryService : IUserQueryService
     }
     
     /// <inheritdoc />
-    public async Task<User?> GetUserByIdAsync(Guid id)
+    public async Task<UserEntity?> GetUserByIdAsync(Guid id)
     {
         return await _userRepository.GetByIdAsync(id);
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<User>> GetAllUsersAsync()
+    public async Task<IEnumerable<UserEntity>> GetAllUsersAsync()
     {
         return await _userRepository.GetAllAsync();
     }

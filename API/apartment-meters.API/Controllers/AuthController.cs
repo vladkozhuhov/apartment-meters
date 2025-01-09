@@ -1,11 +1,12 @@
 using System.Net;
+using Application.Exceptions;
 using Application.Interfaces.Commands;
 using Application.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/")]
 [ApiController]
 public class AuthController : ControllerBase
 {
@@ -22,14 +23,21 @@ public class AuthController : ControllerBase
     /// <param name="loginDto">Данные для входа</param>
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    [HttpPost("login")]
+    [HttpPost("function/login")]
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
-        var authenticatedUser = await _authService.LoginAsync(loginDto);
-
-        if (authenticatedUser == null)
-            return Unauthorized("Неверный номер квартиры или пароль.");
-
-        return Ok(authenticatedUser);
+        try
+        {
+            var authenticatedUser = await _authService.LoginAsync(loginDto);
+            return Ok(authenticatedUser);
+        }
+        catch (CustomException ex)
+        {
+            return BadRequest(new { Code = (int)ex.ErrorType, Message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { Code = 501, Message = "Внутренняя ошибка сервера" });
+        }
     }
 }

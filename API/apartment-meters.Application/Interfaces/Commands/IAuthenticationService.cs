@@ -13,5 +13,5 @@ public interface IAuthenticationService
     /// </summary>
     /// <param name="loginDto">Данные для авторизации</param>
     /// <returns>Признак успешной авторизации</returns>
-    Task<User> LoginAsync(LoginDto loginDto);
+    Task<UserEntity> LoginAsync(LoginDto loginDto);
 }

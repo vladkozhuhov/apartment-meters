@@ -3,7 +3,7 @@ namespace Domain.Entities;
 /// <summary>
 /// Сущность для представления показаний водомеров
 /// </summary>
-public class MeterReading
+public class MeterReadingEntity
 {
     /// <summary>
     /// Уникальный идентификатор показания
@@ -38,5 +38,5 @@ public class MeterReading
     /// <summary>
     /// Связанный пользователь (навигационное свойство)
     /// </summary>
-    public User User { get; set; } = null!;
+    public UserEntity UserEntity { get; set; } = null!;
 }

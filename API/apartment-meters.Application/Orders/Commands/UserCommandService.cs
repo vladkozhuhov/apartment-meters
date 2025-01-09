@@ -22,9 +22,9 @@ public class UserCommandService : IUserCommandService
     }
 
     /// <inheritdoc />
-    public async Task<User> AddUserAsync(AddUserDto dto)
+    public async Task<UserEntity> AddUserAsync(AddUserDto dto)
     {
-        var user = new User
+        var user = new UserEntity
         {
             Id = Guid.NewGuid(),
             FullName = dto.FullName,

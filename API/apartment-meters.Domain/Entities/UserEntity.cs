@@ -5,7 +5,7 @@ namespace Domain.Entities;
 /// <summary>
 /// Сущность для представления пользователя системы
 /// </summary>
-public class User
+public class UserEntity
 {
     /// <summary>
     /// Уникальный идентификатор пользователя
@@ -50,5 +50,5 @@ public class User
     /// <summary>
     /// Показания водомеров, связанные с пользователем.
     /// </summary>
-    public ICollection<MeterReading> MeterReadings { get; set; } = new List<MeterReading>();
+    public ICollection<MeterReadingEntity> MeterReadings { get; set; } = new List<MeterReadingEntity>();
 }

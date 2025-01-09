@@ -11,19 +11,19 @@ public interface IWaterMeterReadingQueryService
     /// Получить все показания водомеров
     /// </summary>
     /// <returns>Коллекция показаний водомеров</returns>
-    Task<IEnumerable<MeterReading>> GetAllMeterReadingAsync();
+    Task<IEnumerable<MeterReadingEntity>> GetAllMeterReadingAsync();
 
     /// <summary>
     /// Получить данные показания водомеров по идентификатору пользователя
     /// </summary>
     /// <param name="userId">Идентификатор пользователя</param>
     /// <returns>Задача, содержащая данные показания водомеров или null, если показания водомеров не найден</returns>
-    Task<IEnumerable<MeterReading>> GetMeterReadingByUserIdAsync(Guid userId);
+    Task<IEnumerable<MeterReadingEntity>> GetMeterReadingByUserIdAsync(Guid userId);
     
     /// <summary>
     /// Получить данные показания водомеров по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор показания водомера</param>
     /// <returns>Задача, содержащая данные показания водомеров или null, если показания водомеров не найден</returns>
-    Task<MeterReading> GetMeterReadingByIdAsync(Guid id);
+    Task<MeterReadingEntity> GetMeterReadingByIdAsync(Guid id);
 }

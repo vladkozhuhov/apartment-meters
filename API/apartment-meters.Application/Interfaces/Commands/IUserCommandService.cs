@@ -13,7 +13,7 @@ public interface IUserCommandService
     /// </summary>
     /// <param name="dto">DTO с данными нового пользователя</param>
     /// <returns>Идентификатор добавленного пользователя</returns>
-    Task<User> AddUserAsync(AddUserDto dto);
+    Task<UserEntity> AddUserAsync(AddUserDto dto);
     
     /// <summary>
     /// Обновить данные пользователя

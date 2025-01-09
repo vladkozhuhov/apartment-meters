@@ -53,7 +53,7 @@ public class WaterMeterReadingCommandServiceTests
             ReadingDate = DateTime.UtcNow
         };
         
-        var waterMeterReading = new MeterReading()
+        var waterMeterReading = new MeterReadingEntity()
         {
             Id = Guid.NewGuid(),
             ColdWaterValue = newWaterMeterReading.ColdWaterValue,
@@ -62,7 +62,7 @@ public class WaterMeterReadingCommandServiceTests
         };
         
         _waterMeterReadingRepositoryMock
-            .Setup(repo => repo.AddAsync(It.IsAny<MeterReading>()))
+            .Setup(repo => repo.AddAsync(It.IsAny<MeterReadingEntity>()))
             .ReturnsAsync(waterMeterReading);
         
         var result = await _waterMeterReadingCommandService.AddMeterReadingAsync(newWaterMeterReading);
@@ -71,7 +71,7 @@ public class WaterMeterReadingCommandServiceTests
         result.ColdWaterValue.Should().Be(newWaterMeterReading.ColdWaterValue);
         result.HotWaterValue.Should().Be(newWaterMeterReading.HotWaterValue);
         _waterMeterReadingRepositoryMock.Verify(repo =>
-            repo.AddAsync(It.Is<MeterReading>(u =>
+            repo.AddAsync(It.Is<MeterReadingEntity>(u =>
                 u.ColdWaterValue == newWaterMeterReading.ColdWaterValue &&
                 u.ColdWaterValue == newWaterMeterReading.ColdWaterValue &&
                 u.HotWaterValue == newWaterMeterReading.HotWaterValue)), Times.Once);
@@ -88,7 +88,7 @@ public class WaterMeterReadingCommandServiceTests
     public async Task UpdateWaterMeterReadingAsync_Should_Update_WaterMeterReading_Successfully()
     {
         var userId = Guid.NewGuid();
-        var existingWaterMeterReading = new MeterReading()
+        var existingWaterMeterReading = new MeterReadingEntity()
         {
             Id = userId,
             ColdWaterValue = 34,
@@ -108,7 +108,7 @@ public class WaterMeterReadingCommandServiceTests
             .ReturnsAsync(existingWaterMeterReading);
     
         _waterMeterReadingRepositoryMock
-            .Setup(repo => repo.UpdateAsync(It.IsAny<MeterReading>()))
+            .Setup(repo => repo.UpdateAsync(It.IsAny<MeterReadingEntity>()))
             .Returns(Task.CompletedTask);
     
         await _waterMeterReadingCommandService.UpdateMeterReadingAsync(userId, updateWaterMeterReadingDto);
@@ -124,35 +124,35 @@ public class WaterMeterReadingCommandServiceTests
     #region Get
 
     /// <summary>
-    /// Тест метода <see cref="IWaterMeterReadingCommandService.GetMeterReadingByUserIdAsync"/>, проверяющий успешное получение показателей водомеров по пользователю
+    /// Тест метода <see cref="IWaterMeterReadingQueryService.GetMeterReadingByIdAsync"/>, проверяющий успешное получение показателей водомеров по идентификатору
     /// </summary>
     [Fact]
-    public async Task GetWaterMeterReadingByUserIdAsync_Should_Return_WaterMeterReading_When_Exists()
+    public async Task GetWaterMeterReadingByIdAsync_Should_Return_WaterMeterReading_When_Exists()
     {
-        var userId = Guid.NewGuid();
-        var existingWaterMeterReading = new MeterReading
+        var id = Guid.NewGuid();
+        var existingWaterMeterReading = new MeterReadingEntity
         {
-            Id = userId,
+            Id = id,
             ColdWaterValue = 34,
             HotWaterValue = 25,
             ReadingDate = DateTime.UtcNow
         };
 
         _waterMeterReadingRepositoryMock
-            .Setup(repo => repo.GetByIdAsync(userId))
+            .Setup(repo => repo.GetByIdAsync(id))
             .ReturnsAsync(existingWaterMeterReading);
 
-        var result = await _waterMeterReadingQueryService.GetMeterReadingByUserIdAsync(userId);
+        var result = await _waterMeterReadingQueryService.GetMeterReadingByIdAsync(id);
 
         result.Should().NotBeNull();
-        result.Id.Should().Be(userId);
+        result.Id.Should().Be(id);
         result.ColdWaterValue.Should().Be(existingWaterMeterReading.ColdWaterValue);
         result.HotWaterValue.Should().Be(existingWaterMeterReading.HotWaterValue);
-        _waterMeterReadingRepositoryMock.Verify(repo => repo.GetByIdAsync(userId), Times.Once);
+        _waterMeterReadingRepositoryMock.Verify(repo => repo.GetByIdAsync(id), Times.Once);
     }
     
     /// <summary>
-    /// Тест метода <see cref="IWaterMeterReadingCommandService.GetMeterReadingByUserIdAsync"/>, проверяющий отсутствие показателей водомеров по пользователю
+    /// Тест метода <see cref="IWaterMeterReadingQueryService.GetMeterReadingByUserIdAsync"/>, проверяющий отсутствие показателей водомеров по пользователю
     /// </summary>
     [Fact]
     public async Task GetWaterMeterReadingByUserIdAsync_Should_Return_Null_When_WaterMeterReading_Does_Not_Exist()
@@ -161,7 +161,7 @@ public class WaterMeterReadingCommandServiceTests
 
         _waterMeterReadingRepositoryMock
             .Setup(repo => repo.GetByIdAsync(userId))
-            .ReturnsAsync((MeterReading)null);
+            .ReturnsAsync((MeterReadingEntity)null);
 
         var result = await _waterMeterReadingQueryService.GetMeterReadingByUserIdAsync(userId);
 
@@ -170,15 +170,15 @@ public class WaterMeterReadingCommandServiceTests
     }
     
     /// <summary>
-    /// Тест метода <see cref="IWaterMeterReadingCommandService.GetAllMeterReadingAsync"/>, проверяющий успешное получение всех показателей водомеров
+    /// Тест метода <see cref="IWaterMeterReadingQueryService.GetAllMeterReadingAsync"/>, проверяющий успешное получение всех показателей водомеров
     /// </summary>
     [Fact]
     public async Task GetAllWaterMeterReadingAsync_ShouldReturnAllWaterMeterReading()
     {
-        var waterMeterReading = new List<MeterReading>
+        var waterMeterReading = new List<MeterReadingEntity>
         {
-            new MeterReading { Id = Guid.NewGuid(), ColdWaterValue = 20, HotWaterValue = 29 },
-            new MeterReading { Id = Guid.NewGuid(), ColdWaterValue = 26, HotWaterValue = 17 }
+            new MeterReadingEntity { Id = Guid.NewGuid(), ColdWaterValue = 20, HotWaterValue = 29 },
+            new MeterReadingEntity { Id = Guid.NewGuid(), ColdWaterValue = 26, HotWaterValue = 17 }
         };
 
         _waterMeterReadingRepositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(waterMeterReading);
@@ -203,7 +203,7 @@ public class WaterMeterReadingCommandServiceTests
     public async Task DeleteWaterMeterReadingAsync_ShouldDeleteWaterMeterReading_WhenWaterMeterReadingExists()
     {
         var userId = Guid.NewGuid();
-        var waterMeterReading = new MeterReading
+        var waterMeterReading = new MeterReadingEntity
         {
             Id = userId,
             ColdWaterValue = 34,
@@ -216,13 +216,13 @@ public class WaterMeterReadingCommandServiceTests
             .ReturnsAsync(waterMeterReading);
 
         _waterMeterReadingRepositoryMock
-            .Setup(repo => repo.DeleteAsync(It.IsAny<MeterReading>()))
+            .Setup(repo => repo.DeleteAsync(It.IsAny<MeterReadingEntity>()))
             .Returns(Task.CompletedTask);
 
         await _waterMeterReadingCommandService.DeleteMeterReadingAsync(userId);
 
         _waterMeterReadingRepositoryMock.Verify(repo => repo.GetByIdAsync(userId), Times.Once);
-        _waterMeterReadingRepositoryMock.Verify(repo => repo.DeleteAsync(It.Is<MeterReading>(u => u.Id == userId)), Times.Once);
+        _waterMeterReadingRepositoryMock.Verify(repo => repo.DeleteAsync(It.Is<MeterReadingEntity>(u => u.Id == userId)), Times.Once);
     }
 
     #endregion

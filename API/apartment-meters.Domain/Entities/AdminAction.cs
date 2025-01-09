@@ -33,5 +33,5 @@ public class AdminAction
     /// <summary>
     /// Связанный администратор (навигационное свойство)
     /// </summary>
-    public User Admin { get; set; } = null!;
+    public UserEntity Admin { get; set; } = null!;
 }

@@ -13,7 +13,7 @@ public interface IWaterMeterReadingCommandService
     /// </summary>
     /// <param name="dto">Данные для добавления показания</param>
     /// <returns>Task</returns>
-    Task<MeterReading> AddMeterReadingAsync(AddWaterMeterReadingDto dto);
+    Task<MeterReadingEntity> AddMeterReadingAsync(AddWaterMeterReadingDto dto);
     
     /// <summary>
     /// Обновить данные пользователя

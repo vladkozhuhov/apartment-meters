@@ -22,7 +22,7 @@ public class AuthenticationService : IAuthenticationService
     /// </summary>
     /// <param name="loginDto">Данные для авторизации</param>
     /// <returns>Признак успешной авторизации</returns>
-    public async Task<User> LoginAsync(LoginDto loginDto)
+    public async Task<UserEntity> LoginAsync(LoginDto loginDto)
     {
         var user = await _userRepository.GetByApartmentNumberAsync(loginDto.ApartmentNumber);
 

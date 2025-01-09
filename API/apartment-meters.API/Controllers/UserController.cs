@@ -10,7 +10,7 @@ namespace API.Controllers;
 /// Контроллер для управления пользователями
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/")]
 public class UserController : ControllerBase
 {
     private readonly IUserCommandService _commandService;
@@ -31,7 +31,7 @@ public class UserController : ControllerBase
     /// Получить пользователя по идентификатору
     /// </summary>
     /// <returns>Список пользователей</returns>
-    [HttpGet("{id:guid}")]
+    [HttpGet("function/user-get/{id:guid}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetUserById(Guid id)
@@ -44,7 +44,7 @@ public class UserController : ControllerBase
     /// Получить список всех пользователей
     /// </summary>
     /// <returns>Список пользователей</returns>
-    [HttpGet]
+    [HttpGet("function/users-get")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetAllUser()
@@ -58,7 +58,7 @@ public class UserController : ControllerBase
     /// </summary> 
     /// <param name="addUserDto">Данные нового пользователя</param>
     /// <returns>Нового пользователя</returns>
-    [HttpPost]
+    [HttpPost("function/user-add")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> AddUser([FromBody] AddUserDto addUserDto)
@@ -73,7 +73,7 @@ public class UserController : ControllerBase
     /// <param name="id">Идентификатор пользователя</param>
     /// <param name="updateUserDto">Обновленные данные пользователя</param>
     /// <returns>Результат операции</returns>
-    [HttpPut("{id:guid}")]
+    [HttpPut("function/user-update/{id:guid}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto updateUserDto)
@@ -87,7 +87,7 @@ public class UserController : ControllerBase
     /// </summary>
     /// <param name="id">Идентификатор пользователя</param>
     /// <returns>Результат операции</returns>
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("function/user-delete/{id:guid}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> DeleteUser(Guid id)

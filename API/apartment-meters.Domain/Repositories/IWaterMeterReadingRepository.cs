@@ -10,41 +10,41 @@ public interface IWaterMeterReadingRepository
     /// <summary>
     /// Добавить новое показание водомера
     /// </summary>
-    /// <param name="meterReading">Сущность показания водомера</param>
+    /// <param name="meterReadingEntity">Сущность показания водомера</param>
     /// <returns>Task</returns>
-    Task<MeterReading> AddAsync(MeterReading meterReading);
+    Task<MeterReadingEntity> AddAsync(MeterReadingEntity meterReadingEntity);
 
     /// <summary>
     /// Получить все показания водомеров
     /// </summary>
     /// <returns>Список показаний водомеров</returns>
-    Task<IEnumerable<MeterReading>> GetAllAsync();
+    Task<IEnumerable<MeterReadingEntity>> GetAllAsync();
     
     /// <summary>
     /// Получить показание по идентификатору
     /// </summary>
     /// <param name="userId">Идентификатор пользователя</param>
     /// <returns>Показание водомера</returns>
-    Task<IEnumerable<MeterReading>> GetByUserIdAsync(Guid userId);
+    Task<IEnumerable<MeterReadingEntity>> GetByUserIdAsync(Guid userId);
     
     /// <summary>
     /// Получить показание по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор показания водомера</param>
     /// <returns>Показание водомера</returns>
-    Task<MeterReading> GetByIdAsync(Guid id);
+    Task<MeterReadingEntity> GetByIdAsync(Guid id);
 
     /// <summary>
     /// Получить список всех показаний водомеров для пользователя
     /// </summary>
-    /// <param name="meterReading">Обновленная информация о показании водомеров</param>
+    /// <param name="meterReadingEntity">Обновленная информация о показании водомеров</param>
     /// <returns>Список показаний водомеров</returns>
-    Task UpdateAsync(MeterReading meterReading);
+    Task UpdateAsync(MeterReadingEntity meterReadingEntity);
 
     /// <summary>
     /// Удалить показание водомера
     /// </summary>
-    /// <param name="meterReading">Сущность показания водомера</param>
+    /// <param name="meterReadingEntity">Сущность показания водомера</param>
     /// <returns>Task</returns>
-    Task DeleteAsync(MeterReading meterReading);
+    Task DeleteAsync(MeterReadingEntity meterReadingEntity);
 }

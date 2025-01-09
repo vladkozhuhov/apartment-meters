@@ -56,7 +56,7 @@ public class UserCommandServiceTests
             Role = UserRole.User
         };
         
-        var user = new User
+        var user = new UserEntity
         {
             Id = Guid.NewGuid(),
             FullName = newUser.FullName,
@@ -69,7 +69,7 @@ public class UserCommandServiceTests
         };
         
         _userRepositoryMock
-            .Setup(repo => repo.AddAsync(It.IsAny<User>()))
+            .Setup(repo => repo.AddAsync(It.IsAny<UserEntity>()))
             .ReturnsAsync(user);
         
         var result = await _userCommandService.AddUserAsync(newUser);
@@ -78,7 +78,7 @@ public class UserCommandServiceTests
         result.FullName.Should().Be(newUser.FullName);
         result.ApartmentNumber.Should().Be(newUser.ApartmentNumber);
         _userRepositoryMock.Verify(repo =>
-            repo.AddAsync(It.Is<User>(u =>
+            repo.AddAsync(It.Is<UserEntity>(u =>
                 u.FullName == newUser.FullName &&
                 u.ApartmentNumber == newUser.ApartmentNumber &&
                 u.Password == newUser.Password &&
@@ -97,7 +97,7 @@ public class UserCommandServiceTests
     public async Task UpdateUserAsync_Should_Update_User_Successfully()
     {
         var userId = Guid.NewGuid();
-        var existingUser = new User
+        var existingUser = new UserEntity
         {
             Id = userId,
             FullName = "John Doe",
@@ -119,7 +119,7 @@ public class UserCommandServiceTests
             .ReturnsAsync(existingUser);
 
         _userRepositoryMock
-            .Setup(repo => repo.UpdateAsync(It.IsAny<User>()))
+            .Setup(repo => repo.UpdateAsync(It.IsAny<UserEntity>()))
             .Returns(Task.CompletedTask);
 
         await _userCommandService.UpdateUserAsync(userId, updateUserDto);
@@ -140,7 +140,7 @@ public class UserCommandServiceTests
     public async Task GetUserByIdAsync_Should_Return_User_When_Exists()
     {
         var userId = Guid.NewGuid();
-        var existingUser = new User
+        var existingUser = new UserEntity
         {
             Id = userId,
             FullName = "John Doe",
@@ -173,7 +173,7 @@ public class UserCommandServiceTests
 
         _userRepositoryMock
             .Setup(repo => repo.GetByIdAsync(userId))
-            .ReturnsAsync((User)null);
+            .ReturnsAsync((UserEntity)null);
 
         var result = await _userQueryService.GetUserByIdAsync(userId);
 
@@ -187,10 +187,10 @@ public class UserCommandServiceTests
     [Fact]
     public async Task GetAllUsersAsync_ShouldReturnAllUsers()
     {
-        var users = new List<User>
+        var users = new List<UserEntity>
         {
-            new User { Id = Guid.NewGuid(), ApartmentNumber = 1, FullName = "User 1", Password = "pass1", Role = UserRole.User },
-            new User { Id = Guid.NewGuid(), ApartmentNumber = 2, FullName = "User 2", Password = "pass2", Role = UserRole.Admin }
+            new UserEntity { Id = Guid.NewGuid(), ApartmentNumber = 1, FullName = "User 1", Password = "pass1", Role = UserRole.User },
+            new UserEntity { Id = Guid.NewGuid(), ApartmentNumber = 2, FullName = "User 2", Password = "pass2", Role = UserRole.Admin }
         };
 
         _userRepositoryMock
@@ -218,7 +218,7 @@ public class UserCommandServiceTests
     public async Task DeleteUserAsync_ShouldDeleteUser_WhenUserExists()
     {
         var userId = Guid.NewGuid();
-        var user = new User
+        var user = new UserEntity
         {
             Id = userId,
             FullName = "John Doe",
@@ -232,7 +232,7 @@ public class UserCommandServiceTests
             .ReturnsAsync(user);
 
         _userRepositoryMock
-            .Setup(repo => repo.DeleteAsync(It.IsAny<User>()))
+            .Setup(repo => repo.DeleteAsync(It.IsAny<UserEntity>()))
             .Returns(Task.CompletedTask);
 
         await _userCommandService.DeleteUserAsync(userId);
@@ -240,7 +240,7 @@ public class UserCommandServiceTests
         _userRepositoryMock
             .Verify(repo => repo.GetByIdAsync(userId), Times.Once);
         _userRepositoryMock
-            .Verify(repo => repo.DeleteAsync(It.Is<User>(u => u.Id == userId)), Times.Once);
+            .Verify(repo => repo.DeleteAsync(It.Is<UserEntity>(u => u.Id == userId)), Times.Once);
     }
 
     #endregion

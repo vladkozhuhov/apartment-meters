@@ -22,9 +22,9 @@ public class WaterMeterReadingCommandService : IWaterMeterReadingCommandService
     }
 
     /// <inheritdoc />
-    public async Task<MeterReading> AddMeterReadingAsync(AddWaterMeterReadingDto dto)
+    public async Task<MeterReadingEntity> AddMeterReadingAsync(AddWaterMeterReadingDto dto)
     {
-        var meterReading = new MeterReading
+        var meterReading = new MeterReadingEntity
         {
             Id = Guid.NewGuid(),
             UserId = dto.UserId,

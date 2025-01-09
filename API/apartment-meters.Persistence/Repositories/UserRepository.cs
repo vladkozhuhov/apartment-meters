@@ -26,7 +26,7 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="id">Идентификатор пользователя</param>
     /// <returns>Пользователь или null, если не найден</returns>
-    public async Task<User?> GetByIdAsync(Guid id)
+    public async Task<UserEntity?> GetByIdAsync(Guid id)
     {
         return await _dbContext.Users.FindAsync(id);
     }
@@ -35,7 +35,7 @@ public class UserRepository : IUserRepository
     /// Получить всех пользователей
     /// </summary>
     /// <returns>Список всех пользователей</returns>
-    public async Task<IEnumerable<User>> GetAllAsync()
+    public async Task<IEnumerable<UserEntity>> GetAllAsync()
     {
         return await _dbContext.Users
             .AsNoTracking()
@@ -45,35 +45,35 @@ public class UserRepository : IUserRepository
     /// <summary>
     /// Добавить нового пользователя
     /// </summary>
-    /// <param name="user">Пользователь для добавления</param>
+    /// <param name="userEntity">Пользователь для добавления</param>
     /// <returns>Задача, которая завершится после добавления</returns>
-    public async Task<User> AddAsync(User user)
+    public async Task<UserEntity> AddAsync(UserEntity userEntity)
     {
-        await _dbContext.Users.AddAsync(user);
+        await _dbContext.Users.AddAsync(userEntity);
         await _dbContext.SaveChangesAsync();
 
-        return user;
+        return userEntity;
     }
 
     /// <summary>
     /// Обновить информацию о пользователе
     /// </summary>
-    /// <param name="user">Информация о пользователе для обновления</param>
+    /// <param name="userEntity">Информация о пользователе для обновления</param>
     /// <returns>Задача, которая завершится после обновления</returns>
-    public async Task UpdateAsync(User user)
+    public async Task UpdateAsync(UserEntity userEntity)
     {
-        _dbContext.Users.Update(user);
+        _dbContext.Users.Update(userEntity);
         await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
     /// Удалить пользователя
     /// </summary>
-    /// <param name="user">Пользователь для удаления</param>
+    /// <param name="userEntity">Пользователь для удаления</param>
     /// <returns>Задача, которая завершится после удаления</returns>
-    public async Task DeleteAsync(User user)
+    public async Task DeleteAsync(UserEntity userEntity)
     {
-        _dbContext.Users.Remove(user);
+        _dbContext.Users.Remove(userEntity);
         await _dbContext.SaveChangesAsync();
     }
     
@@ -82,7 +82,7 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="apartmentNumber">Номер квартиры</param>
     /// <returns>Получение пользователя по номеру квартиры</returns>
-    public async Task<User?> GetByApartmentNumberAsync(int apartmentNumber)
+    public async Task<UserEntity?> GetByApartmentNumberAsync(int apartmentNumber)
     {
         return await _dbContext.Users.FirstOrDefaultAsync(u => u.ApartmentNumber == apartmentNumber);
     }

@@ -9,7 +9,7 @@ namespace API.Controllers;
 /// <summary>
 /// Контроллер для работы с показаниями водомеров
 /// </summary>
-[Route("api/[controller]")]
+[Route("api/")]
 [ApiController]
 public class WaterMeterReadingController : ControllerBase
 {
@@ -25,7 +25,7 @@ public class WaterMeterReadingController : ControllerBase
     /// <summary>
     /// Получить все показания водомеров
     /// </summary>
-    [HttpGet]
+    [HttpGet("function/meterReadings-get")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetAllWaterMeterReadings()
@@ -38,7 +38,7 @@ public class WaterMeterReadingController : ControllerBase
     /// Получить все показания водомеров по пользователю
     /// </summary>
     /// <param name="userId">Идентификатор пользователя</param>
-    [HttpGet("by-user/{userId:guid}")]
+    [HttpGet("function/meterReadingByUser-get/{userId:guid}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetMeterReadingsByUserId(Guid userId)
@@ -51,7 +51,7 @@ public class WaterMeterReadingController : ControllerBase
     /// Получить все показания водомеров по пользователю
     /// </summary>
     /// <param name="id">Идентификатор показания водомера</param>
-    [HttpGet("by-id/{id:guid}")]
+    [HttpGet("function/meterReadingById-get/{id:guid}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetMeterReadingsById(Guid id)
@@ -64,7 +64,7 @@ public class WaterMeterReadingController : ControllerBase
     /// Добавить новое показание
     /// </summary>
     /// <param name="request">Модель добавления показания</param>
-    [HttpPost]
+    [HttpPost("function/meterReading-add")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> AddWaterMeterReading([FromBody] AddWaterMeterReadingDto request)
@@ -78,7 +78,7 @@ public class WaterMeterReadingController : ControllerBase
     /// </summary>
     /// <param name="id">Идентификатор пользователя</param>
     /// <param name="updateWaterMeterReadingDto">Обновленные данные показания водомера</param>
-    [HttpPut("{id:guid}")]
+    [HttpPut("function/meterReading-update/{id:guid}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> UpdateWaterMeterReading(Guid id, [FromBody] UpdateWaterMeterReadingDto updateWaterMeterReadingDto)
@@ -91,7 +91,7 @@ public class WaterMeterReadingController : ControllerBase
     /// Удалить показание
     /// </summary>
     /// <param name="id">Идентификатор показания</param>
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("function/meterReading-delete/{id:guid}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> DeleteWaterMeterReading(Guid id)

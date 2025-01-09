@@ -21,19 +21,19 @@ public class WaterMeterReadingQueryService : IWaterMeterReadingQueryService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<MeterReading>> GetMeterReadingByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<MeterReadingEntity>> GetMeterReadingByUserIdAsync(Guid userId)
     {
         return await _waterMeterReadingRepository.GetByUserIdAsync(userId);
     }
     
     /// <inheritdoc />
-    public async Task<MeterReading> GetMeterReadingByIdAsync(Guid id)
+    public async Task<MeterReadingEntity> GetMeterReadingByIdAsync(Guid id)
     {
         return await _waterMeterReadingRepository.GetByIdAsync(id);
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<MeterReading>> GetAllMeterReadingAsync()
+    public async Task<IEnumerable<MeterReadingEntity>> GetAllMeterReadingAsync()
     {
         return await _waterMeterReadingRepository.GetAllAsync();
     }
