@@ -13,9 +13,19 @@ public class AddUserDto
     public int ApartmentNumber { get; set; }
 
     /// <summary>
-    /// Полное имя пользователя
+    /// Фамилия пользователя
     /// </summary>
-    public string FullName { get; set; } = null!;
+    public string LastName { get; set; } = null!;
+
+    /// <summary>
+    /// Имя пользователя
+    /// </summary>
+    public string FirstName { get; set; } = null!;
+
+    /// <summary>
+    /// Отчество пользователя (необязательное поле)
+    /// </summary>
+    public string? MiddleName { get; set; }
 
     /// <summary>
     /// Пароль пользователя
@@ -31,4 +41,14 @@ public class AddUserDto
     /// Роль пользователя.
     /// </summary>
     public UserRole Role { get; set; }
+    
+    /// <summary>
+    /// Заводской номер счетчика
+    /// </summary>
+    public string FactoryNumber { get; set; } = null!;
+
+    /// <summary>
+    /// Год выпуска счетчика
+    /// </summary>
+    public DateTime FactoryYear { get; set; }
 }

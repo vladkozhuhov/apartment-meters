@@ -5,7 +5,7 @@ namespace Application.Interfaces.Queries;
 /// <summary>
 /// Сервис для выполнения запросов, связанных с пользователями
 /// </summary>
-public interface IUserQueryService
+public interface IUserQuery
 {
     /// <summary>
     /// Получить всех пользователей

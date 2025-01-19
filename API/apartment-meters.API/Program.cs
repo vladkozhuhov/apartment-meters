@@ -47,11 +47,11 @@ builder.Services.AddScoped<IWaterMeterReadingRepository, WaterMeterReadingReposi
 
 #region Register services
 
-builder.Services.AddScoped<IUserCommandService, UserCommandService>();
-builder.Services.AddScoped<IUserQueryService, UserQueryService>();
+builder.Services.AddScoped<IUserCommand, UserCommand>();
+builder.Services.AddScoped<IUserQuery, UserQuery>();
 
-builder.Services.AddScoped<IWaterMeterReadingCommandService, WaterMeterReadingCommandService>();
-builder.Services.AddScoped<IWaterMeterReadingQueryService, WaterMeterReadingQueryService>();
+builder.Services.AddScoped<IWaterMeterReadingCommand, WaterMeterReadingCommand>();
+builder.Services.AddScoped<IWaterMeterReadingQuery, WaterMeterReadingQuery>();
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 

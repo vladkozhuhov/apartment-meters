@@ -6,7 +6,7 @@ namespace Application.Interfaces.Commands;
 /// <summary>
 /// Интерфейс для операций, изменяющих данные водомеров
 /// </summary>
-public interface IWaterMeterReadingCommandService
+public interface IWaterMeterReadingCommand
 {
     /// <summary>
     /// Добавить показание водомера

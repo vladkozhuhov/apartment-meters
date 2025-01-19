@@ -13,18 +13,18 @@ namespace API.Controllers;
 [Route("api/")]
 public class UserController : ControllerBase
 {
-    private readonly IUserCommandService _commandService;
-    private readonly IUserQueryService _queryService;
+    private readonly IUserCommand _command;
+    private readonly IUserQuery _query;
     
     /// <summary>
     /// Конструктор контроллера
     /// </summary>
-    /// <param name="commandService">Сервис для выполнения команд над пользователями</param>
-    /// <param name="queryService">Сервис для выполнения запросов о пользователях</param>
-    public UserController(IUserCommandService commandService, IUserQueryService queryService)
+    /// <param name="command">Сервис для выполнения команд над пользователями</param>
+    /// <param name="query">Сервис для выполнения запросов о пользователях</param>
+    public UserController(IUserCommand command, IUserQuery query)
     {
-        _commandService = commandService;
-        _queryService = queryService;
+        _command = command;
+        _query = query;
     }
 
     /// <summary>
@@ -36,7 +36,7 @@ public class UserController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetUserById(Guid id)
     {
-        var user = await _queryService.GetUserByIdAsync(id);
+        var user = await _query.GetUserByIdAsync(id);
         return user != null ? Ok(user) : NotFound("User not found");
     }
     
@@ -49,7 +49,7 @@ public class UserController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetAllUser()
     {
-        var user = await _queryService.GetAllUsersAsync();
+        var user = await _query.GetAllUsersAsync();
         return user != null ? Ok(user) : NotFound("User not found");
     }
 
@@ -63,7 +63,7 @@ public class UserController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> AddUser([FromBody] AddUserDto addUserDto)
     {
-        var createdUser = await _commandService.AddUserAsync(addUserDto);
+        var createdUser = await _command.AddUserAsync(addUserDto);
         return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
     }
 
@@ -78,7 +78,7 @@ public class UserController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto updateUserDto)
     {
-        await _commandService.UpdateUserAsync(id, updateUserDto);
+        await _command.UpdateUserAsync(id, updateUserDto);
         return NoContent();
     }
 
@@ -92,7 +92,7 @@ public class UserController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
-        await _commandService.DeleteUserAsync(id);
+        await _command.DeleteUserAsync(id);
         return NoContent();
     }
 }

@@ -5,7 +5,7 @@ namespace Application.Interfaces.Queries;
 /// <summary>
 /// Интерфейс для операций, извлекающих данные водомеров
 /// </summary>
-public interface IWaterMeterReadingQueryService
+public interface IWaterMeterReadingQuery
 {
     /// <summary>
     /// Получить все показания водомеров

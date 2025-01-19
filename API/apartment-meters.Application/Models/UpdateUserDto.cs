@@ -18,9 +18,19 @@ public class UpdateUserDto
     public int? ApartmentNumber { get; set; }
 
     /// <summary>
-    /// Полное имя пользователя
+    /// Фамилия пользователя
     /// </summary>
-    public string FullName { get; set; } = null!;
+    public string? LastName { get; set; }
+
+    /// <summary>
+    /// Имя пользователя
+    /// </summary>
+    public string? FirstName { get; set; }
+
+    /// <summary>
+    /// Отчество пользователя (необязательное поле)
+    /// </summary>
+    public string? MiddleName { get; set; }
     
     /// <summary>
     /// Пароль пользователя
@@ -36,4 +46,14 @@ public class UpdateUserDto
     /// Роль пользователя
     /// </summary>
     public UserRole? Role { get; set; }
+    
+    /// <summary>
+    /// Заводской номер счетчика
+    /// </summary>
+    public string? FactoryNumber { get; set; }
+
+    /// <summary>
+    /// Год выпуска счетчика
+    /// </summary>
+    public DateTime? FactoryYear { get; set; }
 }

@@ -7,7 +7,7 @@ namespace Application.Orders.Queries;
 /// <summary>
 /// Реализация сервиса запросов для работы с показаниями водомеров
 /// </summary>
-public class WaterMeterReadingQueryService : IWaterMeterReadingQueryService
+public class WaterMeterReadingQuery : IWaterMeterReadingQuery
 {
     private readonly IWaterMeterReadingRepository _waterMeterReadingRepository;
 
@@ -15,7 +15,7 @@ public class WaterMeterReadingQueryService : IWaterMeterReadingQueryService
     /// Конструктор сервиса
     /// </summary>
     /// <param name="waterMeterReadingRepository">Репозиторий показаний водомеров</param>
-    public WaterMeterReadingQueryService(IWaterMeterReadingRepository waterMeterReadingRepository)
+    public WaterMeterReadingQuery(IWaterMeterReadingRepository waterMeterReadingRepository)
     {
         _waterMeterReadingRepository = waterMeterReadingRepository;
     }

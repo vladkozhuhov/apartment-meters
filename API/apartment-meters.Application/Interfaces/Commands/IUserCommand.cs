@@ -6,7 +6,7 @@ namespace Application.Interfaces.Commands;
 /// <summary>
 /// Интерфейс для управления командами, связанными с пользователями
 /// </summary>
-public interface IUserCommandService
+public interface IUserCommand
 {
     /// <summary>
     /// Добавить нового пользователя

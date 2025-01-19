@@ -8,7 +8,7 @@ namespace Application.Orders.Commands;
 /// <summary>
 /// Сервис для выполнения команд, связанных с пользователями.
 /// </summary>
-public class UserCommandService : IUserCommandService
+public class UserCommand : IUserCommand
 {
     private readonly IUserRepository _userRepository;
 
@@ -16,7 +16,7 @@ public class UserCommandService : IUserCommandService
     /// Конструктор сервиса команд для пользователей.
     /// </summary>
     /// <param name="userRepository">Репозиторий пользователей.</param>
-    public UserCommandService(IUserRepository userRepository)
+    public UserCommand(IUserRepository userRepository)
     {
         _userRepository = userRepository;
     }
@@ -27,11 +27,15 @@ public class UserCommandService : IUserCommandService
         var user = new UserEntity
         {
             Id = Guid.NewGuid(),
-            FullName = dto.FullName,
             ApartmentNumber = dto.ApartmentNumber,
+            LastName = dto.LastName,
+            FirstName = dto.FirstName,
+            MiddleName = dto.MiddleName,
             Password = dto.Password,
+            PhoneNumber = dto.PhoneNumber,
             Role = dto.Role,
-            PhoneNumber = dto.PhoneNumber
+            FactoryNumber = dto.FactoryNumber,
+            FactoryYear = dto.FactoryYear,
         };
 
         await _userRepository.AddAsync(user);
@@ -45,15 +49,13 @@ public class UserCommandService : IUserCommandService
         if (user == null)
             throw new KeyNotFoundException($"User with ID {id} not found");
 
-        user.FullName = dto.FullName ?? user.FullName;
+        user.LastName = dto.LastName ?? user.LastName;
+        user.FirstName = dto.FirstName ?? user.FirstName;
+        user.MiddleName = dto.MiddleName ?? user.MiddleName;
         user.ApartmentNumber = dto.ApartmentNumber ?? user.ApartmentNumber;
-
-        // Хэшируем новый пароль, если он передан
-        if (!string.IsNullOrWhiteSpace(dto.Password))
-        {
-            user.Password = HashPassword(dto.Password); // Метод для хэширования
-        }
-
+        user.FactoryNumber = dto.FactoryNumber ?? user.FactoryNumber;
+        user.FactoryYear = dto.FactoryYear ?? user.FactoryYear;
+        user.Password = dto.Password ?? user.Password;
         user.PhoneNumber = dto.PhoneNumber ?? user.PhoneNumber;
         user.Role = dto.Role ?? user.Role;
 
@@ -68,18 +70,5 @@ public class UserCommandService : IUserCommandService
             throw new KeyNotFoundException($"User with ID {id} not found.");
 
         await _userRepository.DeleteAsync(user);
-    }
-    
-    /// <summary>
-    /// Хэширует пароль с использованием SHA256
-    /// </summary>
-    /// <param name="password">Открытый пароль</param>
-    /// <returns>Хэшированный пароль</returns>
-    private string HashPassword(string password)
-    {
-        using var sha256 = System.Security.Cryptography.SHA256.Create();
-        var bytes = System.Text.Encoding.UTF8.GetBytes(password);
-        var hash = sha256.ComputeHash(bytes);
-        return Convert.ToBase64String(hash);
     }
 }

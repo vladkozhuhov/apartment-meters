@@ -7,7 +7,7 @@ namespace Application.Orders.Queries;
 /// <summary>
 /// Сервис для выполнения операций чтения пользователей
 /// </summary>
-public class UserQueryService : IUserQueryService
+public class UserQuery : IUserQuery
 {
     private readonly IUserRepository _userRepository;
 
@@ -15,7 +15,7 @@ public class UserQueryService : IUserQueryService
     /// Конструктор сервиса
     /// </summary>
     /// <param name="userRepository">Репозиторий для работы с сущностью User</param>
-    public UserQueryService(IUserRepository userRepository)
+    public UserQuery(IUserRepository userRepository)
     {
         _userRepository = userRepository;
     }

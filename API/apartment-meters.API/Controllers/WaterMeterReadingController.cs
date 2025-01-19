@@ -13,13 +13,13 @@ namespace API.Controllers;
 [ApiController]
 public class WaterMeterReadingController : ControllerBase
 {
-    private readonly IWaterMeterReadingCommandService _commandService;
-    private readonly IWaterMeterReadingQueryService _queryService;
+    private readonly IWaterMeterReadingCommand _command;
+    private readonly IWaterMeterReadingQuery _query;
 
-    public WaterMeterReadingController(IWaterMeterReadingCommandService commandService, IWaterMeterReadingQueryService queryService)
+    public WaterMeterReadingController(IWaterMeterReadingCommand command, IWaterMeterReadingQuery query)
     {
-        _commandService = commandService;
-        _queryService = queryService;
+        _command = command;
+        _query = query;
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ public class WaterMeterReadingController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetAllWaterMeterReadings()
     {
-        var readings = await _queryService.GetAllMeterReadingAsync();
+        var readings = await _query.GetAllMeterReadingAsync();
         return Ok(readings);
     }
     
@@ -43,7 +43,7 @@ public class WaterMeterReadingController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetMeterReadingsByUserId(Guid userId)
     {
-        var readings = await _queryService.GetMeterReadingByUserIdAsync(userId);
+        var readings = await _query.GetMeterReadingByUserIdAsync(userId);
         return Ok(readings);
     }
     
@@ -56,7 +56,7 @@ public class WaterMeterReadingController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetMeterReadingsById(Guid id)
     {
-        var readings = await _queryService.GetMeterReadingByIdAsync(id);
+        var readings = await _query.GetMeterReadingByIdAsync(id);
         return Ok(readings);
     }
 
@@ -69,7 +69,7 @@ public class WaterMeterReadingController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> AddWaterMeterReading([FromBody] AddWaterMeterReadingDto request)
     {
-        await _commandService.AddMeterReadingAsync(request);
+        await _command.AddMeterReadingAsync(request);
         return Ok("Показание добавлено");
     }
     
@@ -83,7 +83,7 @@ public class WaterMeterReadingController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> UpdateWaterMeterReading(Guid id, [FromBody] UpdateWaterMeterReadingDto updateWaterMeterReadingDto)
     {
-        await _commandService.UpdateMeterReadingAsync(id, updateWaterMeterReadingDto);
+        await _command.UpdateMeterReadingAsync(id, updateWaterMeterReadingDto);
         return NoContent();
     }
 
@@ -96,7 +96,7 @@ public class WaterMeterReadingController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> DeleteWaterMeterReading(Guid id)
     {
-        await _commandService.DeleteMeterReadingAsync(id);
+        await _command.DeleteMeterReadingAsync(id);
         return Ok("Показание удалено");
     }
 }
