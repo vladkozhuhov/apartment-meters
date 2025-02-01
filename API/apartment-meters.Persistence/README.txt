@@ -7,6 +7,9 @@ dotnet ef migrations add InitialCreate -c ApplicationDbContext --project apartme
 #Удалить миграцию
 dotnet ef migrations remove
 
+#Docker
+docker-compose -f ./docker-compose.yml up
+
 
 
 
