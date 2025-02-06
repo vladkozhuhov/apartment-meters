@@ -1,5 +1,5 @@
 using Application.Interfaces.Commands;
-using Application.Models;
+using Application.Models.MeterReading;
 using Domain.Entities;
 using Domain.Repositories;
 
@@ -24,6 +24,8 @@ public class WaterMeterReadingCommand : IWaterMeterReadingCommand
     /// <inheritdoc />
     public async Task<MeterReadingEntity> AddMeterReadingAsync(AddWaterMeterReadingDto dto)
     {
+        dto.Validate();        
+        
         var meterReading = new MeterReadingEntity
         {
             Id = Guid.NewGuid(),
@@ -44,6 +46,8 @@ public class WaterMeterReadingCommand : IWaterMeterReadingCommand
     /// <inheritdoc />
     public async Task UpdateMeterReadingAsync(Guid id, UpdateWaterMeterReadingDto dto)
     {
+        dto.Validate();
+        
         var waterReading = await _waterMeterReadingRepository.GetByIdAsync(id);
         if (waterReading == null)
             throw new KeyNotFoundException($"MeterReading with user ID {dto.UserId} not found");

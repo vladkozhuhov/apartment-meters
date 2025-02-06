@@ -1,0 +1,37 @@
+﻿version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apartment-meters.API/Dockerfile
+    ports:
+      - "8080:8080"
+    container_name: apartment_meters_api
+    depends_on:
+      - db
+    environment:
+      - ConnectionStrings__SecurityDb=Server=db;Port=5432;Database=apartmentmetersdb;User Id=postgres;Password=12341234;Pooling=true;
+    restart: always
+  
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12341234
+      POSTGRES_DB: apartmentmetersdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    container_name: apartment_meters_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
+    driver: local
