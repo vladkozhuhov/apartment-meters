@@ -1,4 +1,4 @@
-namespace Application.Models.MeterReading;
+namespace Application.Models;
 
 /// <summary>
 /// DTO для обновления показания водомера
@@ -59,31 +59,4 @@ public class UpdateWaterMeterReadingDto
     /// Дата снятия показания
     /// </summary>
     public DateTime ReadingDate { get; set; }
-    
-    /// <summary>
-    /// Метод для валидации данных
-    /// </summary>
-    public void Validate()
-    {
-        // Валидация значений для первого счетчика
-        if (!int.TryParse(PrimaryColdWaterValue, out var coldWaterValue))
-            throw new ArgumentException("Invalid value for PrimaryColdWaterValue.");
-
-        if (!int.TryParse(PrimaryHotWaterValue, out var hotWaterValue))
-            throw new ArgumentException("Invalid value for PrimaryHotWaterValue.");
-
-        PrimaryTotalValue = coldWaterValue + hotWaterValue;
-
-        // Валидация значений для второго счетчика
-        if (HasSecondaryMeter)
-        {
-            if (!int.TryParse(SecondaryColdWaterValue, out var secondaryColdWaterValue))
-                throw new ArgumentException("Invalid value for SecondaryColdWaterValue.");
-
-            if (!int.TryParse(SecondaryHotWaterValue, out var secondaryHotWaterValue))
-                throw new ArgumentException("Invalid value for SecondaryHotWaterValue.");
-
-            SecondaryTotalValue = secondaryColdWaterValue + secondaryHotWaterValue;
-        }
-    }
 }
