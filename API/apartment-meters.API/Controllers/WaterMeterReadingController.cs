@@ -2,6 +2,7 @@ using System.Net;
 using Application.Interfaces.Commands;
 using Application.Interfaces.Queries;
 using Application.Models;
+using Application.Models.MeterReadingModel;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;

@@ -1,5 +1,6 @@
 using Application.Interfaces.Commands;
 using Application.Models;
+using Application.Models.UsersModel;
 using Domain.Entities;
 using Domain.Repositories;
 

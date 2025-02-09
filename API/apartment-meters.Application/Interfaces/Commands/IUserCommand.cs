@@ -1,4 +1,5 @@
 using Application.Models;
+using Application.Models.UsersModel;
 using Domain.Entities;
 
 namespace Application.Interfaces.Commands;

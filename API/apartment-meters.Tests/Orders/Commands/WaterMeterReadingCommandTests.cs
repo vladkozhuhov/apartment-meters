@@ -1,4 +1,4 @@
-using Application.Models.MeterReading;
+using Application.Models.MeterReadingModel;
 using Application.Orders.Commands;
 using Domain.Entities;
 using Domain.Repositories;

@@ -1,5 +1,5 @@
 using Application.Interfaces.Commands;
-using Application.Models.MeterReading;
+using Application.Models.MeterReadingModel;
 using Domain.Entities;
 using Domain.Repositories;
 

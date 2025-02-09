@@ -16,30 +16,24 @@ docker-compose -f ./docker-compose.yml up
 
 #Добавление пользователя
 {
-  "apartmentNumber": 90,
-  "fullName": "ГАГАБУДЖА",
-  "password": "128128",
-  "phoneNumber": "1234123443",
-  "role": 0
+  "apartmentNumber": 900,
+  "lastName": "Петров",
+  "firstName": "Михаил",
+  "middleName": "Анатольевич",
+  "password": "12341234",
+  "phoneNumber": "89513009780",
+  "role": 0,
+  "factoryNumber": "90090090",
+  "factoryYear": "2024-07-10T17:28:56.790Z"
 }
 {
-  "apartmentNumber": 33,
-  "fullName": "лдлаовылдлыв",
-  "password": "128128",
-  "phoneNumber": "1234123443",
-  "role": 0
-}
-{
-  "apartmentNumber": 55,
-  "fullName": "1234пппп",
-  "password": "128128",
-  "phoneNumber": "1234123443",
-  "role": 0
-}
-{
-  "apartmentNumber": 120,
-  "fullName": "ПУПУПУ",
-  "password": "128128",
-  "phoneNumber": "1234123443",
-  "role": 0
+  "apartmentNumber": 901,
+  "lastName": "Админин",
+  "firstName": "Админ",
+  "middleName": "Админович",
+  "password": "12341234",
+  "phoneNumber": "89027832605",
+  "role": 1,
+  "factoryNumber": "90190190",
+  "factoryYear": "2025-01-03T17:28:56.790Z"
 }

@@ -1,11 +1,11 @@
 using Domain.Enums;
 
-namespace Application.Models;
+namespace Application.Models.UsersModel;
 
 /// <summary>
-/// DTO для отображения данных пользователя
+/// DTO для обновления данных пользователя
 /// </summary>
-public class UserDto
+public class UpdateUserDto
 {
     /// <summary>
     /// Идентификатор пользователя
@@ -15,45 +15,45 @@ public class UserDto
     /// <summary>
     /// Номер квартиры пользователя
     /// </summary>
-    public int ApartmentNumber { get; set; }
+    public int? ApartmentNumber { get; set; }
 
     /// <summary>
     /// Фамилия пользователя
     /// </summary>
-    public string LastName { get; set; } = null!;
+    public string? LastName { get; set; }
 
     /// <summary>
     /// Имя пользователя
     /// </summary>
-    public string FirstName { get; set; } = null!;
+    public string? FirstName { get; set; }
 
     /// <summary>
     /// Отчество пользователя (необязательное поле)
     /// </summary>
     public string? MiddleName { get; set; }
+    
+    /// <summary>
+    /// Пароль пользователя
+    /// </summary>
+    public string? Password { get; set; } 
 
     /// <summary>
     /// Номер телефона пользователя
     /// </summary>
     public string? PhoneNumber { get; set; }
-    
-    /// <summary>
-    /// Пароль пользователя
-    /// </summary>
-    public string Password { get; set; }
 
     /// <summary>
     /// Роль пользователя
     /// </summary>
-    public UserRole Role { get; set; }
+    public UserRole? Role { get; set; }
     
     /// <summary>
     /// Заводской номер счетчика
     /// </summary>
-    public string FactoryNumber { get; set; } = null!;
+    public string? FactoryNumber { get; set; }
 
     /// <summary>
     /// Год выпуска счетчика
     /// </summary>
-    public DateTime FactoryYear { get; set; }
+    public DateTime? FactoryYear { get; set; }
 }

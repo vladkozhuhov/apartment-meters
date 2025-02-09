@@ -1,9 +1,9 @@
-namespace Application.Models;
+namespace Application.Models.MeterReadingModel;
 
 /// <summary>
-/// DTO для добавления показания водомера
+/// DTO для обновления показания водомера
 /// </summary>
-public class AddWaterMeterReadingDto
+public class UpdateWaterMeterReadingDto
 {
     /// <summary>
     /// Идентификатор пользователя
@@ -21,11 +21,6 @@ public class AddWaterMeterReadingDto
     public string PrimaryHotWaterValue { get; set; } = "00000";
 
     /// <summary>
-    /// Разница сумм показаний между текущей и предыдущей записью для основного счетчика
-    /// </summary>
-    public int PrimaryDifferenceValue { get; set; }
-
-    /// <summary>
     /// Флаг, указывающий, есть ли у пользователя второй счетчик
     /// </summary>
     public bool HasSecondaryMeter { get; set; }
@@ -39,11 +34,6 @@ public class AddWaterMeterReadingDto
     /// Показание горячей воды для второго счетчика
     /// </summary>
     public string? SecondaryHotWaterValue { get; set; } = "00000";
-
-    /// <summary>
-    /// Разница сумм показаний между текущей и предыдущей записью для дополнительного счетчика
-    /// </summary>
-    public int? SecondaryDifferenceValue { get; set; }
 
     /// <summary>
     /// Дата снятия показания

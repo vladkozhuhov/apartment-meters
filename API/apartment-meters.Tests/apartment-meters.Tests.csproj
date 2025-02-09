@@ -25,10 +25,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Orders\Validators\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\apartment-meters.Application\apartment-meters.Application.csproj" />
       <ProjectReference Include="..\apartment-meters.Domain\apartment-meters.Domain.csproj" />
       <ProjectReference Include="..\apartment-meters.Infrastructure\apartment-meters.Infrastructure.csproj" />
