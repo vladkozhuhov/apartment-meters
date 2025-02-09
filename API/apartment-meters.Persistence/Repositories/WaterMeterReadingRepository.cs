@@ -64,4 +64,12 @@ public class WaterMeterReadingRepository : IWaterMeterReadingRepository
         _dbContext.MeterReadings.Remove(meterReadingEntity);
         await _dbContext.SaveChangesAsync();
     }
+    
+    public async Task<MeterReadingEntity?> GetLastByUserIdAsync(Guid userId)
+    {
+        return await _dbContext.MeterReadings
+            .Where(m => m.UserId == userId)
+            .OrderByDescending(m => m.ReadingDate)
+            .FirstOrDefaultAsync();
+    }
 }

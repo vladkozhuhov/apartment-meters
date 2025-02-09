@@ -47,4 +47,11 @@ public interface IWaterMeterReadingRepository
     /// <param name="meterReadingEntity">Сущность показания водомера</param>
     /// <returns>Task</returns>
     Task DeleteAsync(MeterReadingEntity meterReadingEntity);
+    
+    /// <summary>
+    /// Получить последнее показание водомера для пользователя
+    /// </summary>
+    /// <param name="userId">Идентификатор пользователя</param>
+    /// <returns>Последнее показание водомера</returns>
+    Task<MeterReadingEntity?> GetLastByUserIdAsync(Guid userId);
 }

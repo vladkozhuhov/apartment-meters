@@ -1,10 +1,9 @@
 using Application.Interfaces.Commands;
-using Application.Models;
 using Application.Models.Login;
 using Domain.Entities;
 using Domain.Repositories;
 
-namespace Application.Services;
+namespace Application.Validators;
 
 /// <summary>
 /// Реализация сервиса авторизации

@@ -1,5 +1,4 @@
-﻿using Application.Services;
-using Domain.Repositories;
+﻿using Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,9 +28,6 @@ public static class DependencyInjection
         // Регистрация репозитория
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IWaterMeterReadingRepository, WaterMeterReadingRepository>();
-        
-        // Регистрация сервиса для вычислений показаний водомеров
-        services.AddScoped<MeterReadingCalculatorService>();
         
         return services;
     }
