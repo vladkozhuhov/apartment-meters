@@ -1,10 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import api from '../services/api';
-import { useRouter } from 'next/router';
-
-interface MeterReadingProps {
-    meterReadingList: IMeterReading[]
-}                                  
+import React, {  } from 'react';
 
 const UserComponent: React.FC = () => {
     return (

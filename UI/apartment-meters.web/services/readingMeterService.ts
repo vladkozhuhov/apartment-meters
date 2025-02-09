@@ -3,8 +3,15 @@ import api from "./api";
 export interface MeterReadingRequest {
     id: string;
     userId: string;
-    coldWaterValue: number;
-    hotWaterValue: number;
+    primaryColdWaterValue: string;
+    primaryHotWaterValue: string;
+    primaryTotalValue: number;
+    primaryDifferenceValue: number;
+    hasSecondaryMeter: boolean;
+    secondaryColdWaterValue?: string;
+    secondaryHotWaterValue?: string;
+    secondaryTotalValue?: number;
+    secondaryDifferenceValue?: number;
     readingDate: Date;
 }
 

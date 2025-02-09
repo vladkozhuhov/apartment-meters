@@ -1,10 +1,16 @@
 import api from "./api";
 
 export interface UserRequest {
-    id: number;
+    id: string;
     apartmentNumber: number;
-    fullName: string;
+    lastName: string;
+    firstName: string;
+    middleName: string;
+    password: string;
+    phoneNumber: string;
     role: number;
+    factoryNumber: string;
+    factoryYear: Date;
 }
 
 export const getAllUser = async () => {

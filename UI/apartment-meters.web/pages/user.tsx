@@ -1,19 +1,26 @@
 "use client"
 
 import React, { useEffect, useState } from 'react';
-import api from '../services/api';
 import { useRouter } from 'next/router';
 import { getMeterReadingByUserId, MeterReadingRequest } from '../services/readingMeterService';
 import AddMeterReadingForm from '@/components/addMeterReadingFormComponent';
 
-interface WaterMeterReading {
-  date: string;
-  hotWater: number;
-  coldWater: number;
+interface MeterReading {
+  id: string;
+  readingDate: string;
+  primaryColdWaterValue: string;
+  primaryHotWaterValue: string;
+  primaryTotalValue: number;
+  primaryDifferenceValue: number;
+  hasSecondaryMeter: boolean;
+  secondaryColdWaterValue: string;
+  secondaryHotWaterValue: string;
+  secondaryTotalValue: number;
+  secondaryDifferenceValue: number;
 }
 
 const UserPage: React.FC = () => {
-  const [readings, setReadings] = useState<MeterReadingRequest[]>([]);
+  const [readings, setReadings] = useState<MeterReading[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -31,10 +38,12 @@ const UserPage: React.FC = () => {
       setLoading(true);
       const data = await getMeterReadingByUserId(userId);
       setReadings(data);
-    } catch (err: any) {
+    } 
+    catch (err: any) {
       console.error('Ошибка при получении показаний:', err);
       setError('Не удалось загрузить данные. Пожалуйста, попробуйте позже.');
-    } finally {
+    } 
+    finally {
       setLoading(false);
     }
   };
@@ -78,6 +87,12 @@ const UserPage: React.FC = () => {
                   <th className="border border-gray-300 px-4 py-2">Дата</th>
                   <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
                   <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
+                  <th className="border border-gray-300 px-4 py-2">Сумма показаний</th>
+                  <th className="border border-gray-300 px-4 py-2">Разница сумм</th>
+                  <th className="border border-gray-300 px-4 py-2">Горячая вода (м³) (2 сч.)</th>
+                  <th className="border border-gray-300 px-4 py-2">Холодная вода (м³) (2 сч.)</th>
+                  <th className="border border-gray-300 px-4 py-2">Сумма показаний (2 сч.)</th>
+                  <th className="border border-gray-300 px-4 py-2">Разница сумм (2 сч.)</th>
                 </tr>
               </thead>
               <tbody>
@@ -86,8 +101,14 @@ const UserPage: React.FC = () => {
                     <td className="border border-gray-300 px-4 py-2">
                       {new Date(reading.readingDate).toLocaleDateString()}
                     </td>
-                    <td className="border border-gray-300 px-4 py-2">{reading.hotWaterValue}</td>
-                    <td className="border border-gray-300 px-4 py-2">{reading.coldWaterValue}</td>
+                    <td className="border border-gray-300 px-4 py-2">{reading.primaryHotWaterValue}</td>
+                    <td className="border border-gray-300 px-4 py-2">{reading.primaryColdWaterValue}</td>
+                    <td className="border border-gray-300 px-4 py-2">{reading.primaryTotalValue}</td>
+                    <td className="border border-gray-300 px-4 py-2">{reading.primaryDifferenceValue}</td>
+                    <td className="border border-gray-300 px-4 py-2">{reading.secondaryHotWaterValue}</td>
+                    <td className="border border-gray-300 px-4 py-2">{reading.secondaryColdWaterValue}</td>
+                    <td className="border border-gray-300 px-4 py-2">{reading.secondaryTotalValue}</td>
+                    <td className="border border-gray-300 px-4 py-2">{reading.secondaryDifferenceValue}</td>
                   </tr>
                 ))}
               </tbody>

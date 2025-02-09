@@ -1,17 +1,22 @@
 "use admin"
 
 import React, { useEffect, useState } from 'react';
-import api from '../services/api';
-import { useRouter } from 'next/router';
 import { getAllMeterReading } from '../services/readingMeterService';
-import { updateUser } from '../services/userService';
+// import GetUsersForm from '@/components/showUsersFormComponent';
 
 interface MeterReading {
   id: string;
   userId: string;
   readingDate: string;
-  hotWaterValue: number;
-  coldWaterValue: number;
+  primaryColdWaterValue: string;
+  primaryHotWaterValue: string;
+  primaryTotalValue: number;
+  primaryDifferenceValue: number;
+  hasSecondaryMeter: boolean;
+  secondaryColdWaterValue: string;
+  secondaryHotWaterValue: string;
+  secondaryTotalValue: number;
+  secondaryDifferenceValue: number;
 }
 
 const AdminPage: React.FC = () => {
@@ -20,6 +25,8 @@ const AdminPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState({ apartment: '', month: '' });
+  const [showForm, setShowUsersForm] = useState(false);
+  
 
   const fetchReadings = async () => {
     try {
@@ -27,10 +34,12 @@ const AdminPage: React.FC = () => {
       const data = await getAllMeterReading();
       setReadings(data);
       setFilteredReadings(data);
-    } catch (err) {
+    } 
+    catch (err) {
       console.error('Ошибка при загрузке данных:', err);
       setError('Не удалось загрузить данные. Попробуйте позже.');
-    } finally {
+    } 
+    finally {
       setLoading(false);
     }
   };
@@ -105,6 +114,21 @@ const AdminPage: React.FC = () => {
         <button onClick={applyFilter} className="ml-4 bg-blue-500 text-white px-4 py-2 rounded">
           Применить фильтр
         </button>
+        {/* <button
+            onClick={() => setShowUsersForm(true)}
+            className="mt-6 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Просмотр пользователей
+          </button>
+
+          {setShowUsersForm && (
+            <GetUsersForm
+              onSuccess={() => {
+                setShowUsersForm(false); // Обновляем данные после успешного добавления
+              }}
+              onCancel={() => setShowUsersForm(false)}
+            />
+          )} */}
       </div>
 
       {loading ? (
@@ -119,7 +143,13 @@ const AdminPage: React.FC = () => {
               <th className="border border-gray-300 px-4 py-2">Квартира</th>
               <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
               <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
-              <th className="border border-gray-300 px-4 py-2">Действия</th>
+              <th className="border border-gray-300 px-4 py-2">Сумма показаний</th>
+              <th className="border border-gray-300 px-4 py-2">Разница сумм</th>
+              <th className="border border-gray-300 px-4 py-2">Горячая вода (м³) (2 сч.)</th>
+              <th className="border border-gray-300 px-4 py-2">Холодная вода (м³) (2 сч.)</th>
+              <th className="border border-gray-300 px-4 py-2">Сумма показаний (2 сч.)</th>
+              <th className="border border-gray-300 px-4 py-2">Разница сумм (2 сч.)</th>
+              {/* <th className="border border-gray-300 px-4 py-2">Действия</th> */}
             </tr>
           </thead>
           <tbody>
@@ -129,16 +159,14 @@ const AdminPage: React.FC = () => {
                   {new Date(reading.readingDate).toLocaleDateString()}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">{reading.userId}</td>
-                <td className="border border-gray-300 px-4 py-2">{reading.hotWaterValue}</td>
-                <td className="border border-gray-300 px-4 py-2">{reading.coldWaterValue}</td>
-                <td className="border border-gray-300 px-4 py-2">
-                  <button
-                    onClick={() => handleUpdate(reading.id, { hotWaterValue: 25 })}
-                    className="bg-green-500 text-white px-2 py-1 rounded"
-                  >
-                    Изменить
-                  </button>
-                </td>
+                <td className="border border-gray-300 px-4 py-2">{reading.primaryHotWaterValue}</td>
+                <td className="border border-gray-300 px-4 py-2">{reading.primaryColdWaterValue}</td>
+                <td className="border border-gray-300 px-4 py-2">{reading.primaryTotalValue}</td>
+                <td className="border border-gray-300 px-4 py-2">{reading.primaryDifferenceValue}</td>
+                <td className="border border-gray-300 px-4 py-2">{reading.secondaryHotWaterValue}</td>
+                <td className="border border-gray-300 px-4 py-2">{reading.secondaryColdWaterValue}</td>
+                <td className="border border-gray-300 px-4 py-2">{reading.secondaryTotalValue}</td>
+                <td className="border border-gray-300 px-4 py-2">{reading.secondaryDifferenceValue}</td>
               </tr>
             ))}
           </tbody>
