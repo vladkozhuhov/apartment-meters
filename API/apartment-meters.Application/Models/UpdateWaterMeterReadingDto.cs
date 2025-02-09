@@ -1,4 +1,4 @@
-namespace Application.Models.MeterReading;
+namespace Application.Models;
 
 /// <summary>
 /// DTO для обновления показания водомера

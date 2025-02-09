@@ -2,7 +2,6 @@ using System.Net;
 using Application.Exceptions;
 using Application.Interfaces.Commands;
 using Application.Models;
-using Application.Models.Login;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;

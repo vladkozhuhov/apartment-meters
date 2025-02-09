@@ -1,4 +1,4 @@
-namespace Application.Models.Login;
+namespace Application.Models;
 
 /// <summary>
 /// DTO для входа пользователя в систему
