@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { getAllMeterReading } from '../services/readingMeterService';
-// import GetUsersForm from '@/components/showUsersFormComponent';
+import UsersList from '@/components/UserListComponent';
 
 interface MeterReading {
   id: string;
@@ -19,15 +19,18 @@ interface MeterReading {
   secondaryDifferenceValue: number;
 }
 
+interface UsersListProps {
+  onClose: () => void;
+}
+
 const AdminPage: React.FC = () => {
   const [readings, setReadings] = useState<MeterReading[]>([]);
   const [filteredReadings, setFilteredReadings] = useState<MeterReading[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState({ apartment: '', month: '' });
-  const [showForm, setShowUsersForm] = useState(false);
+  const [filter, setFilter] = useState({ apartment: '', month: '' });  
+  const [showForm, setShowForm] = useState(false); // Управление формой пользователей
   
-
   const fetchReadings = async () => {
     try {
       setLoading(true);
@@ -76,7 +79,7 @@ const AdminPage: React.FC = () => {
 
   return (
     <div className="p-5">
-      {/* <h1 className="text-2xl font-bold mb-4">Страница администратора</h1> */}
+
       <div className="mb-4">
         <label>
           Квартира:
@@ -111,25 +114,29 @@ const AdminPage: React.FC = () => {
             <option value="12">Декабрь</option>
           </select>
         </label>
-        <button onClick={applyFilter} className="ml-4 bg-blue-500 text-white px-4 py-2 rounded">
+        <button 
+          onClick={applyFilter} 
+          className="ml-4 bg-blue-500 text-white px-4 py-2 rounded"
+        >
           Применить фильтр
         </button>
-        {/* <button
-            onClick={() => setShowUsersForm(true)}
-            className="mt-6 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Просмотр пользователей
-          </button>
 
-          {setShowUsersForm && (
-            <GetUsersForm
-              onSuccess={() => {
-                setShowUsersForm(false); // Обновляем данные после успешного добавления
-              }}
-              onCancel={() => setShowUsersForm(false)}
-            />
-          )} */}
+        <button
+          onClick={() => setShowForm(true)}
+          className="ml-4 bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Просмотр пользователей
+        </button>
+
+        <button
+          // onClick={() => setShowForm(true)}
+          className="ml-4 bg-green-600 text-white px-4 py-2 rounded"
+        >
+          Изменить пользователя
+        </button>
       </div>
+
+      {showForm && <UsersList onClose={() => setShowForm(false)} />} {/* Форма пользователей */}
 
       {loading ? (
         <p>Загрузка данных...</p>

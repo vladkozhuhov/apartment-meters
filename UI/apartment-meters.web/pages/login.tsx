@@ -36,7 +36,8 @@ const LoginPage: React.FC = () => {
           router.push('/admin'); // Переход на страницу админа
         }
       }
-    } catch (err: any) {
+    } 
+    catch (err: any) {
       console.error('Ошибка авторизации:', err);
       setError('Неверный номер квартиры или пароль.');
     }

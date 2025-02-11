@@ -64,12 +64,35 @@ const UserPage: React.FC = () => {
   return (
     <div className="p-5">
       {/* <h1 className="text-2xl font-bold mb-4">Добро пожаловать!</h1> */}
-      <button
-        onClick={handleLogout}
-        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-      >
-        Выйти
-      </button>
+      <div className="flex items-center justify-between">
+        <div className="py-4">
+          <button
+            onClick={() => setShowForm(true)}
+            className="self-center bg-blue-500 text-white px-5 py-3 rounded hover:bg-blue-600"
+          >
+            Добавить показания
+          </button>
+
+          {showForm && (
+            <AddMeterReadingForm
+              userId={userId}
+              onSuccess={() => {
+                setShowForm(false);
+                fetchUserReadings(); // Обновляем данные после успешного добавления
+              }}
+              onCancel={() => setShowForm(false)}
+            />
+          )}
+        </div>
+        <div className="py-4">
+          <button
+            onClick={handleLogout}
+            className="self-center order-last bg-red-500 text-white px-5 py-3 rounded hover:bg-red-600"
+          >
+            Выйти
+          </button>
+        </div>
+      </div>
 
       {loading ? (
         <p className="mt-4">Загрузка данных...</p>
@@ -115,23 +138,6 @@ const UserPage: React.FC = () => {
             </table>
           )}
 
-          <button
-            onClick={() => setShowForm(true)}
-            className="mt-6 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Добавить показания
-          </button>
-
-          {showForm && (
-            <AddMeterReadingForm
-              userId={userId}
-              onSuccess={() => {
-                setShowForm(false);
-                fetchUserReadings(); // Обновляем данные после успешного добавления
-              }}
-              onCancel={() => setShowForm(false)}
-            />
-          )}
         </div>
       )}
     </div>

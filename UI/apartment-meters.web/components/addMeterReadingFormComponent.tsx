@@ -58,7 +58,9 @@ const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuc
   };
 
   return (
-    <form onSubmit={handleAddReading} className="mt-6 p-4 border rounded-lg">
+    <form onSubmit={handleAddReading} className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center mt-6 p-4 border rounded-lg">
+      <div className="bg-white p-5 rounded shadow-lg w-2/5 max-w-4xl">
+
       <div className="mb-4">
         <label className="block font-semibold mb-2">Горячая вода (м³)</label>
         <input
@@ -118,12 +120,16 @@ const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuc
         </>
       )}
 
-      <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-        Сохранить
-      </button>
-      <button type="button" onClick={onCancel} className="ml-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-        Отмена
-      </button>
+      <div className="flex items-center justify-between">
+        <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+          Сохранить
+        </button>
+        <button type="button" onClick={onCancel} className="ml-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+          Отмена
+        </button>
+      </div>
+
+      </div>
     </form>
   );
 };
