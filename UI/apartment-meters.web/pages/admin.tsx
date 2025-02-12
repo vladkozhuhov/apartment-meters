@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { getAllMeterReading } from '../services/readingMeterService';
+import { getAllUser } from '../services/userService'; // Добавь импорт
 import UsersList from '@/components/UserListComponent';
 
 interface MeterReading {
@@ -19,6 +20,11 @@ interface MeterReading {
   secondaryDifferenceValue: number;
 }
 
+interface Users {
+  id: string;
+  apartmentNumber: number;
+}
+
 interface UsersListProps {
   onClose: () => void;
 }
@@ -30,6 +36,7 @@ const AdminPage: React.FC = () => {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState({ apartment: '', month: '' });  
   const [showForm, setShowForm] = useState(false); // Управление формой пользователей
+  const [users, setUsers] = useState<Users[]>([]);
   
   const fetchReadings = async () => {
     try {
@@ -47,8 +54,19 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const usersData = await getAllUser();
+      setUsers(usersData);
+    } 
+    catch (err) {
+      console.error('Ошибка при загрузке пользователей:', err);
+    }
+  };
+
   useEffect(() => {
     fetchReadings();
+    fetchUsers();
   }, []);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -165,7 +183,9 @@ const AdminPage: React.FC = () => {
                 <td className="border border-gray-300 px-4 py-2">
                   {new Date(reading.readingDate).toLocaleDateString()}
                 </td>
-                <td className="border border-gray-300 px-4 py-2">{reading.userId}</td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {users.find((user) => user.id === reading.userId)?.apartmentNumber || 'Не найден'}
+                </td>
                 <td className="border border-gray-300 px-4 py-2">{reading.primaryHotWaterValue}</td>
                 <td className="border border-gray-300 px-4 py-2">{reading.primaryColdWaterValue}</td>
                 <td className="border border-gray-300 px-4 py-2">{reading.primaryTotalValue}</td>

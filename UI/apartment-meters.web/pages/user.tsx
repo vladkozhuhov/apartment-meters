@@ -25,6 +25,7 @@ const UserPage: React.FC = () => {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const router = useRouter();
+  const [apartmentNumber, setApartmentNumber] = useState<string | null>(null);
 
   const userId = localStorage.getItem('id'); // Получение userId из локального хранилища
 
@@ -32,6 +33,12 @@ const UserPage: React.FC = () => {
     if (!userId) {
       router.push('/login'); // Если userId нет, перенаправляем на логин
       return;
+    }
+    else {
+      const storedApartment = localStorage.getItem('apartmentNumber');
+      if (storedApartment) {
+        setApartmentNumber(storedApartment);
+      }
     }
 
     try {
@@ -84,14 +91,12 @@ const UserPage: React.FC = () => {
             />
           )}
         </div>
-        <div className="py-4">
-          <button
-            onClick={handleLogout}
-            className="self-center order-last bg-red-500 text-white px-5 py-3 rounded hover:bg-red-600"
-          >
-            Выйти
-          </button>
-        </div>
+        
+          <div className="py-4 text-right text-gray-700">
+              <p>г. Магнитогорск</p>
+              <p>пр-т Ленина, 90</p>
+              <p>{apartmentNumber ? `${apartmentNumber} кв.` : 'Загрузка...'}</p>
+          </div>
       </div>
 
       {loading ? (

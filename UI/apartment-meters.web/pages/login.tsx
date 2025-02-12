@@ -31,8 +31,10 @@ const LoginPage: React.FC = () => {
         // Проверяем роль пользователя
         if (userData.role === 0) {
           localStorage.setItem('id', response.data.id); // Сохраняем userId в localStorage
+          localStorage.setItem('apartmentNumber', response.data.apartmentNumber); // Сохраняем apartmentNumber в localStorage
           router.push('/user'); // Переход на страницу пользователя
-        } else if (userData.role === 1) {
+        } 
+        else if (userData.role === 1) {
           router.push('/admin'); // Переход на страницу админа
         }
       }
