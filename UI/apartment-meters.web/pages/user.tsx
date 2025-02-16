@@ -112,15 +112,19 @@ const UserPage: React.FC = () => {
             <table className="w-full mt-4 border-collapse border border-gray-300">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="border border-gray-300 px-4 py-2">Дата</th>
+                  <th className="border border-gray-300 px-4 py-2" rowSpan={2}>Дата</th>
+                  <th className="border border-gray-300 px-4 py-2" colSpan={4}>Ванная</th>
+                  <th className="border border-gray-300 px-4 py-2" colSpan={4}>Кухня</th>
+                </tr>
+                <tr>
                   <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
                   <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
                   <th className="border border-gray-300 px-4 py-2">Сумма показаний</th>
-                  <th className="border border-gray-300 px-4 py-2">Разница сумм</th>
+                  <th className="border border-gray-300 px-4 py-2">Потребление</th>
                   <th className="border border-gray-300 px-4 py-2">Горячая вода (м³) (2 сч.)</th>
                   <th className="border border-gray-300 px-4 py-2">Холодная вода (м³) (2 сч.)</th>
                   <th className="border border-gray-300 px-4 py-2">Сумма показаний (2 сч.)</th>
-                  <th className="border border-gray-300 px-4 py-2">Разница сумм (2 сч.)</th>
+                  <th className="border border-gray-300 px-4 py-2">Потребление (2 сч.)</th>
                 </tr>
               </thead>
               <tbody>

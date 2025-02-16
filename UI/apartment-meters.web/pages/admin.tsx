@@ -34,7 +34,7 @@ const AdminPage: React.FC = () => {
   const [filteredReadings, setFilteredReadings] = useState<MeterReading[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState({ apartment: '', month: '' });  
+  const [filter, setFilter] = useState({ apartment: '', month: '', year: '' });  
   const [showForm, setShowForm] = useState(false); // Управление формой пользователей
   const [users, setUsers] = useState<Users[]>([]);
   
@@ -76,12 +76,21 @@ const AdminPage: React.FC = () => {
 
   const applyFilter = () => {
     let result = readings;
+
     if (filter.apartment) {
-      result = result.filter((r) => r.userId === filter.apartment);
+      result = result.filter(
+        (r) => r.userId === filter.apartment);
     }
     if (filter.month) {
-      result = result.filter((r) => new Date(r.readingDate).getMonth() + 1 === parseInt(filter.month));
+      result = result.filter(
+        (r) => new Date(r.readingDate).getMonth() + 1 === parseInt(filter.month));
     }
+    if (filter.year) {
+      result = result.filter(
+        (r) => new Date(r.readingDate).getFullYear() === parseInt(filter.year)
+      );
+    }
+
     setFilteredReadings(result);
   };
 
@@ -132,6 +141,27 @@ const AdminPage: React.FC = () => {
             <option value="12">Декабрь</option>
           </select>
         </label>
+
+        <label className="ml-4">
+          Год:
+          <select
+            name="year"
+            value={filter.year}
+            onChange={handleFilterChange}
+            className="border px-2 py-1 ml-2"
+          >
+            <option value="">Все</option>
+            {[...Array(10)].map((_, i) => {
+              const year = new Date().getFullYear() - i;
+              return (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              );
+            })}
+          </select>
+        </label>
+
         <button 
           onClick={applyFilter} 
           className="ml-4 bg-blue-500 text-white px-4 py-2 rounded"
@@ -158,30 +188,33 @@ const AdminPage: React.FC = () => {
 
       {loading ? (
         <p>Загрузка данных...</p>
-      ) : error ? (
-        <p className="text-red-500">{error}</p>
-      ) : (
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
+        ) : (
         <table className="w-full border-collapse border border-gray-300 mt-4">
           <thead className="bg-gray-100">
             <tr>
-              <th className="border border-gray-300 px-4 py-2">Дата</th>
-              <th className="border border-gray-300 px-4 py-2">Квартира</th>
+              <th className="border border-gray-300 px-4 py-2" rowSpan={2}>Дата</th>
+              <th className="border border-gray-300 px-4 py-2" rowSpan={2}>Квартира</th>
+              <th className="border border-gray-300 px-4 py-2" colSpan={4}>Ванная</th>
+              <th className="border border-gray-300 px-4 py-2" colSpan={4}>Кухня</th>
+            </tr>
+            <tr>
               <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
               <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
               <th className="border border-gray-300 px-4 py-2">Сумма показаний</th>
-              <th className="border border-gray-300 px-4 py-2">Разница сумм</th>
+              <th className="border border-gray-300 px-4 py-2">Потребление</th>
               <th className="border border-gray-300 px-4 py-2">Горячая вода (м³) (2 сч.)</th>
               <th className="border border-gray-300 px-4 py-2">Холодная вода (м³) (2 сч.)</th>
               <th className="border border-gray-300 px-4 py-2">Сумма показаний (2 сч.)</th>
-              <th className="border border-gray-300 px-4 py-2">Разница сумм (2 сч.)</th>
-              {/* <th className="border border-gray-300 px-4 py-2">Действия</th> */}
+              <th className="border border-gray-300 px-4 py-2">Потребление (2 сч.)</th>
             </tr>
           </thead>
           <tbody>
             {filteredReadings.map((reading) => (
               <tr key={reading.id} className="text-center">
                 <td className="border border-gray-300 px-4 py-2">
-                  {new Date(reading.readingDate).toLocaleDateString()}
+                  {new Date(reading.readingDate).toLocaleDateString("ru-RU", { month: "long" })}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
                   {users.find((user) => user.id === reading.userId)?.apartmentNumber || 'Не найден'}
