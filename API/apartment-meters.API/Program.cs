@@ -40,7 +40,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 #region Register repositories
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IWaterMeterReadingRepository, WaterMeterReadingRepository>();
+builder.Services.AddScoped<IMeterReadingRepository, MeterReadingRepository>();
 
 #endregion
 
@@ -49,8 +49,8 @@ builder.Services.AddScoped<IWaterMeterReadingRepository, WaterMeterReadingReposi
 builder.Services.AddScoped<IUserCommand, UserCommand>();
 builder.Services.AddScoped<IUserQuery, UserQuery>();
 
-builder.Services.AddScoped<IWaterMeterReadingCommand, WaterMeterReadingCommand>();
-builder.Services.AddScoped<IWaterMeterReadingQuery, WaterMeterReadingQuery>();
+builder.Services.AddScoped<IMeterReadingCommand, MeterReadingCommand>();
+builder.Services.AddScoped<IMeterReadingQuery, MeterReadingQuery>();
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
