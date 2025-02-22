@@ -14,10 +14,10 @@ namespace API.Controllers;
 [ApiController]
 public class WaterMeterReadingController : ControllerBase
 {
-    private readonly IWaterMeterReadingCommand _command;
-    private readonly IWaterMeterReadingQuery _query;
+    private readonly IMeterReadingCommand _command;
+    private readonly IMeterReadingQuery _query;
 
-    public WaterMeterReadingController(IWaterMeterReadingCommand command, IWaterMeterReadingQuery query)
+    public WaterMeterReadingController(IMeterReadingCommand command, IMeterReadingQuery query)
     {
         _command = command;
         _query = query;
@@ -68,7 +68,7 @@ public class WaterMeterReadingController : ControllerBase
     [HttpPost("function/meterReading-add")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> AddWaterMeterReading([FromBody] AddWaterMeterReadingDto request)
+    public async Task<IActionResult> AddWaterMeterReading([FromBody] MeterReadingAddDto request)
     {
         await _command.AddMeterReadingAsync(request);
         return Ok("Показание добавлено");
@@ -78,13 +78,13 @@ public class WaterMeterReadingController : ControllerBase
     /// Обновить данные показания водомеров
     /// </summary>
     /// <param name="id">Идентификатор пользователя</param>
-    /// <param name="updateWaterMeterReadingDto">Обновленные данные показания водомера</param>
+    /// <param name="meterReadingUpdateDto">Обновленные данные показания водомера</param>
     [HttpPut("function/meterReading-update/{id:guid}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> UpdateWaterMeterReading(Guid id, [FromBody] UpdateWaterMeterReadingDto updateWaterMeterReadingDto)
+    public async Task<IActionResult> UpdateWaterMeterReading(Guid id, [FromBody] MeterReadingUpdateDto meterReadingUpdateDto)
     {
-        await _command.UpdateMeterReadingAsync(id, updateWaterMeterReadingDto);
+        await _command.UpdateMeterReadingAsync(id, meterReadingUpdateDto);
         return NoContent();
     }
 

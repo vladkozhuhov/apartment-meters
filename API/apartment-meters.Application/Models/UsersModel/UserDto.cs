@@ -47,13 +47,4 @@ public class UserDto
     /// </summary>
     public UserRole Role { get; set; }
     
-    /// <summary>
-    /// Заводской номер счетчика
-    /// </summary>
-    public string FactoryNumber { get; set; } = null!;
-
-    /// <summary>
-    /// Год выпуска счетчика
-    /// </summary>
-    public DateTime FactoryYear { get; set; }
 }

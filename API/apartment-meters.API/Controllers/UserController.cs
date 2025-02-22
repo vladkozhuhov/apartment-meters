@@ -57,14 +57,14 @@ public class UserController : ControllerBase
     /// <summary>
     /// Добавить нового пользователя
     /// </summary> 
-    /// <param name="addUserDto">Данные нового пользователя</param>
+    /// <param name="userAddDto">Данные нового пользователя</param>
     /// <returns>Нового пользователя</returns>
     [HttpPost("function/user-add")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> AddUser([FromBody] AddUserDto addUserDto)
+    public async Task<IActionResult> AddUser([FromBody] UserAddDto userAddDto)
     {
-        var createdUser = await _command.AddUserAsync(addUserDto);
+        var createdUser = await _command.AddUserAsync(userAddDto);
         return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
     }
 
@@ -72,14 +72,14 @@ public class UserController : ControllerBase
     /// Обновить данные пользователя
     /// </summary>
     /// <param name="id">Идентификатор пользователя</param>
-    /// <param name="updateUserDto">Обновленные данные пользователя</param>
+    /// <param name="userUpdateDto">Обновленные данные пользователя</param>
     /// <returns>Результат операции</returns>
     [HttpPut("function/user-update/{id:guid}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto updateUserDto)
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserUpdateDto userUpdateDto)
     {
-        await _command.UpdateUserAsync(id, updateUserDto);
+        await _command.UpdateUserAsync(id, userUpdateDto);
         return NoContent();
     }
 

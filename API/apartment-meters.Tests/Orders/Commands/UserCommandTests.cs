@@ -30,7 +30,7 @@ public class UserCommandTests
     [Fact]
     public async Task AddUserAsync_ShouldAddUser()
     {
-        var dto = new AddUserDto
+        var dto = new UserAddDto
         {
             ApartmentNumber = 12,
             LastName = "Иванов",
@@ -39,8 +39,6 @@ public class UserCommandTests
             Password = "password123",
             PhoneNumber = "1234567890",
             Role = UserRole.User,
-            FactoryNumber = "12345",
-            FactoryYear = DateTime.UtcNow
         };
 
         var result = await _userCommand.AddUserAsync(dto);
@@ -63,14 +61,12 @@ public class UserCommandTests
             LastName = "Петров",
             FirstName = "Петр",
             ApartmentNumber = 15,
-            FactoryNumber = "54321",
-            FactoryYear = DateTime.UtcNow
         };
 
         _userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId))
             .ReturnsAsync(existingUser);
 
-        var dto = new UpdateUserDto
+        var dto = new UserUpdateDto
         {
             LastName = "Сидоров",
             FirstName = "Сидор"
@@ -92,7 +88,7 @@ public class UserCommandTests
         var userId = Guid.NewGuid();
         _userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId)).ReturnsAsync((UserEntity)null);
 
-        var dto = new UpdateUserDto { LastName = "Тест" };
+        var dto = new UserUpdateDto { LastName = "Тест" };
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => _userCommand.UpdateUserAsync(userId, dto));
     }

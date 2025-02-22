@@ -7,23 +7,23 @@ using Domain.Repositories;
 namespace Application.Orders.Commands;
 
 /// <summary>
-/// Сервис для выполнения команд, связанных с пользователями.
+/// Сервис для выполнения команд, связанных с пользователями
 /// </summary>
 public class UserCommand : IUserCommand
 {
     private readonly IUserRepository _userRepository;
 
     /// <summary>
-    /// Конструктор сервиса команд для пользователей.
+    /// Конструктор сервиса команд для пользователей
     /// </summary>
-    /// <param name="userRepository">Репозиторий пользователей.</param>
+    /// <param name="userRepository">Репозиторий пользователей</param>
     public UserCommand(IUserRepository userRepository)
     {
         _userRepository = userRepository;
     }
 
     /// <inheritdoc />
-    public async Task<UserEntity> AddUserAsync(AddUserDto dto)
+    public async Task<UserEntity> AddUserAsync(UserAddDto dto)
     {
         var user = new UserEntity
         {
@@ -35,8 +35,6 @@ public class UserCommand : IUserCommand
             Password = dto.Password,
             PhoneNumber = dto.PhoneNumber,
             Role = dto.Role,
-            FactoryNumber = dto.FactoryNumber,
-            FactoryYear = dto.FactoryYear,
         };
 
         await _userRepository.AddAsync(user);
@@ -44,7 +42,7 @@ public class UserCommand : IUserCommand
     }
     
     /// <inheritdoc />
-    public async Task UpdateUserAsync(Guid id, UpdateUserDto dto)
+    public async Task UpdateUserAsync(Guid id, UserUpdateDto dto)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
@@ -54,8 +52,6 @@ public class UserCommand : IUserCommand
         user.FirstName = dto.FirstName ?? user.FirstName;
         user.MiddleName = dto.MiddleName ?? user.MiddleName;
         user.ApartmentNumber = dto.ApartmentNumber ?? user.ApartmentNumber;
-        user.FactoryNumber = dto.FactoryNumber ?? user.FactoryNumber;
-        user.FactoryYear = dto.FactoryYear ?? user.FactoryYear;
         user.Password = dto.Password ?? user.Password;
         user.PhoneNumber = dto.PhoneNumber ?? user.PhoneNumber;
         user.Role = dto.Role ?? user.Role;

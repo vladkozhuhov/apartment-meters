@@ -7,69 +7,33 @@ namespace Domain.Entities;
 /// </summary>
 public class MeterReadingEntity
 {
-    /// <summary>
-    /// Уникальный идентификатор показания
-    /// </summary>
+    [Key]
     public Guid Id { get; set; }
 
     /// <summary>
-    /// Идентификатор пользователя, которому принадлежит показание
+    /// Идентификатор счетчика, которому принадлежит показание
     /// </summary>
-    public Guid UserId { get; set; }
-
+    [Required]
+    public Guid WaterMeterId { get; set; }
+    
     /// <summary>
-    /// Показание холодной воды для основного счетчика
+    /// Показание счетчика
     /// </summary>
     [Required]
     [StringLength(5, MinimumLength = 5)]
-    public string PrimaryColdWaterValue { get; set; } = "00000";
+    public string WaterValue { get; set; } = "00000";
 
     /// <summary>
-    /// Показание горячей воды для основного счетчика
+    /// Сумма показаний за все время
     /// </summary>
     [Required]
-    [StringLength(5, MinimumLength = 5)]
-    public string PrimaryHotWaterValue { get; set; } = "00000";
+    public int TotalValue { get; set; }
 
     /// <summary>
-    /// Сумма показаний холодной и горячей воды для основного счетчика
+    /// Разница сумм показаний между текущей и предыдущей записью
     /// </summary>
     [Required]
-    public int PrimaryTotalValue { get; set; }
-
-    /// <summary>
-    /// Разница сумм показаний между текущей и предыдущей записью для основного счетчика
-    /// </summary>
-    [Required]
-    public int PrimaryDifferenceValue { get; set; }
-
-    /// <summary>
-    /// Флаг, указывающий, есть ли у пользователя дополнительный счетчик
-    /// </summary>
-    [Required]
-    public bool HasSecondaryMeter { get; set; }
-
-    /// <summary>
-    /// Показание холодной воды для дополнительного счетчика
-    /// </summary>
-    [StringLength(5, MinimumLength = 5)]
-    public string? SecondaryColdWaterValue { get; set; } = "00000";
-
-    /// <summary>
-    /// Показание горячей воды для дополнительного счетчика
-    /// </summary>
-    [StringLength(5, MinimumLength = 5)]
-    public string? SecondaryHotWaterValue { get; set; } = "00000";
-
-    /// <summary>
-    /// Сумма показаний холодной и горячей воды для дополнительного счетчика
-    /// </summary>
-    public int? SecondaryTotalValue { get; set; }
-
-    /// <summary>
-    /// Разница сумм показаний между текущей и предыдущей записью для дополнительного счетчика
-    /// </summary>
-    public int? SecondaryDifferenceValue { get; set; }
+    public int DifferenceValue { get; set; }
 
     /// <summary>
     /// Дата, на которую было зафиксировано показание
@@ -84,8 +48,7 @@ public class MeterReadingEntity
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// Связанный пользователь (навигационное свойство)
+    /// Связанный счетчик (навигационное свойство)
     /// </summary>
-    [Required]
-    public UserEntity UserEntity { get; set; } = null!;
+    public WaterMeterEntity WaterMeter { get; set; } = null!;
 }
