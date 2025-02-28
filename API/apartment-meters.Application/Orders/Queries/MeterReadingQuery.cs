@@ -21,9 +21,9 @@ public class MeterReadingQuery : IMeterReadingQuery
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<MeterReadingEntity>> GetMeterReadingByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<MeterReadingEntity>> GetMeterReadingByWaterMeterIdAsync(Guid waterMeterId)
     {
-        return await _meterReadingRepository.GetByUserIdAsync(userId);
+        return await _meterReadingRepository.GetByWaterMeterIdAsync(waterMeterId);
     }
     
     /// <inheritdoc />

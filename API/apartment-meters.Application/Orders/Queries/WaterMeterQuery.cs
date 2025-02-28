@@ -21,8 +21,14 @@ public class WaterMeterQuery : IWaterMeterQuery
     }
     
     /// <inheritdoc />
-    public async Task<WaterMeterEntity> GetUserByIdAsync(Guid userId)
+    public async Task<IEnumerable<WaterMeterEntity>> GetWaterMeterByUserIdAsync(Guid userId)
     {
-        return await _waterMaterRepository.GetByIdAsync(userId);
+        return await _waterMaterRepository.GetByUserIdAsync(userId);
+    }
+    
+    /// <inheritdoc />
+    public async Task<WaterMeterEntity> GetWaterMeterByIdAsync(Guid id)
+    {
+        return await _waterMaterRepository.GetByIdAsync(id);
     }
 }

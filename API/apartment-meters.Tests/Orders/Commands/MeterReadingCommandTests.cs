@@ -7,17 +7,17 @@ using Moq;
 namespace Tests.Orders.Commands;
 
 /// <summary>
-/// Тесты для <see cref="WaterMeterReadingCommand"/>
+/// Тесты для <see cref="MeterReadingCommand"/>
 /// </summary>
-public class WaterMeterReadingCommandTests
+public class MeterReadingCommandTests
 {
-    private readonly Mock<IWaterMeterReadingRepository> _repositoryMock;
-    private readonly WaterMeterReadingCommand _command;
+    private readonly Mock<IMeterReadingRepository> _repositoryMock;
+    private readonly MeterReadingCommand _command;
     
-    public WaterMeterReadingCommandTests()
+    public MeterReadingCommandTests()
     {
-        _repositoryMock = new Mock<IWaterMeterReadingRepository>();
-        _command = new WaterMeterReadingCommand(_repositoryMock.Object);
+        _repositoryMock = new Mock<IMeterReadingRepository>();
+        _command = new MeterReadingCommand(_repositoryMock.Object);
     }
 
     /// <summary>
@@ -26,23 +26,18 @@ public class WaterMeterReadingCommandTests
     [Fact]
     public async Task AddMeterReadingAsync_ShouldAddReading()
     {
-        var dto = new AddWaterMeterReadingDto
+        var dto = new MeterReadingAddDto
         {
-            UserId = Guid.NewGuid(),
-            PrimaryColdWaterValue = "12345",
-            PrimaryHotWaterValue = "54321",
-            HasSecondaryMeter = true,
-            SecondaryColdWaterValue = "11111",
-            SecondaryHotWaterValue = "22222",
+            WaterMeterId = Guid.NewGuid(),
+            WaterValue = "12345",
             ReadingDate = DateTime.UtcNow
         };
 
         var result = await _command.AddMeterReadingAsync(dto);
 
         Assert.NotNull(result);
-        Assert.Equal(dto.UserId, result.UserId);
-        Assert.Equal(dto.PrimaryColdWaterValue, result.PrimaryColdWaterValue);
-        Assert.Equal(dto.PrimaryHotWaterValue, result.PrimaryHotWaterValue);
+        Assert.Equal(dto.WaterMeterId, result.WaterMeterId);
+        Assert.Equal(dto.WaterValue, result.WaterValue);
         _repositoryMock.Verify(r => r.AddAsync(It.IsAny<MeterReadingEntity>()), Times.Once);
     }
 
@@ -53,21 +48,18 @@ public class WaterMeterReadingCommandTests
     public async Task UpdateMeterReadingAsync_ShouldUpdateReading()
     {
         var id = Guid.NewGuid();
-        var existingReading = new MeterReadingEntity { Id = id, UserId = Guid.NewGuid() };
-        var dto = new UpdateWaterMeterReadingDto
+        var existingReading = new MeterReadingEntity { Id = id, WaterMeterId = Guid.NewGuid() };
+        var dto = new MeterReadingUpdateDto
         {
-            UserId = existingReading.UserId,
-            PrimaryColdWaterValue = "67890",
-            PrimaryHotWaterValue = "09876",
-            HasSecondaryMeter = false
+            WaterMeterId = existingReading.WaterMeterId,
+            WaterValue = "67890",
         };
 
         _repositoryMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(existingReading);
 
         await _command.UpdateMeterReadingAsync(id, dto);
 
-        Assert.Equal(dto.PrimaryColdWaterValue, existingReading.PrimaryColdWaterValue);
-        Assert.Equal(dto.PrimaryHotWaterValue, existingReading.PrimaryHotWaterValue);
+        Assert.Equal(dto.WaterValue, existingReading.WaterValue);
         _repositoryMock.Verify(r => r.UpdateAsync(existingReading), Times.Once);
     }
 
@@ -79,7 +71,7 @@ public class WaterMeterReadingCommandTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var dto = new UpdateWaterMeterReadingDto { UserId = Guid.NewGuid() };
+        var dto = new MeterReadingUpdateDto { WaterMeterId = Guid.NewGuid() };
 
         _repositoryMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync((MeterReadingEntity)null);
 

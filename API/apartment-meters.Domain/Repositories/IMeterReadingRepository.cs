@@ -23,9 +23,9 @@ public interface IMeterReadingRepository
     /// <summary>
     /// Получить показание по идентификатору
     /// </summary>
-    /// <param name="userId">Идентификатор пользователя</param>
+    /// <param name="waterMeterId">Идентификатор счетчика</param>
     /// <returns>Показание водомера</returns>
-    Task<IEnumerable<MeterReadingEntity>> GetByUserIdAsync(Guid userId);
+    Task<IEnumerable<MeterReadingEntity>> GetByWaterMeterIdAsync(Guid waterMeterId);
     
     /// <summary>
     /// Получить показание по идентификатору
@@ -35,7 +35,7 @@ public interface IMeterReadingRepository
     Task<MeterReadingEntity> GetByIdAsync(Guid id);
 
     /// <summary>
-    /// Получить список всех показаний водомеров для пользователя
+    /// Получить список всех показаний водомеров для счетчика
     /// </summary>
     /// <param name="meterReadingEntity">Обновленная информация о показании водомеров</param>
     /// <returns>Список показаний водомеров</returns>
@@ -49,9 +49,9 @@ public interface IMeterReadingRepository
     Task DeleteAsync(MeterReadingEntity meterReadingEntity);
     
     /// <summary>
-    /// Получить последнее показание водомера для пользователя
+    /// Получить последнее показание водомера для счетчика
     /// </summary>
-    /// <param name="userId">Идентификатор пользователя</param>
+    /// <param name="waterMeterId">Идентификатор счетчика</param>
     /// <returns>Последнее показание водомера</returns>
-    Task<MeterReadingEntity?> GetLastByUserIdAsync(Guid userId);
+    Task<MeterReadingEntity?> GetLastByWaterMeterIdAsync(Guid waterMeterId);
 }

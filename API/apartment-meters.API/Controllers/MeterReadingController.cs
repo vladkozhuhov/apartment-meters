@@ -12,12 +12,12 @@ namespace API.Controllers;
 /// </summary>
 [Route("api/")]
 [ApiController]
-public class WaterMeterReadingController : ControllerBase
+public class MeterReadingController : ControllerBase
 {
     private readonly IMeterReadingCommand _command;
     private readonly IMeterReadingQuery _query;
 
-    public WaterMeterReadingController(IMeterReadingCommand command, IMeterReadingQuery query)
+    public MeterReadingController(IMeterReadingCommand command, IMeterReadingQuery query)
     {
         _command = command;
         _query = query;
@@ -38,13 +38,13 @@ public class WaterMeterReadingController : ControllerBase
     /// <summary>
     /// Получить все показания водомеров по пользователю
     /// </summary>
-    /// <param name="userId">Идентификатор пользователя</param>
+    /// <param name="waterMeterId">Идентификатор счетчика</param>
     [HttpGet("function/meterReadingByUser-get/{userId:guid}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> GetMeterReadingsByUserId(Guid userId)
+    public async Task<IActionResult> GetMeterReadingsByWaterMeterId(Guid waterMeterId)
     {
-        var readings = await _query.GetMeterReadingByUserIdAsync(userId);
+        var readings = await _query.GetMeterReadingByWaterMeterIdAsync(waterMeterId);
         return Ok(readings);
     }
     

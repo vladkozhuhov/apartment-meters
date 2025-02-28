@@ -44,10 +44,10 @@ public class MeterReadingRepository : IMeterReadingRepository
     }
     
     /// <inheritdoc />
-    public async Task<IEnumerable<MeterReadingEntity>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<MeterReadingEntity>> GetByWaterMeterIdAsync(Guid waterMeterId)
     {
         return await _dbContext.MeterReadings
-            .Where(x => x.WaterMeterId == userId)
+            .Where(x => x.WaterMeterId == waterMeterId)
             .ToListAsync();
     }
 
@@ -65,10 +65,11 @@ public class MeterReadingRepository : IMeterReadingRepository
         await _dbContext.SaveChangesAsync();
     }
     
-    public async Task<MeterReadingEntity?> GetLastByUserIdAsync(Guid userId)
+    /// <inheritdoc />
+    public async Task<MeterReadingEntity?> GetLastByWaterMeterIdAsync(Guid waterMeterId)
     {
         return await _dbContext.MeterReadings
-            .Where(m => m.WaterMeterId == userId)
+            .Where(m => m.WaterMeterId == waterMeterId)
             .OrderByDescending(m => m.ReadingDate)
             .FirstOrDefaultAsync();
     }

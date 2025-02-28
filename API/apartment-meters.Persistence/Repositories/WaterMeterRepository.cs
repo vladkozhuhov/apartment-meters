@@ -29,12 +29,6 @@ public class WaterMeterRepository : IWaterMeterRepository
 
         return waterMeterEntity;
     }
-    
-    /// <inheritdoc />
-    public async Task<IEnumerable<WaterMeterEntity>> GetAllAsync()
-    {
-        return await _dbContext.WaterMeters.ToListAsync();
-    }
 
     /// <inheritdoc />
     public async Task<WaterMeterEntity?> GetByIdAsync(Guid id)
