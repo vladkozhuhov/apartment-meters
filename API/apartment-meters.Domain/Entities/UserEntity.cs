@@ -8,9 +8,6 @@ namespace Domain.Entities;
 /// </summary>
 public class UserEntity
 {
-    /// <summary>
-    /// Уникальный идентификатор пользователя
-    /// </summary>
     [Key]
     public Guid Id { get; set; }
 
@@ -58,21 +55,6 @@ public class UserEntity
     /// </summary>
     [Required]
     public UserRole Role { get; set; }
-    
-    /// <summary>
-    /// Заводской номер счетчика
-    /// </summary>
-    [Required]
-    [MaxLength(10)]
-    public string FactoryNumber { get; set; } = null!;
-
-    /// <summary>
-    /// Год выпуска счетчика
-    /// </summary>
-    [Required]
-    [DataType(DataType.Date)]
-    [DisplayFormat(DataFormatString = "{0:dd.MM.yyyy}", ApplyFormatInEditMode = true)]
-    public DateTime FactoryYear { get; set; }
 
     /// <summary>
     /// Дата и время создания учетной записи пользователя (UTC)
@@ -85,7 +67,7 @@ public class UserEntity
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// Показания водомеров, связанные с пользователем.
+    /// Связанные счетчики воды (2 или 4 на пользователя)
     /// </summary>
-    public ICollection<MeterReadingEntity> MeterReadings { get; set; } = new List<MeterReadingEntity>();
+    public ICollection<WaterMeterEntity> WaterMeters { get; set; } = new List<WaterMeterEntity>();
 }

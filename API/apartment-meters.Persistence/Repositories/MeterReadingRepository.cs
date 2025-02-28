@@ -8,7 +8,7 @@ namespace Persistence.Repositories;
 /// <summary>
 /// Реализация репозитория для работы с показаниями водомеров
 /// </summary>
-public class WaterMeterReadingRepository : IWaterMeterReadingRepository
+public class MeterReadingRepository : IMeterReadingRepository
 {
     private readonly ApplicationDbContext _dbContext;
 
@@ -16,7 +16,7 @@ public class WaterMeterReadingRepository : IWaterMeterReadingRepository
     /// Конструктор с зависимостью от контекста базы данных
     /// </summary>
     /// <param name="dbContext">Контекст базы данных</param>
-    public WaterMeterReadingRepository(ApplicationDbContext dbContext)
+    public MeterReadingRepository(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
     }
@@ -47,7 +47,7 @@ public class WaterMeterReadingRepository : IWaterMeterReadingRepository
     public async Task<IEnumerable<MeterReadingEntity>> GetByUserIdAsync(Guid userId)
     {
         return await _dbContext.MeterReadings
-            .Where(x => x.UserId == userId)
+            .Where(x => x.WaterMeterId == userId)
             .ToListAsync();
     }
 
@@ -68,7 +68,7 @@ public class WaterMeterReadingRepository : IWaterMeterReadingRepository
     public async Task<MeterReadingEntity?> GetLastByUserIdAsync(Guid userId)
     {
         return await _dbContext.MeterReadings
-            .Where(m => m.UserId == userId)
+            .Where(m => m.WaterMeterId == userId)
             .OrderByDescending(m => m.ReadingDate)
             .FirstOrDefaultAsync();
     }

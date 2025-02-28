@@ -1,25 +1,29 @@
+using System.ComponentModel.DataAnnotations;
 using Domain.Enums;
 
 namespace Application.Models.UsersModel;
 
 /// <summary>
-/// DTO для создания нового пользователя
+/// DTO для создания нового пользователя с счетчиками
 /// </summary>
-public class AddUserDto
+public class UserAddDto
 {
     /// <summary>
     /// Номер квартиры пользователя
     /// </summary>
+    [Required]
     public int ApartmentNumber { get; set; }
 
     /// <summary>
     /// Фамилия пользователя
     /// </summary>
+    [Required]
     public string LastName { get; set; } = null!;
 
     /// <summary>
     /// Имя пользователя
     /// </summary>
+    [Required]
     public string FirstName { get; set; } = null!;
 
     /// <summary>
@@ -30,25 +34,18 @@ public class AddUserDto
     /// <summary>
     /// Пароль пользователя
     /// </summary>
+    [Required]
     public string Password { get; set; } = null!;
 
     /// <summary>
     /// Номер телефона пользователя
     /// </summary>
+    [Required]
     public string? PhoneNumber { get; set; }
 
     /// <summary>
-    /// Роль пользователя.
+    /// Роль пользователя
     /// </summary>
+    [Required]
     public UserRole Role { get; set; }
-    
-    /// <summary>
-    /// Заводской номер счетчика
-    /// </summary>
-    public string FactoryNumber { get; set; } = null!;
-
-    /// <summary>
-    /// Год выпуска счетчика
-    /// </summary>
-    public DateTime FactoryYear { get; set; }
 }

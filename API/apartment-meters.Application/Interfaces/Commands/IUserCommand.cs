@@ -1,4 +1,3 @@
-using Application.Models;
 using Application.Models.UsersModel;
 using Domain.Entities;
 
@@ -14,17 +13,17 @@ public interface IUserCommand
     /// </summary>
     /// <param name="dto">DTO с данными нового пользователя</param>
     /// <returns>Идентификатор добавленного пользователя</returns>
-    Task<UserEntity> AddUserAsync(AddUserDto dto);
+    Task<UserEntity> AddUserAsync(UserAddDto dto);
     
     /// <summary>
     /// Обновить данные пользователя
     /// </summary>
     /// <param name="dto">DTO с обновленными данными пользователя</param>
     /// <returns>Task для отслеживания операции</returns>
-    Task UpdateUserAsync(Guid userId, UpdateUserDto dto);
+    Task UpdateUserAsync(Guid userId, UserUpdateDto dto);
 
     /// <summary>
-    /// Удалить пользователя.
+    /// Удалить пользователя
     /// </summary>
     /// <param name="id">Идентификатор пользователя для удаления</param>
     /// <returns>Task для отслеживания операции</returns>

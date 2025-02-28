@@ -5,7 +5,7 @@ namespace Domain.Repositories;
 /// <summary>
 /// Интерфейс для работы с показаниями водомеров
 /// </summary>
-public interface IWaterMeterReadingRepository
+public interface IMeterReadingRepository
 {
     /// <summary>
     /// Добавить новое показание водомера
