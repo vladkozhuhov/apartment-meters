@@ -14,11 +14,11 @@ public interface IMeterReadingQuery
     Task<IEnumerable<MeterReadingEntity>> GetAllMeterReadingAsync();
 
     /// <summary>
-    /// Получить данные показания водомеров по идентификатору пользователя
+    /// Получить данные показания водомеров по идентификатору счетчика
     /// </summary>
-    /// <param name="userId">Идентификатор пользователя</param>
+    /// <param name="waterMeterId">Идентификатор счетчика</param>
     /// <returns>Задача, содержащая данные показания водомеров или null, если показания водомеров не найден</returns>
-    Task<IEnumerable<MeterReadingEntity>> GetMeterReadingByUserIdAsync(Guid userId);
+    Task<IEnumerable<MeterReadingEntity>> GetMeterReadingByWaterMeterIdAsync(Guid waterMeterId);
     
     /// <summary>
     /// Получить данные показания водомеров по идентификатору
