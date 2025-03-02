@@ -2,16 +2,10 @@ import api from "./api";
 
 export interface MeterReadingRequest {
     id: string;
-    userId: string;
-    primaryColdWaterValue: string;
-    primaryHotWaterValue: string;
-    primaryTotalValue: number;
-    primaryDifferenceValue: number;
-    hasSecondaryMeter: boolean;
-    secondaryColdWaterValue?: string;
-    secondaryHotWaterValue?: string;
-    secondaryTotalValue?: number;
-    secondaryDifferenceValue?: number;
+    waterMeterId: string;
+    waterValue: string;
+    totalValue: number;
+    differenceValue: number;
     readingDate: Date;
 }
 
@@ -21,8 +15,8 @@ export const getAllMeterReading = async () => {
     return response.data;
 };
 
-export const getMeterReadingByUserId = async (userId: string) => {
-    const response = await api.get(`/api/function/meterReadingByUser-get/${userId}`);
+export const getMeterReadingByWaterMeterId = async (waterMeterId: string) => {
+    const response = await api.get(`/api/function/meterReadingByWaterMeterId-get/${waterMeterId}`);
 
     return response.data;
 };

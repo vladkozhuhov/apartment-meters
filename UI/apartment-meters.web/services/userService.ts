@@ -9,8 +9,6 @@ export interface UserRequest {
     password: string;
     phoneNumber: string;
     role: number;
-    factoryNumber: string;
-    factoryYear: Date;
 }
 
 export const getAllUser = async () => {

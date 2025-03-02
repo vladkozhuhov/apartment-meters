@@ -7,22 +7,39 @@ import UsersList from '@/components/UserListComponent';
 
 interface MeterReading {
   id: string;
+  waterValue: string;
+  totalValue: number;
+  differenceValue: number;
+  readingDate: Date;
+  waterMeterId: string; // ID счетчика воды
+  userId: string; // ID пользователя
+}
+
+interface WaterMeter {
+  id: string;
   userId: string;
-  readingDate: string;
-  primaryColdWaterValue: string;
-  primaryHotWaterValue: string;
-  primaryTotalValue: number;
-  primaryDifferenceValue: number;
-  hasSecondaryMeter: boolean;
-  secondaryColdWaterValue: string;
-  secondaryHotWaterValue: string;
-  secondaryTotalValue: number;
-  secondaryDifferenceValue: number;
+  placeOfWaterMeter: number; // 0 - ванная, 1 - кухня
+  waterType: number; // 0 - холодная, 1 - горячая
+  factoryNumber: number;
+  factoryYear: Date;
 }
 
 interface Users {
   id: string;
   apartmentNumber: number;
+}
+
+interface CombinedReading {
+  date: Date;
+  userId: string;
+  bathroomHot: string;
+  bathroomCold: string;
+  bathroomTotal: string;
+  bathroomDiff: string;
+  kitchenHot: string;
+  kitchenCold: string;
+  kitchenTotal: string;
+  kitchenDiff: string;
 }
 
 interface UsersListProps {
@@ -42,6 +59,7 @@ const AdminPage: React.FC = () => {
     try {
       setLoading(true);
       const data = await getAllMeterReading();
+      console.log('Полученные показания:', JSON.stringify(data, null, 2));
       setReadings(data);
       setFilteredReadings(data);
     } 
@@ -57,6 +75,7 @@ const AdminPage: React.FC = () => {
   const fetchUsers = async () => {
     try {
       const usersData = await getAllUser();
+      console.log('Полученные пользователи:', JSON.stringify(usersData, null, 2));
       setUsers(usersData);
     } 
     catch (err) {
@@ -104,134 +123,214 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  const combineReadings = (readings: MeterReading[]): CombinedReading[] => {
+    const allReadings: CombinedReading[] = [];
+    
+    // Сначала сгруппируем все показания по сессиям
+    const allMeterReadings = [...readings];
+
+    // Сортируем все показания по времени
+    allMeterReadings.sort((a, b) => {
+      const timeA = new Date(a.readingDate).getTime();
+      const timeB = new Date(b.readingDate).getTime();
+      return timeA - timeB;
+    });
+
+    // Группируем показания в сессии
+    let currentSession: CombinedReading | null = null;
+
+    allMeterReadings.forEach((reading) => {
+      const readingDate = new Date(reading.readingDate);
+      console.log('Обработка показания:', { 
+        readingDate, 
+        userId: reading.userId,
+        waterMeterId: reading.waterMeterId,
+        waterValue: reading.waterValue 
+      });
+
+      // Если это первое показание или прошло больше минуты с предыдущего,
+      // создаем новую сессию
+      if (!currentSession || 
+          Math.abs(readingDate.getTime() - new Date(currentSession.date).getTime()) > 60000) {
+        if (currentSession) {
+          allReadings.push(currentSession);
+        }
+        currentSession = {
+          date: readingDate,
+          userId: reading.userId,
+          bathroomHot: '-',
+          bathroomCold: '-',
+          bathroomTotal: '-',
+          bathroomDiff: '-',
+          kitchenHot: '-',
+          kitchenCold: '-',
+          kitchenTotal: '-',
+          kitchenDiff: '-'
+        };
+      }
+
+      // Добавляем показание в текущую сессию
+      // Здесь нужно будет изменить логику после того, как увидим структуру данных в консоли
+      // ... оставляем остальной код без изменений ...
+    });
+
+    // Добавляем последнюю сессию
+    if (currentSession) {
+      allReadings.push(currentSession);
+    }
+
+    return allReadings.sort((a, b) => a.date.getTime() - b.date.getTime());
+  };
+
   return (
-    <div className="p-5">
+    <div className="p-5 max-w-7xl mx-auto">
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Панель администратора</h1>
+          </div>
+        </div>
 
-      <div className="mb-4">
-        <label>
-          Квартира:
-          <input
-            type="text"
-            name="apartment"
-            value={filter.apartment}
-            onChange={handleFilterChange}
-            className="border px-2 py-1 ml-2"
-          />
-        </label>
-        <label className="ml-4">
-          Месяц:
-          <select
-            name="month"
-            value={filter.month}
-            onChange={handleFilterChange}
-            className="border px-2 py-1 ml-2"
-          >
-            <option value="">Все</option>
-            <option value="1">Январь</option>
-            <option value="2">Февраль</option>
-            <option value="3">Март</option>
-            <option value="4">Апрель</option>
-            <option value="5">Май</option>
-            <option value="6">Июнь</option>
-            <option value="7">Июль</option>
-            <option value="8">Август</option>
-            <option value="9">Сентябрь</option>
-            <option value="10">Октябрь</option>
-            <option value="11">Ноябрь</option>
-            <option value="12">Декабрь</option>
-          </select>
-        </label>
+        {/* Фильтры */}
+        <div className="bg-blue-50 p-4 rounded-lg mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Квартира:
+                <input
+                  type="text"
+                  name="apartment"
+                  value={filter.apartment}
+                  onChange={handleFilterChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Месяц:
+                <select
+                  name="month"
+                  value={filter.month}
+                  onChange={handleFilterChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                >
+                  <option value="">Все</option>
+                  <option value="1">Январь</option>
+                  <option value="2">Февраль</option>
+                  <option value="3">Март</option>
+                  <option value="4">Апрель</option>
+                  <option value="5">Май</option>
+                  <option value="6">Июнь</option>
+                  <option value="7">Июль</option>
+                  <option value="8">Август</option>
+                  <option value="9">Сентябрь</option>
+                  <option value="10">Октябрь</option>
+                  <option value="11">Ноябрь</option>
+                  <option value="12">Декабрь</option>
+                </select>
+              </label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Год:
+                <select
+                  name="year"
+                  value={filter.year}
+                  onChange={handleFilterChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                >
+                  <option value="">Все</option>
+                  {[...Array(10)].map((_, i) => {
+                    const year = new Date().getFullYear() - i;
+                    return (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    );
+                  })}
+                </select>
+              </label>
+            </div>
+            <div className="flex items-end space-x-2">
+              <button 
+                onClick={applyFilter} 
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200"
+              >
+                Применить фильтр
+              </button>
+              <button
+                onClick={() => setShowForm(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              >
+                Просмотр пользователей
+              </button>
+            </div>
+          </div>
+        </div>
 
-        <label className="ml-4">
-          Год:
-          <select
-            name="year"
-            value={filter.year}
-            onChange={handleFilterChange}
-            className="border px-2 py-1 ml-2"
-          >
-            <option value="">Все</option>
-            {[...Array(10)].map((_, i) => {
-              const year = new Date().getFullYear() - i;
-              return (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              );
-            })}
-          </select>
-        </label>
+        {showForm && <UsersList onClose={() => setShowForm(false)} />}
 
-        <button 
-          onClick={applyFilter} 
-          className="ml-4 bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Применить фильтр
-        </button>
-
-        <button
-          onClick={() => setShowForm(true)}
-          className="ml-4 bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Просмотр пользователей
-        </button>
-
-        <button
-          // onClick={() => setShowForm(true)}
-          className="ml-4 bg-green-600 text-white px-4 py-2 rounded"
-        >
-          Изменить пользователя
-        </button>
-      </div>
-
-      {showForm && <UsersList onClose={() => setShowForm(false)} />} {/* Форма пользователей */}
-
-      {loading ? (
-        <p>Загрузка данных...</p>
+        {loading ? (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <p>Загрузка данных...</p>
+          </div>
         ) : error ? (
-          <p className="text-red-500">{error}</p>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <p className="text-red-500">{error}</p>
+          </div>
         ) : (
-        <table className="w-full border-collapse border border-gray-300 mt-4">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border border-gray-300 px-4 py-2" rowSpan={2}>Дата</th>
-              <th className="border border-gray-300 px-4 py-2" rowSpan={2}>Квартира</th>
-              <th className="border border-gray-300 px-4 py-2" colSpan={4}>Ванная</th>
-              <th className="border border-gray-300 px-4 py-2" colSpan={4}>Кухня</th>
-            </tr>
-            <tr>
-              <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
-              <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
-              <th className="border border-gray-300 px-4 py-2">Сумма показаний</th>
-              <th className="border border-gray-300 px-4 py-2">Потребление</th>
-              <th className="border border-gray-300 px-4 py-2">Горячая вода (м³) (2 сч.)</th>
-              <th className="border border-gray-300 px-4 py-2">Холодная вода (м³) (2 сч.)</th>
-              <th className="border border-gray-300 px-4 py-2">Сумма показаний (2 сч.)</th>
-              <th className="border border-gray-300 px-4 py-2">Потребление (2 сч.)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredReadings.map((reading) => (
-              <tr key={reading.id} className="text-center">
-                <td className="border border-gray-300 px-4 py-2">
-                  {new Date(reading.readingDate).toLocaleDateString("ru-RU", { month: "long" })}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">
-                  {users.find((user) => user.id === reading.userId)?.apartmentNumber || 'Не найден'}
-                </td>
-                <td className="border border-gray-300 px-4 py-2">{reading.primaryHotWaterValue}</td>
-                <td className="border border-gray-300 px-4 py-2">{reading.primaryColdWaterValue}</td>
-                <td className="border border-gray-300 px-4 py-2">{reading.primaryTotalValue}</td>
-                <td className="border border-gray-300 px-4 py-2">{reading.primaryDifferenceValue}</td>
-                <td className="border border-gray-300 px-4 py-2">{reading.secondaryHotWaterValue}</td>
-                <td className="border border-gray-300 px-4 py-2">{reading.secondaryColdWaterValue}</td>
-                <td className="border border-gray-300 px-4 py-2">{reading.secondaryTotalValue}</td>
-                <td className="border border-gray-300 px-4 py-2">{reading.secondaryDifferenceValue}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold mb-6">История показаний водомеров</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-300">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="border border-gray-300 px-4 py-2" rowSpan={2}>Дата</th>
+                    <th className="border border-gray-300 px-4 py-2" rowSpan={2}>Квартира</th>
+                    <th className="border border-gray-300 px-4 py-2" colSpan={4}>Ванная</th>
+                    <th className="border border-gray-300 px-4 py-2" colSpan={4}>Кухня</th>
+                  </tr>
+                  <tr>
+                    <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
+                    <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
+                    <th className="border border-gray-300 px-4 py-2">Сумма показаний</th>
+                    <th className="border border-gray-300 px-4 py-2">Потребление</th>
+                    <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
+                    <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
+                    <th className="border border-gray-300 px-4 py-2">Сумма показаний</th>
+                    <th className="border border-gray-300 px-4 py-2">Потребление</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {combineReadings(filteredReadings).map((reading, index) => {
+                    const user = users.find((user) => user.id === reading.userId);
+                    console.log('Поиск пользователя:', { userId: reading.userId, foundUser: user });
+                    return (
+                      <tr key={index} className="text-center hover:bg-gray-50">
+                        <td className="border border-gray-300 px-4 py-2">
+                          {new Date(reading.date).toLocaleDateString('ru-RU', { month: 'long' }).replace(/^./, str => str.toUpperCase())}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2">
+                          {user ? user.apartmentNumber : 'Не найден'}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2">{reading.bathroomHot}</td>
+                        <td className="border border-gray-300 px-4 py-2">{reading.bathroomCold}</td>
+                        <td className="border border-gray-300 px-4 py-2">{reading.bathroomTotal}</td>
+                        <td className="border border-gray-300 px-4 py-2">{reading.bathroomDiff}</td>
+                        <td className="border border-gray-300 px-4 py-2">{reading.kitchenHot}</td>
+                        <td className="border border-gray-300 px-4 py-2">{reading.kitchenCold}</td>
+                        <td className="border border-gray-300 px-4 py-2">{reading.kitchenTotal}</td>
+                        <td className="border border-gray-300 px-4 py-2">{reading.kitchenDiff}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
