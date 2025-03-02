@@ -28,6 +28,7 @@ public static class DependencyInjection
         // Регистрация репозитория
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IMeterReadingRepository, MeterReadingRepository>();
+        services.AddScoped<IWaterMeterRepository, WaterMeterRepository>();
         
         return services;
     }

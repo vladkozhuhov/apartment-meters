@@ -42,7 +42,7 @@ public class MeterReadingCommand : IMeterReadingCommand
             WaterValue = dto.WaterValue,
             TotalValue = previousTotalValue + int.Parse(dto.WaterValue),
             DifferenceValue = differenceValue,
-            ReadingDate = dto.ReadingDate,
+            ReadingDate = dto.ReadingDate.ToUniversalTime(),
             CreatedAt = DateTime.UtcNow
         };
 

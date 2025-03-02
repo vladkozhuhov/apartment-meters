@@ -39,7 +39,7 @@ public class MeterReadingController : ControllerBase
     /// Получить все показания водомеров по пользователю
     /// </summary>
     /// <param name="waterMeterId">Идентификатор счетчика</param>
-    [HttpGet("function/meterReadingByUser-get/{userId:guid}")]
+    [HttpGet("function/meterReadingByWaterMeterId-get/{waterMeterId:guid}")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> GetMeterReadingsByWaterMeterId(Guid waterMeterId)

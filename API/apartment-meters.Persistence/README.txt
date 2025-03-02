@@ -22,43 +22,42 @@ docker-compose -f ./docker-compose.yml up
   "middleName": "Анатольевич",
   "password": "12341234",
   "phoneNumber": "89513009780",
-  "role": 0,
-  "factoryNumber": "90090090",
-  "factoryYear": "2024-07-10T17:28:56.790Z"
+  "role": 0
 }
 {
-  "apartmentNumber": 900,
-  "lastName": "Петров",
-  "firstName": "Михаил",
-  "middleName": "Анатольевич",
+  "apartmentNumber": 905,
+  "lastName": "Ашотов",
+  "firstName": "Генадий",
+  "middleName": "Палыч",
   "password": "12341234",
   "phoneNumber": "89513009780",
   "role": 0
 }
+
 # Добавление счетчиков для пользователя
 {
-  "userId": "0b98b452-d14a-4226-96da-8335c0afcda9",
+  "userId": "6d462205-0b5f-4053-9b9a-daee0b057e35",
   "placeOfWaterMeter": 0,
   "waterType": 0,
   "factoryNumber": "90090091",
   "factoryYear": "2025-02-28"
 },
 {
-  "userId": "0b98b452-d14a-4226-96da-8335c0afcda9",
+  "userId": "6d462205-0b5f-4053-9b9a-daee0b057e35",
   "placeOfWaterMeter": 0,
   "waterType": 1,
   "factoryNumber": "90090092",
   "factoryYear": "2024-07-10T17:28:56.790Z"
 },
 {
-   "userId": "0b98b452-d14a-4226-96da-8335c0afcda9",
+   "userId": "6d462205-0b5f-4053-9b9a-daee0b057e35",
    "placeOfWaterMeter": 1,
    "waterType": 0,
    "factoryNumber": "90090093",
   "factoryYear": "2024-07-10T17:28:56.790Z"
 },
 {
-    "userId": "0b98b452-d14a-4226-96da-8335c0afcda9",
+    "userId": "6d462205-0b5f-4053-9b9a-daee0b057e35",
     "placeOfWaterMeter": 1,
     "waterType": 1,
     "factoryNumber": "90090094",

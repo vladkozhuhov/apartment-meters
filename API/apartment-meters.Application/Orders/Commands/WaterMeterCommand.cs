@@ -31,7 +31,7 @@ public class WaterMeterCommand : IWaterMeterCommand
             PlaceOfWaterMeter = dto.PlaceOfWaterMeter,
             WaterType = dto.WaterType,
             FactoryNumber = dto.FactoryNumber,
-            FactoryYear = dto.FactoryYear,
+            FactoryYear = dto.FactoryYear.ToUniversalTime(),
         };
 
         await _waterMaterRepository.AddAsync(waterMeter);
