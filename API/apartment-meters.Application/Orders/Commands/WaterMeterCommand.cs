@@ -45,10 +45,17 @@ public class WaterMeterCommand : IWaterMeterCommand
         if (waterMeter == null)
             throw new KeyNotFoundException($"WaterMeter with User ID {id} not found");
 
-        waterMeter.PlaceOfWaterMeter = dto.PlaceOfWaterMeter ?? waterMeter.PlaceOfWaterMeter;
-        waterMeter.WaterType = dto.WaterType ?? waterMeter.WaterType;
-        waterMeter.FactoryNumber = dto.FactoryNumber ?? waterMeter.FactoryNumber;
-        waterMeter.FactoryYear = dto.FactoryYear ?? waterMeter.FactoryYear;
+        if (dto.PlaceOfWaterMeter.HasValue)
+            waterMeter.PlaceOfWaterMeter = dto.PlaceOfWaterMeter.Value;
+            
+        if (dto.WaterType.HasValue)
+            waterMeter.WaterType = dto.WaterType.Value;
+            
+        if (!string.IsNullOrEmpty(dto.FactoryNumber))
+            waterMeter.FactoryNumber = dto.FactoryNumber;
+            
+        if (dto.FactoryYear.HasValue)
+            waterMeter.FactoryYear = dto.FactoryYear.Value;
 
         await _waterMaterRepository.UpdateAsync(waterMeter);
     }

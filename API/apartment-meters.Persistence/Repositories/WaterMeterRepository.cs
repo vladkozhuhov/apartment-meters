@@ -48,7 +48,7 @@ public class WaterMeterRepository : IWaterMeterRepository
     /// <inheritdoc />
     public async Task UpdateAsync(WaterMeterEntity waterMeterEntity)
     {
-        _dbContext.WaterMeters.Remove(waterMeterEntity);
+        _dbContext.WaterMeters.Update(waterMeterEntity);
         await _dbContext.SaveChangesAsync();
     }
 
