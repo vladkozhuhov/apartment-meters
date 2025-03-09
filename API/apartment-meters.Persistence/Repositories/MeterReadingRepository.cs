@@ -54,7 +54,7 @@ public class MeterReadingRepository : IMeterReadingRepository
     /// <inheritdoc />
     public async Task UpdateAsync(MeterReadingEntity meterReadingEntity)
     {
-        _dbContext.MeterReadings.Remove(meterReadingEntity);
+        _dbContext.MeterReadings.Update(meterReadingEntity);
         await _dbContext.SaveChangesAsync();
     }
 
