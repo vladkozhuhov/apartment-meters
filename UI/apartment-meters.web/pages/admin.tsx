@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { getAllMeterReading } from '../services/readingMeterService';
-import { getAllUser } from '../services/userService'; // Добавь импорт
+import { getAllUser, UserRequest } from '../services/userService';
 import UsersList from '@/components/UserListComponent';
+import { getWaterMetersByUserId } from '../services/waterMeterService';
 
 interface MeterReading {
   id: string;
@@ -11,15 +12,16 @@ interface MeterReading {
   totalValue: number;
   differenceValue: number;
   readingDate: Date;
-  waterMeterId: string; // ID счетчика воды
-  userId: string; // ID пользователя
+  waterMeterId: string;
+  placeOfWaterMeter?: number;
+  waterType?: number;
 }
 
 interface WaterMeter {
   id: string;
   userId: string;
-  placeOfWaterMeter: number; // 0 - ванная, 1 - кухня
-  waterType: number; // 0 - холодная, 1 - горячая
+  placeOfWaterMeter: number;
+  waterType: number;
   factoryNumber: number;
   factoryYear: Date;
 }
@@ -46,6 +48,10 @@ interface UsersListProps {
   onClose: () => void;
 }
 
+// Типы для сортировки
+type SortColumn = 'date' | 'apartment';
+type SortDirection = 'asc' | 'desc';
+
 const AdminPage: React.FC = () => {
   const [readings, setReadings] = useState<MeterReading[]>([]);
   const [filteredReadings, setFilteredReadings] = useState<MeterReading[]>([]);
@@ -54,6 +60,13 @@ const AdminPage: React.FC = () => {
   const [filter, setFilter] = useState({ apartment: '', month: '', year: '' });  
   const [showForm, setShowForm] = useState(false); // Управление формой пользователей
   const [users, setUsers] = useState<Users[]>([]);
+  const [waterMeters, setWaterMeters] = useState<WaterMeter[]>([]);
+  
+  // Состояние для сортировки
+  const [sortConfig, setSortConfig] = useState<{
+    column: SortColumn;
+    direction: SortDirection;
+  } | null>(null);
   
   const fetchReadings = async () => {
     try {
@@ -75,7 +88,7 @@ const AdminPage: React.FC = () => {
   const fetchUsers = async () => {
     try {
       const usersData = await getAllUser();
-      console.log('Полученные пользователи:', JSON.stringify(usersData, null, 2));
+      console.log('Загруженные пользователи:', usersData);
       setUsers(usersData);
     } 
     catch (err) {
@@ -83,9 +96,37 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  const fetchWaterMeters = async () => {
+    try {
+      const allUsers = await getAllUser();
+      const allWaterMeters = await Promise.all(
+        allUsers.map((user: UserRequest) => getWaterMetersByUserId(user.id))
+      );
+      const flatWaterMeters = allWaterMeters.flat();
+      console.log('Все водомеры:', flatWaterMeters);
+      setWaterMeters(flatWaterMeters);
+    } catch (err) {
+      console.error('Ошибка при загрузке водомеров:', err);
+    }
+  };
+
   useEffect(() => {
-    fetchReadings();
-    fetchUsers();
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchReadings(),
+          fetchUsers(),
+          fetchWaterMeters()
+        ]);
+      } catch (err) {
+        console.error('Ошибка при загрузке данных:', err);
+        setError('Не удалось загрузить данные. Попробуйте позже.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -97,13 +138,29 @@ const AdminPage: React.FC = () => {
     let result = readings;
 
     if (filter.apartment) {
+      // Сначала находим пользователя по номеру квартиры
+      const filteredUsers = users.filter(
+        user => user.apartmentNumber.toString() === filter.apartment
+      );
+      
+      // Затем находим все водомеры этих пользователей
+      const userIds = filteredUsers.map(user => user.id);
+      const relevantWaterMeterIds = waterMeters
+        .filter(wm => userIds.includes(wm.userId))
+        .map(wm => wm.id);
+      
+      // Фильтруем показания по найденным водомерам
       result = result.filter(
-        (r) => r.userId === filter.apartment);
+        reading => relevantWaterMeterIds.includes(reading.waterMeterId)
+      );
     }
+
     if (filter.month) {
       result = result.filter(
-        (r) => new Date(r.readingDate).getMonth() + 1 === parseInt(filter.month));
+        (r) => new Date(r.readingDate).getMonth() + 1 === parseInt(filter.month)
+      );
     }
+
     if (filter.year) {
       result = result.filter(
         (r) => new Date(r.readingDate).getFullYear() === parseInt(filter.year)
@@ -111,6 +168,13 @@ const AdminPage: React.FC = () => {
     }
 
     setFilteredReadings(result);
+    console.log('Применен фильтр:', {
+      apartment: filter.apartment,
+      month: filter.month,
+      year: filter.year,
+      resultCount: result.length,
+      filteredReadings: result
+    });
   };
 
   const handleUpdate = async (id: string, updatedData: Partial<MeterReading>) => {
@@ -123,30 +187,32 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  const getUserIdByWaterMeterId = (waterMeterId: string): string | undefined => {
+    const waterMeter = waterMeters.find(wm => wm.id === waterMeterId);
+    return waterMeter?.userId;
+  };
+
   const combineReadings = (readings: MeterReading[]): CombinedReading[] => {
     const allReadings: CombinedReading[] = [];
     
-    // Сначала сгруппируем все показания по сессиям
-    const allMeterReadings = [...readings];
-
     // Сортируем все показания по времени
-    allMeterReadings.sort((a, b) => {
+    const sortedReadings = [...readings].sort((a, b) => {
       const timeA = new Date(a.readingDate).getTime();
       const timeB = new Date(b.readingDate).getTime();
       return timeA - timeB;
     });
 
-    // Группируем показания в сессии
+    // Группируем показания в сессиях
     let currentSession: CombinedReading | null = null;
 
-    allMeterReadings.forEach((reading) => {
+    sortedReadings.forEach((reading) => {
       const readingDate = new Date(reading.readingDate);
-      console.log('Обработка показания:', { 
-        readingDate, 
-        userId: reading.userId,
-        waterMeterId: reading.waterMeterId,
-        waterValue: reading.waterValue 
-      });
+      const waterMeter = waterMeters.find(wm => wm.id === reading.waterMeterId);
+      
+      if (!waterMeter) return;
+
+      const isKitchen = waterMeter.placeOfWaterMeter === 1;
+      const isHot = waterMeter.waterType === 1;
 
       // Если это первое показание или прошло больше минуты с предыдущего,
       // создаем новую сессию
@@ -157,7 +223,7 @@ const AdminPage: React.FC = () => {
         }
         currentSession = {
           date: readingDate,
-          userId: reading.userId,
+          userId: waterMeter.userId,
           bathroomHot: '-',
           bathroomCold: '-',
           bathroomTotal: '-',
@@ -170,8 +236,23 @@ const AdminPage: React.FC = () => {
       }
 
       // Добавляем показание в текущую сессию
-      // Здесь нужно будет изменить логику после того, как увидим структуру данных в консоли
-      // ... оставляем остальной код без изменений ...
+      if (isKitchen) {
+        if (isHot) {
+          currentSession.kitchenHot = reading.waterValue;
+        } else {
+          currentSession.kitchenCold = reading.waterValue;
+        }
+        currentSession.kitchenTotal = reading.totalValue.toString();
+        currentSession.kitchenDiff = reading.differenceValue.toString();
+      } else {
+        if (isHot) {
+          currentSession.bathroomHot = reading.waterValue;
+        } else {
+          currentSession.bathroomCold = reading.waterValue;
+        }
+        currentSession.bathroomTotal = reading.totalValue.toString();
+        currentSession.bathroomDiff = reading.differenceValue.toString();
+      }
     });
 
     // Добавляем последнюю сессию
@@ -179,7 +260,68 @@ const AdminPage: React.FC = () => {
       allReadings.push(currentSession);
     }
 
-    return allReadings.sort((a, b) => a.date.getTime() - b.date.getTime());
+    console.log('Сгруппированные показания:', allReadings);
+
+    // Сортируем сгруппированные данные в соответствии с текущими настройками сортировки
+    return sortData(allReadings);
+  };
+
+  // Функция для сортировки данных
+  const sortData = (data: CombinedReading[]): CombinedReading[] => {
+    // Если сортировка не задана, возвращаем исходные данные
+    if (!sortConfig) {
+      return data.sort((a, b) => a.date.getTime() - b.date.getTime()); // По умолчанию по дате (старые записи сверху)
+    }
+
+    return [...data].sort((a, b) => {
+      // Для колонки "Квартира" нужно найти соответствующие номера квартир
+      if (sortConfig.column === 'apartment') {
+        const userA = users.find(user => user.id === a.userId);
+        const userB = users.find(user => user.id === b.userId);
+        const aptA = userA ? userA.apartmentNumber : 0;
+        const aptB = userB ? userB.apartmentNumber : 0;
+        
+        if (sortConfig.direction === 'asc') {
+          return aptA - aptB;
+        } else {
+          return aptB - aptA;
+        }
+      }
+      
+      // Для даты
+      if (sortConfig.column === 'date') {
+        if (sortConfig.direction === 'asc') {
+          return a.date.getTime() - b.date.getTime();
+        } else {
+          return b.date.getTime() - a.date.getTime();
+        }
+      }
+      
+      return 0; // По умолчанию не меняем порядок
+    });
+  };
+
+  // Обработчик для изменения сортировки при клике на заголовок таблицы
+  const handleSort = (column: SortColumn) => {
+    let direction: SortDirection = 'asc';
+    
+    // Если уже сортировали по этой колонке, меняем направление сортировки
+    if (sortConfig && sortConfig.column === column && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    
+    setSortConfig({ column, direction });
+  };
+
+  // Функция для отображения иконки сортировки
+  const renderSortIcon = (column: SortColumn) => {
+    if (!sortConfig || sortConfig.column !== column) {
+      return <span className="ml-1 text-gray-400">⇅</span>;
+    }
+    
+    return sortConfig.direction === 'asc' 
+      ? <span className="ml-1 text-blue-500">↑</span> 
+      : <span className="ml-1 text-blue-500">↓</span>;
   };
 
   return (
@@ -193,7 +335,7 @@ const AdminPage: React.FC = () => {
 
         {/* Фильтры */}
         <div className="bg-blue-50 p-4 rounded-lg mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Квартира:
@@ -252,16 +394,16 @@ const AdminPage: React.FC = () => {
                 </select>
               </label>
             </div>
-            <div className="flex items-end space-x-2">
+            <div className="flex flex-col justify-end gap-2">
               <button 
                 onClick={applyFilter} 
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 w-full"
               >
                 Применить фильтр
               </button>
               <button
                 onClick={() => setShowForm(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 w-full"
               >
                 Просмотр пользователей
               </button>
@@ -286,8 +428,22 @@ const AdminPage: React.FC = () => {
               <table className="w-full border-collapse border border-gray-300">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="border border-gray-300 px-4 py-2" rowSpan={2}>Дата</th>
-                    <th className="border border-gray-300 px-4 py-2" rowSpan={2}>Квартира</th>
+                    <th className="border border-gray-300 px-4 py-2" rowSpan={2}>
+                      <button 
+                        className="w-full text-left font-medium flex items-center justify-between" 
+                        onClick={() => handleSort('date')}
+                      >
+                        Дата {renderSortIcon('date')}
+                      </button>
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2" rowSpan={2}>
+                      <button 
+                        className="w-full text-left font-medium flex items-center justify-between" 
+                        onClick={() => handleSort('apartment')}
+                      >
+                        Квартира {renderSortIcon('apartment')}
+                      </button>
+                    </th>
                     <th className="border border-gray-300 px-4 py-2" colSpan={4}>Ванная</th>
                     <th className="border border-gray-300 px-4 py-2" colSpan={4}>Кухня</th>
                   </tr>
@@ -305,7 +461,11 @@ const AdminPage: React.FC = () => {
                 <tbody>
                   {combineReadings(filteredReadings).map((reading, index) => {
                     const user = users.find((user) => user.id === reading.userId);
-                    console.log('Поиск пользователя:', { userId: reading.userId, foundUser: user });
+                    console.log('Данные для строки таблицы:', { 
+                      readingUserId: reading.userId, 
+                      foundUser: user,
+                      allUsers: users 
+                    });
                     return (
                       <tr key={index} className="text-center hover:bg-gray-50">
                         <td className="border border-gray-300 px-4 py-2">
