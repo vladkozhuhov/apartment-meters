@@ -34,10 +34,8 @@ public class WaterMeterAddDto
     public string FactoryNumber { get; set; } = null!;
 
     /// <summary>
-    /// Год выпуска счетчика
+    /// Дата установки счетчика (только дата в формате yyyy-MM-dd)
     /// </summary>
     [Required]
-    [DataType(DataType.Date)]
-    [DisplayFormat(DataFormatString = "{0:dd.MM.yyyy}", ApplyFormatInEditMode = true)]
-    public DateTime FactoryYear { get; set; }
+    public DateOnly FactoryYear { get; set; }
 }

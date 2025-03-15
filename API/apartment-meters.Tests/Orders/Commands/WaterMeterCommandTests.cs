@@ -27,7 +27,7 @@ public class WaterMeterCommandTests
         var dto = new WaterMeterAddDto
         {
             FactoryNumber = "WM123456",
-            FactoryYear = DateTime.UtcNow
+            FactoryYear = DateOnly.Parse("2025-01-01")
         };
 
         // Act

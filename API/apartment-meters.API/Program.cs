@@ -9,15 +9,33 @@ using Microsoft.EntityFrameworkCore;
 using Persistence;
 using Persistence.Contexts;
 using Persistence.Repositories;
+using API.Converters;
+using API.Extensions;
+using System.Text.Json.Serialization;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Добавляем конвертер для типа DateOnly
+        options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+    });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // Указываем для Swagger, что тип DateOnly должен обрабатываться как строка с форматом date
+    options.MapType<DateOnly>(() => new OpenApiSchema
+    {
+        Type = "string",
+        Format = "date"
+    });
+});
 
 // builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
 //     .AddNegotiate();
@@ -61,6 +79,9 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 #endregion
 
 var app = builder.Build();
+
+// Автоматически применяем миграции при запуске
+app.ApplyMigrations();
 
 // Configure the HTTP request pipeline.
 // if (app.Environment.IsDevelopment())

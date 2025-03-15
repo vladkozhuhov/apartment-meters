@@ -10,6 +10,7 @@ dotnet ef migrations remove
 #Docker
 docker-compose -f ./docker-compose.yml up
 
+docker volume rm api_db_data
 
 
 

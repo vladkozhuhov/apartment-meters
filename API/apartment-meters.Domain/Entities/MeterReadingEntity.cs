@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace Domain.Entities;
 
@@ -17,23 +18,18 @@ public class MeterReadingEntity
     public Guid WaterMeterId { get; set; }
     
     /// <summary>
-    /// Показание счетчика
+    /// Показание счетчика в формате "00000,000" (5 цифр до запятой и 3 после)
     /// </summary>
     [Required]
-    [StringLength(5, MinimumLength = 5)]
-    public string WaterValue { get; set; } = "00000";
+    [StringLength(20)]
+    [RegularExpression(@"^\d{1,5},\d{1,3}$", ErrorMessage = "Формат показаний должен содержать до 5 цифр до запятой и до 3 после")]
+    public string WaterValue { get; set; } = "00000,000";
 
     /// <summary>
-    /// Сумма показаний за все время
+    /// Разница показаний между текущей и предыдущей записью
     /// </summary>
     [Required]
-    public int TotalValue { get; set; }
-
-    /// <summary>
-    /// Разница сумм показаний между текущей и предыдущей записью
-    /// </summary>
-    [Required]
-    public int DifferenceValue { get; set; }
+    public double DifferenceValue { get; set; }
 
     /// <summary>
     /// Дата, на которую было зафиксировано показание

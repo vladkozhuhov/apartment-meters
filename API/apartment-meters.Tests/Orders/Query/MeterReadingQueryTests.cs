@@ -22,8 +22,8 @@ public class MeterReadingQueryTests
         // Arrange
         var expectedReadings = new List<MeterReadingEntity>
         {
-            new() { Id = Guid.NewGuid(), WaterMeterId = Guid.NewGuid(), WaterValue = "12345", TotalValue = 66666, DifferenceValue = 200, ReadingDate = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, WaterMeter = new WaterMeterEntity() },
-            new() { Id = Guid.NewGuid(), WaterMeterId = Guid.NewGuid(), WaterValue = "67890", TotalValue = 77777, DifferenceValue = 4500, ReadingDate = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, WaterMeter = new WaterMeterEntity() }
+            new() { Id = Guid.NewGuid(), WaterMeterId = Guid.NewGuid(), WaterValue = "12345", DifferenceValue = 200, ReadingDate = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, WaterMeter = new WaterMeterEntity() },
+            new() { Id = Guid.NewGuid(), WaterMeterId = Guid.NewGuid(), WaterValue = "67890", DifferenceValue = 4500, ReadingDate = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, WaterMeter = new WaterMeterEntity() }
         };
         _repositoryMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(expectedReadings);
 
@@ -42,7 +42,7 @@ public class MeterReadingQueryTests
         var waterMeterId = Guid.NewGuid();
         var expectedReadings = new List<MeterReadingEntity>
         {
-            new() { Id = Guid.NewGuid(), WaterMeterId = waterMeterId, WaterValue = "12345", TotalValue = 66666, DifferenceValue = 100, ReadingDate = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, WaterMeter = new WaterMeterEntity() }
+            new() { Id = Guid.NewGuid(), WaterMeterId = waterMeterId, WaterValue = "12345", DifferenceValue = 100, ReadingDate = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, WaterMeter = new WaterMeterEntity() }
         };
         _repositoryMock.Setup(repo => repo.GetByWaterMeterIdAsync(waterMeterId)).ReturnsAsync(expectedReadings);
 
@@ -62,7 +62,7 @@ public class MeterReadingQueryTests
         var readingId = Guid.NewGuid();
         var expectedReading = new MeterReadingEntity
         {
-            Id = readingId, WaterMeterId = Guid.NewGuid(), WaterValue = "12345", TotalValue = 66666, DifferenceValue = 100, ReadingDate = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, WaterMeter = new WaterMeterEntity()
+            Id = readingId, WaterMeterId = Guid.NewGuid(), WaterValue = "12345", DifferenceValue = 100, ReadingDate = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, WaterMeter = new WaterMeterEntity()
         };
         _repositoryMock.Setup(repo => repo.GetByIdAsync(readingId)).ReturnsAsync(expectedReading);
 

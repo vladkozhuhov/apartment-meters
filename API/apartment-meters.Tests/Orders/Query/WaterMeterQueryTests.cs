@@ -26,8 +26,8 @@ public class WaterMeterQueryTests
         var userId = Guid.NewGuid();
         var expectedMeters = new List<WaterMeterEntity>
         {
-            new() { Id = Guid.NewGuid(), FactoryNumber = "WM123456", FactoryYear = DateTime.UtcNow, UserId = userId },
-            new() { Id = Guid.NewGuid(), FactoryNumber = "WM654321", FactoryYear = DateTime.UtcNow, UserId = userId }
+            new() { Id = Guid.NewGuid(), FactoryNumber = "WM123456", FactoryYear = DateOnly.Parse("2025-01-01"), UserId = userId },
+            new() { Id = Guid.NewGuid(), FactoryNumber = "WM654321", FactoryYear = DateOnly.Parse("2025-01-01"), UserId = userId }
         };
         _repositoryMock.Setup(repo => repo.GetByUserIdAsync(userId)).ReturnsAsync(expectedMeters);
 
@@ -50,7 +50,7 @@ public class WaterMeterQueryTests
         var meterId = Guid.NewGuid();
         var expectedMeter = new WaterMeterEntity
         {
-            Id = meterId, FactoryNumber = "WM123456", FactoryYear = DateTime.UtcNow
+            Id = meterId, FactoryNumber = "WM123456", FactoryYear = DateOnly.Parse("2025-01-01")
         };
         _repositoryMock.Setup(repo => repo.GetByIdAsync(meterId)).ReturnsAsync(expectedMeter);
 
