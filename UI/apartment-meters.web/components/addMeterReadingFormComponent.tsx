@@ -8,10 +8,13 @@ interface AddMeterReadingFormProps {
   onCancel: () => void;
 }
 
-const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuccess, onCancel }) => {
-  const formatValue = (value: string) => value.padStart(5, '0');
+interface ReadingValue {
+  whole: string;
+  fraction: string;
+}
 
-  const [newReadings, setNewReadings] = useState<{ [key: string]: string }>({});
+const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuccess, onCancel }) => {
+  const [newReadings, setNewReadings] = useState<{ [key: string]: ReadingValue }>({});
   const [waterMeters, setWaterMeters] = useState<WaterMeterRequest[]>([]);
 
   useEffect(() => {
@@ -19,9 +22,9 @@ const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuc
       try {
         const meters = await getWaterMetersByUserId(userId);
         setWaterMeters(meters);
-        const initialReadings: { [key: string]: string } = {};
+        const initialReadings: { [key: string]: ReadingValue } = {};
         meters.forEach((meter: WaterMeterRequest) => {
-          initialReadings[meter.id] = '';
+          initialReadings[meter.id] = { whole: '', fraction: '' };
         });
         setNewReadings(initialReadings);
       } catch (error) {
@@ -32,10 +35,35 @@ const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuc
     fetchWaterMeters();
   }, [userId]);
 
-  const handleInputChange = (meterId: string, value: string) => {
+  const handleWholeInputChange = (meterId: string, value: string) => {
     const sanitizedValue = value.replace(/\D/g, '');
-    if (sanitizedValue.length <= 5) {
-      setNewReadings((prev) => ({ ...prev, [meterId]: sanitizedValue }));
+    if (sanitizedValue.length <= 5) { // Максимум 5 цифр для целой части (согласно регулярке бэкенда)
+      setNewReadings((prev) => ({ 
+        ...prev, 
+        [meterId]: { ...prev[meterId], whole: sanitizedValue } 
+      }));
+    }
+  };
+
+  const handleFractionInputChange = (meterId: string, value: string) => {
+    const sanitizedValue = value.replace(/\D/g, '');
+    if (sanitizedValue.length <= 3) { // Максимум 3 цифры для дробной части
+      setNewReadings((prev) => ({ 
+        ...prev, 
+        [meterId]: { ...prev[meterId], fraction: sanitizedValue } 
+      }));
+    }
+  };
+
+  // Переход к следующему инпуту при заполнении первого
+  const handleWholeInputKeyDown = (meterId: string, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Tab' && newReadings[meterId].whole.length === 5) {
+      // Найти соответствующий инпут для дробной части и сфокусироваться на нем
+      const fractionInput = document.getElementById(`fraction-${meterId}`);
+      if (fractionInput) {
+        e.preventDefault();
+        fractionInput.focus();
+      }
     }
   };
 
@@ -43,23 +71,38 @@ const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuc
     e.preventDefault();
 
     try {
-      await Promise.all(
-        waterMeters.map(async (meter) => {
+      for (const meter of waterMeters) {
+        const { whole = "0", fraction = "0" } = newReadings[meter.id] || {};
+        
+        // Гарантируем, что у нас есть значения целой и дробной части
+        const wholeValue = whole || "0";
+        const fractionValue = fraction || "0";
+        
+        // Форматируем в формат, который ожидает API: целая часть, запятая, дробная часть
+        const formattedValue = `${wholeValue},${fractionValue}`;
+        
+        console.log(`Отправка показаний для счетчика ${meter.id} со значением ${formattedValue}`);
+        
+        try {
           await addMeterReading(meter.id, {
-            id: '',
+            id: "",
             waterMeterId: meter.id,
-            waterValue: formatValue(newReadings[meter.id] || "0"),
-            totalValue: 0,
+            waterValue: formattedValue,
             differenceValue: 0,
             readingDate: new Date(),
           });
-        })
-      );
+          console.log(`Успешно отправлены показания для счетчика ${meter.id}`);
+        } catch (error: any) {
+          console.error(`Ошибка при отправке показаний для счетчика ${meter.id}:`, error?.response?.data || error?.message || error);
+          throw error;
+        }
+      }
+      
       alert('Показания успешно добавлены!');
       onSuccess();
-    } catch (error) {
-      console.error('Ошибка при добавлении показаний:', error);
-      alert('Не удалось добавить показания');
+    } catch (error: any) {
+      console.error('Ошибка при добавлении показаний:', error?.response?.data || error);
+      alert(`Не удалось добавить показания: ${error?.response?.data?.title || error?.message || 'Проверьте формат данных.'}`);
     }
   };
 
@@ -97,15 +140,30 @@ const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuc
                     {meter.waterType === 1 ? 'ГВС (компонент х/в)' : 'Холодное водоснабжение'}
                   </h3>
                 </div>
-                <div className="ml-7">
+                <div className="ml-7 flex items-center">
                   <input
+                    id={`whole-${meter.id}`}
                     type="text"
-                    value={newReadings[meter.id]}
-                    onChange={(e) => handleInputChange(meter.id, e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-base focus:border-blue-500 focus:outline-none"
-                    placeholder="Новое показание"
+                    value={newReadings[meter.id]?.whole || ''}
+                    onChange={(e) => handleWholeInputChange(meter.id, e.target.value)}
+                    onKeyDown={(e) => handleWholeInputKeyDown(meter.id, e)}
+                    className="w-24 px-3 py-2 border border-gray-300 rounded-l text-base focus:border-blue-500 focus:outline-none text-right"
+                    placeholder="00000"
                     required
+                    maxLength={5}
                   />
+                  <span className="px-2 py-2 bg-gray-100 border-t border-b border-gray-300 text-lg">,</span>
+                  <input
+                    id={`fraction-${meter.id}`}
+                    type="text"
+                    value={newReadings[meter.id]?.fraction || ''}
+                    onChange={(e) => handleFractionInputChange(meter.id, e.target.value)}
+                    className="w-20 px-3 py-2 border border-gray-300 rounded-r text-base focus:border-blue-500 focus:outline-none"
+                    placeholder="000"
+                    required
+                    maxLength={3}
+                  />
+                  <span className="ml-2 text-gray-600">м³</span>
                 </div>
               </div>
             ))}

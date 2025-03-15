@@ -9,7 +9,6 @@ import AddMeterReadingForm from '@/components/addMeterReadingFormComponent';
 interface MeterReading {
   id: string;
   waterValue: string;
-  totalValue: number;
   differenceValue: number;
   readingDate: Date;
   meterId?: string;
@@ -24,13 +23,13 @@ interface WaterMeter extends WaterMeterRequest {
 interface CombinedReading {
   date: Date;
   bathroomHot: string;
+  bathroomHotDiff: string;
   bathroomCold: string;
-  bathroomTotal: string;
-  bathroomDiff: string;
+  bathroomColdDiff: string;
   kitchenHot: string;
+  kitchenHotDiff: string;
   kitchenCold: string;
-  kitchenTotal: string;
-  kitchenDiff: string;
+  kitchenColdDiff: string;
 }
 
 const UserPage: React.FC = () => {
@@ -50,13 +49,13 @@ const UserPage: React.FC = () => {
     const readingsBySession = new Map<string, {
       date: Date;
       bathroomHot: string;
+      bathroomHotDiff: string;
       bathroomCold: string;
-      bathroomTotal: string;
-      bathroomDiff: string;
+      bathroomColdDiff: string;
       kitchenHot: string;
+      kitchenHotDiff: string;
       kitchenCold: string;
-      kitchenTotal: string;
-      kitchenDiff: string;
+      kitchenColdDiff: string;
     }>();
 
     // Сначала сгруппируем все показания по сессиям
@@ -85,13 +84,13 @@ const UserPage: React.FC = () => {
     let currentSession: {
       date: Date;
       bathroomHot: string;
+      bathroomHotDiff: string;
       bathroomCold: string;
-      bathroomTotal: string;
-      bathroomDiff: string;
+      bathroomColdDiff: string;
       kitchenHot: string;
+      kitchenHotDiff: string;
       kitchenCold: string;
-      kitchenTotal: string;
-      kitchenDiff: string;
+      kitchenColdDiff: string;
     } | null = null;
 
     allMeterReadings.forEach(({ reading, meter }) => {
@@ -109,13 +108,13 @@ const UserPage: React.FC = () => {
         currentSession = {
           date: readingDate,
           bathroomHot: '-',
+          bathroomHotDiff: '-',
           bathroomCold: '-',
-          bathroomTotal: '-',
-          bathroomDiff: '-',
+          bathroomColdDiff: '-',
           kitchenHot: '-',
+          kitchenHotDiff: '-',
           kitchenCold: '-',
-          kitchenTotal: '-',
-          kitchenDiff: '-'
+          kitchenColdDiff: '-',
         };
       }
 
@@ -123,19 +122,19 @@ const UserPage: React.FC = () => {
       if (isKitchen) {
         if (isHot) {
           currentSession.kitchenHot = reading.waterValue;
+          currentSession.kitchenHotDiff = reading.differenceValue.toFixed(3);
         } else {
           currentSession.kitchenCold = reading.waterValue;
+          currentSession.kitchenColdDiff = reading.differenceValue.toFixed(3);
         }
-        currentSession.kitchenTotal = reading.totalValue.toString();
-        currentSession.kitchenDiff = reading.differenceValue.toString();
       } else {
         if (isHot) {
           currentSession.bathroomHot = reading.waterValue;
+          currentSession.bathroomHotDiff = reading.differenceValue.toFixed(3);
         } else {
           currentSession.bathroomCold = reading.waterValue;
+          currentSession.bathroomColdDiff = reading.differenceValue.toFixed(3);
         }
-        currentSession.bathroomTotal = reading.totalValue.toString();
-        currentSession.bathroomDiff = reading.differenceValue.toString();
       }
     });
 
@@ -300,12 +299,12 @@ const UserPage: React.FC = () => {
                   </tr>
                   <tr>
                     <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
+                    <th className="border border-gray-300 px-4 py-2">Потребление</th>
                     <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
-                    <th className="border border-gray-300 px-4 py-2">Сумма показаний</th>
                     <th className="border border-gray-300 px-4 py-2">Потребление</th>
                     <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
+                    <th className="border border-gray-300 px-4 py-2">Потребление</th>
                     <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
-                    <th className="border border-gray-300 px-4 py-2">Сумма показаний</th>
                     <th className="border border-gray-300 px-4 py-2">Потребление</th>
                   </tr>
                 </thead>
@@ -316,13 +315,13 @@ const UserPage: React.FC = () => {
                         {reading.date.toLocaleDateString()}
                       </td>
                       <td className="border border-gray-300 px-4 py-2">{reading.bathroomHot}</td>
+                      <td className="border border-gray-300 px-4 py-2">{reading.bathroomHotDiff}</td>
                       <td className="border border-gray-300 px-4 py-2">{reading.bathroomCold}</td>
-                      <td className="border border-gray-300 px-4 py-2">{reading.bathroomTotal}</td>
-                      <td className="border border-gray-300 px-4 py-2">{reading.bathroomDiff}</td>
+                      <td className="border border-gray-300 px-4 py-2">{reading.bathroomColdDiff}</td>
                       <td className="border border-gray-300 px-4 py-2">{reading.kitchenHot}</td>
+                      <td className="border border-gray-300 px-4 py-2">{reading.kitchenHotDiff}</td>
                       <td className="border border-gray-300 px-4 py-2">{reading.kitchenCold}</td>
-                      <td className="border border-gray-300 px-4 py-2">{reading.kitchenTotal}</td>
-                      <td className="border border-gray-300 px-4 py-2">{reading.kitchenDiff}</td>
+                      <td className="border border-gray-300 px-4 py-2">{reading.kitchenColdDiff}</td>
                     </tr>
                   ))}
                 </tbody>

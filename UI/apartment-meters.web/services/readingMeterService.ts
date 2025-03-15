@@ -4,7 +4,6 @@ export interface MeterReadingRequest {
     id: string;
     waterMeterId: string;
     waterValue: string;
-    totalValue: number;
     differenceValue: number;
     readingDate: Date;
 }

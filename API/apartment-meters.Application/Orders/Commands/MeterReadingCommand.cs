@@ -50,7 +50,7 @@ public class MeterReadingCommand : IMeterReadingCommand
             Id = Guid.NewGuid(),
             WaterMeterId = dto.WaterMeterId,
             WaterValue = formattedValue,
-            DifferenceValue = previousReading != null ? currentValue - previousValue : 0,
+            DifferenceValue = previousReading != null ? Math.Round(currentValue - previousValue, 3) : 0,
             ReadingDate = dto.ReadingDate.ToUniversalTime(),
             CreatedAt = DateTime.UtcNow
         };
@@ -84,7 +84,7 @@ public class MeterReadingCommand : IMeterReadingCommand
 
         waterReading.WaterMeterId = dto.WaterMeterId;
         waterReading.WaterValue = formattedValue;
-        waterReading.DifferenceValue = previousReading != null ? currentValue - previousValue : 0;
+        waterReading.DifferenceValue = previousReading != null ? Math.Round(currentValue - previousValue, 3) : 0;
 
         await _meterReadingRepository.UpdateAsync(waterReading);
     }
