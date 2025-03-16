@@ -1,6 +1,8 @@
+using Application.Interfaces.Repositories;
 using Application.Orders.Queries;
 using Domain.Entities;
 using Domain.Repositories;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Tests.Orders.Query;
@@ -11,12 +13,22 @@ namespace Tests.Orders.Query;
 public class UserQueryTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<ICachedRepository<UserEntity, Guid>> _cachedRepositoryMock;
+    private readonly Mock<ILogger<UserQuery>> _loggerMock;
     private readonly UserQuery _userQuery;
     
+    /// <summary>
+    /// Инициализирует тестовый контекст, создавая моки и сервис запросов пользователей.
+    /// </summary>
     public UserQueryTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
-        _userQuery = new UserQuery(_userRepositoryMock.Object);
+        _cachedRepositoryMock = new Mock<ICachedRepository<UserEntity, Guid>>();
+        _loggerMock = new Mock<ILogger<UserQuery>>();
+        _userQuery = new UserQuery(
+            _userRepositoryMock.Object, 
+            _cachedRepositoryMock.Object,
+            _loggerMock.Object);
     }
     
     /// <summary>
@@ -27,11 +39,18 @@ public class UserQueryTests
     {
         var userId = Guid.NewGuid();
         var expectedUser = new UserEntity { Id = userId };
+        
+        // Настраиваем кэш на возврат null, чтобы запрос ушел в репозиторий
+        _cachedRepositoryMock.Setup(repo => repo.GetByIdCachedAsync(userId, It.IsAny<int>())).ReturnsAsync((UserEntity)null);
         _userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId))
             .ReturnsAsync(expectedUser);
+            
         var result = await _userQuery.GetUserByIdAsync(userId);
+        
         Assert.NotNull(result);
         Assert.Equal(userId, result.Id);
+        _cachedRepositoryMock.Verify(repo => repo.GetByIdCachedAsync(userId, It.IsAny<int>()), Times.Once);
+        _userRepositoryMock.Verify(repo => repo.GetByIdAsync(userId), Times.Once);
     }
     
     /// <summary>
@@ -42,8 +61,10 @@ public class UserQueryTests
     {
         var userId = Guid.NewGuid();
         _userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId)).ReturnsAsync((UserEntity)null);
-        var result = await _userQuery.GetUserByIdAsync(userId);
-        Assert.Null(result);
+        _cachedRepositoryMock.Setup(repo => repo.GetByIdCachedAsync(userId, It.IsAny<int>())).ReturnsAsync((UserEntity)null);
+        
+        // Теперь ожидаем исключение вместо null
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => _userQuery.GetUserByIdAsync(userId));
     }
     
     /// <summary>
@@ -57,9 +78,13 @@ public class UserQueryTests
             new() { Id = Guid.NewGuid() },
             new() { Id = Guid.NewGuid() }
         };
-        _userRepositoryMock.Setup(repo => repo.GetAllAsync())
+        
+        _cachedRepositoryMock.Setup(repo => repo.GetAllCachedAsync(It.IsAny<int>()))
             .ReturnsAsync(users);
+            
         var result = await _userQuery.GetAllUsersAsync();
+        
         Assert.Equal(2, result.Count());
+        _cachedRepositoryMock.Verify(repo => repo.GetAllCachedAsync(It.IsAny<int>()), Times.Once);
     }
 }

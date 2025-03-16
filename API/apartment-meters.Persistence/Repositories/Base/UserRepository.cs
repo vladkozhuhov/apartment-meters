@@ -3,7 +3,7 @@ using Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Contexts;
 
-namespace Persistence.Repositories;
+namespace Persistence.Repositories.Base;
 
 /// <summary>
 /// Реализация репозитория для работы с пользователями

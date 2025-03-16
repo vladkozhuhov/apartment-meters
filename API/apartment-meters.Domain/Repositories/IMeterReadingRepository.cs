@@ -31,8 +31,8 @@ public interface IMeterReadingRepository
     /// Получить показание по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор показания водомера</param>
-    /// <returns>Показание водомера</returns>
-    Task<MeterReadingEntity> GetByIdAsync(Guid id);
+    /// <returns>Показание водомера или null, если не найдено</returns>
+    Task<MeterReadingEntity?> GetByIdAsync(Guid id);
 
     /// <summary>
     /// Получить список всех показаний водомеров для счетчика

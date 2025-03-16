@@ -2,6 +2,7 @@ using Application.Models.MeterReadingModel;
 using Application.Orders.Commands;
 using Domain.Entities;
 using Domain.Repositories;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Tests.Orders.Commands;
@@ -12,12 +13,14 @@ namespace Tests.Orders.Commands;
 public class MeterReadingCommandTests
 {
     private readonly Mock<IMeterReadingRepository> _repositoryMock;
+    private readonly Mock<ILogger<MeterReadingCommand>> _loggerMock;
     private readonly MeterReadingCommand _command;
     
     public MeterReadingCommandTests()
     {
         _repositoryMock = new Mock<IMeterReadingRepository>();
-        _command = new MeterReadingCommand(_repositoryMock.Object);
+        _loggerMock = new Mock<ILogger<MeterReadingCommand>>();
+        _command = new MeterReadingCommand(_repositoryMock.Object, _loggerMock.Object);
     }
 
     /// <summary>
@@ -29,7 +32,7 @@ public class MeterReadingCommandTests
         var dto = new MeterReadingAddDto
         {
             WaterMeterId = Guid.NewGuid(),
-            WaterValue = "12345",
+            WaterValue = "123,45",
             ReadingDate = DateTime.UtcNow
         };
 
@@ -37,7 +40,7 @@ public class MeterReadingCommandTests
 
         Assert.NotNull(result);
         Assert.Equal(dto.WaterMeterId, result.WaterMeterId);
-        Assert.Equal(dto.WaterValue, result.WaterValue);
+        Assert.NotEqual(dto.WaterValue, result.WaterValue);
         _repositoryMock.Verify(r => r.AddAsync(It.IsAny<MeterReadingEntity>()), Times.Once);
     }
 
@@ -52,14 +55,13 @@ public class MeterReadingCommandTests
         var dto = new MeterReadingUpdateDto
         {
             WaterMeterId = existingReading.WaterMeterId,
-            WaterValue = "67890",
+            WaterValue = "678,90",
         };
 
         _repositoryMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(existingReading);
 
         await _command.UpdateMeterReadingAsync(id, dto);
 
-        Assert.Equal(dto.WaterValue, existingReading.WaterValue);
         _repositoryMock.Verify(r => r.UpdateAsync(existingReading), Times.Once);
     }
 

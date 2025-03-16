@@ -2,89 +2,118 @@ using System.Net;
 using Application.Interfaces.Commands;
 using Application.Interfaces.Queries;
 using Application.Models.WaterMeterModel;
+using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace API.Controllers;
 
 /// <summary>
-/// Контроллер для работы со счетчиками
+/// Контроллер для работы со счетчиками воды
 /// </summary>
-[Route("api/")]
 [ApiController]
+[Route("api/water-meters")]
+[Produces("application/json")]
 public class WaterMeterController : ControllerBase
 {
     private readonly IWaterMeterCommand _command;
     private readonly IWaterMeterQuery _query;
+    private readonly ILogger<WaterMeterController> _logger;
 
-    public WaterMeterController(IWaterMeterCommand command, IWaterMeterQuery query)
+    /// <summary>
+    /// Конструктор контроллера
+    /// </summary>
+    /// <param name="command">Сервис команд для счетчиков воды</param>
+    /// <param name="query">Сервис запросов для счетчиков воды</param>
+    /// <param name="logger">Сервис логирования</param>
+    public WaterMeterController(
+        IWaterMeterCommand command, 
+        IWaterMeterQuery query,
+        ILogger<WaterMeterController> logger)
     {
-        _command = command;
-        _query = query;
+        _command = command ?? throw new ArgumentNullException(nameof(command));
+        _query = query ?? throw new ArgumentNullException(nameof(query));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
     
     /// <summary>
-    /// Получить информацию о счетчике
+    /// Получить информацию о счетчике воды по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор счетчика</param>
-    [HttpGet("function/waterMeterById-get/{id:guid}")]
-    [ProducesResponseType((int)HttpStatusCode.OK)]
-    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+    /// <returns>Информация о счетчике воды</returns>
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(WaterMeterEntity), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetWaterMeterById(Guid id)
     {
-        var readings = await _query.GetWaterMeterByIdAsync(id);
-        return Ok(readings);
+        _logger.LogInformation("Запрос на получение счетчика воды с ID {WaterMeterId}", id);
+        var waterMeter = await _query.GetWaterMeterByIdAsync(id);
+        return waterMeter != null ? Ok(waterMeter) : NotFound($"Счетчик воды с ID {id} не найден");
     }
     
     /// <summary>
-    /// Получить все счетчики по пользователю
+    /// Получить все счетчики воды по идентификатору пользователя
     /// </summary>
     /// <param name="userId">Идентификатор пользователя</param>
-    [HttpGet("function/waterMeterByUser-get/{userId:guid}")]
-    [ProducesResponseType((int)HttpStatusCode.OK)]
-    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+    /// <returns>Список счетчиков воды пользователя</returns>
+    [HttpGet("by-user/{userId:guid}")]
+    [ProducesResponseType(typeof(IEnumerable<WaterMeterEntity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetWaterMetersByUserId(Guid userId)
     {
-        var readings = await _query.GetWaterMeterByUserIdAsync(userId);
-        return Ok(readings);
+        _logger.LogInformation("Запрос на получение счетчиков воды для пользователя с ID {UserId}", userId);
+        var waterMeters = await _query.GetWaterMeterByUserIdAsync(userId);
+        return Ok(waterMeters);
     }
 
     /// <summary>
-    /// Добавить новое показание
+    /// Добавить новый счетчик воды
     /// </summary>
-    /// <param name="request">Модель добавления показания</param>
-    [HttpPost("function/waterMeter-add")]
-    [ProducesResponseType((int)HttpStatusCode.OK)]
-    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> AddWaterMeterReading([FromBody] WaterMeterAddDto request)
+    /// <param name="request">Модель добавления счетчика воды</param>
+    /// <returns>Результат операции</returns>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AddWaterMeter([FromBody] WaterMeterAddDto request)
     {
-        await _command.AddWaterMeterAsync(request);
-        return Ok("Счетчик добавлен");
+        _logger.LogInformation("Запрос на добавление нового счетчика воды");
+        var createdWaterMeter = await _command.AddWaterMeterAsync(request);
+        return CreatedAtAction(nameof(GetWaterMeterById), new { id = createdWaterMeter.Id }, createdWaterMeter);
     }
     
     /// <summary>
-    /// Обновить данные показания водомеров
+    /// Обновить данные счетчика воды
     /// </summary>
-    /// <param name="id">Идентификатор пользователя</param>
-    /// <param name="waterMeterUpdateDto">Обновленные данные счетчика</param>
-    [HttpPut("function/waterMeter-update/{id:guid}")]
-    [ProducesResponseType((int)HttpStatusCode.OK)]
-    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> UpdateWaterMeterReading(Guid id, [FromBody] WaterMeterUpdateDto waterMeterUpdateDto)
+    /// <param name="id">Идентификатор счетчика воды</param>
+    /// <param name="waterMeterUpdateDto">Обновленные данные счетчика воды</param>
+    /// <returns>Результат операции</returns>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateWaterMeter(Guid id, [FromBody] WaterMeterUpdateDto waterMeterUpdateDto)
     {
+        _logger.LogInformation("Запрос на обновление счетчика воды с ID {WaterMeterId}", id);
         await _command.UpdateWaterMeterAsync(id, waterMeterUpdateDto);
         return NoContent();
     }
 
     /// <summary>
-    /// Удалить счетчик
+    /// Удалить счетчик воды
     /// </summary>
-    /// <param name="id">Идентификатор счетчика</param>
-    [HttpDelete("function/waterMeter-delete/{id:guid}")]
-    [ProducesResponseType((int)HttpStatusCode.OK)]
-    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> DeleteWaterMeterReading(Guid id)
+    /// <param name="id">Идентификатор счетчика воды</param>
+    /// <returns>Результат операции</returns>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteWaterMeter(Guid id)
     {
+        _logger.LogInformation("Запрос на удаление счетчика воды с ID {WaterMeterId}", id);
         await _command.DeleteWaterMeterAsync(id);
-        return Ok("Счетчик удален");
+        return NoContent();
     }
 }

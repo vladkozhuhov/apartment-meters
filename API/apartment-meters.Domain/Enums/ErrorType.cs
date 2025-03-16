@@ -62,6 +62,30 @@ public enum ErrorType
 
     #endregion
 
+    #region Ошибки, связанные с показаниями счетчиков
+
+    /// <summary>
+    /// Счетчик не найден
+    /// </summary>
+    WaterMeterNotFoundError351 = 351,
+
+    /// <summary>
+    /// Показание счетчика не найдено
+    /// </summary>
+    MeterReadingNotFoundError352 = 352,
+
+    /// <summary>
+    /// Новое показание меньше предыдущего
+    /// </summary>
+    MeterReadingLessThanPreviousError353 = 353,
+
+    /// <summary>
+    /// Неверный формат показания счетчика
+    /// </summary>
+    InvalidMeterReadingFormatError354 = 354,
+
+    #endregion
+
     #region Ошибки валидации данных
 
     /// <summary>

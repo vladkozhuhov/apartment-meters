@@ -1,3 +1,5 @@
+using Application.Interfaces.Services;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,10 +15,12 @@ public static class DependencyInjection
             options.UseNpgsql(
                 configuration.GetConnectionString("SecurityDb"),
                 b => b.MigrationsAssembly("apartment-meters.Persistence") // сборка для миграций
-
             )
         );
 
+        // Регистрируем фоновые задачи как синглтон, чтобы сохранять состояние всех задач
+        services.AddSingleton<IBackgroundTaskService, BackgroundTaskService>();
+        
         return services;
     }
 }

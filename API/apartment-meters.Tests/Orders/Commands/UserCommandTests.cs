@@ -3,6 +3,7 @@ using Application.Orders.Commands;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Repositories;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Tests.Orders.Commands;
@@ -13,6 +14,7 @@ namespace Tests.Orders.Commands;
 public class UserCommandTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<ILogger<UserCommand>> _loggerMock;
     private readonly UserCommand _userCommand;
 
     /// <summary>
@@ -21,7 +23,8 @@ public class UserCommandTests
     public UserCommandTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
-        _userCommand = new UserCommand(_userRepositoryMock.Object);
+        _loggerMock = new Mock<ILogger<UserCommand>>();
+        _userCommand = new UserCommand(_userRepositoryMock.Object, _loggerMock.Object);
     }
 
     /// <summary>

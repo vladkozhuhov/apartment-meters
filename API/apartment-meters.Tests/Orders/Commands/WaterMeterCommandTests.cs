@@ -2,6 +2,7 @@ using Application.Models.WaterMeterModel;
 using Application.Orders.Commands;
 using Domain.Entities;
 using Domain.Repositories;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Tests.Orders.Commands;
@@ -9,12 +10,14 @@ namespace Tests.Orders.Commands;
 public class WaterMeterCommandTests
 {
     private readonly Mock<IWaterMeterRepository> _repositoryMock;
+    private readonly Mock<ILogger<WaterMeterCommand>> _loggerMock;
     private readonly WaterMeterCommand _command;
 
     public WaterMeterCommandTests()
     {
         _repositoryMock = new Mock<IWaterMeterRepository>();
-        _command = new WaterMeterCommand(_repositoryMock.Object);
+        _loggerMock = new Mock<ILogger<WaterMeterCommand>>();
+        _command = new WaterMeterCommand(_repositoryMock.Object, _loggerMock.Object);
     }
 
     /// <summary>

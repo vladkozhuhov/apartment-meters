@@ -1,7 +1,10 @@
+using Application.Exceptions;
 using Application.Interfaces.Commands;
 using Application.Models.MeterReadingModel;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Repositories;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 
 namespace Application.Orders.Commands;
@@ -12,14 +15,19 @@ namespace Application.Orders.Commands;
 public class MeterReadingCommand : IMeterReadingCommand
 {
     private readonly IMeterReadingRepository _meterReadingRepository;
+    private readonly ILogger<MeterReadingCommand> _logger;
 
     /// <summary>
     /// Конструктор сервиса
     /// </summary>
     /// <param name="repository">Репозиторий показаний водомеров</param>
-    public MeterReadingCommand(IMeterReadingRepository repository)
+    /// <param name="logger">Сервис логирования</param>
+    public MeterReadingCommand(
+        IMeterReadingRepository repository,
+        ILogger<MeterReadingCommand> logger)
     {
-        _meterReadingRepository = repository;
+        _meterReadingRepository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <inheritdoc />
@@ -30,75 +38,120 @@ public class MeterReadingCommand : IMeterReadingCommand
             throw new ArgumentNullException(nameof(dto));
         }
 
+        _logger.LogInformation("Добавление нового показания для счетчика {WaterMeterId}", dto.WaterMeterId);
+        
         var previousReading = await _meterReadingRepository.GetLastByWaterMeterIdAsync(dto.WaterMeterId);
 
-        // Форматируем значение в нужный формат (00000,000)
-        string formattedValue = FormatWaterValue(dto.WaterValue);
-        
-        // Преобразуем строковые значения в double для расчета разницы
-        double currentValue = ParseWaterValue(formattedValue);
-        double previousValue = previousReading != null ? ParseWaterValue(previousReading.WaterValue) : 0;
-        
-        // Проверяем, что новое показание не меньше предыдущего
-        if (previousReading != null && currentValue < previousValue)
+        try
         {
-            throw new InvalidOperationException($"Новое показание ({formattedValue}) не может быть меньше предыдущего ({previousReading.WaterValue}).");
-        }
-        
-        var meterReading = new MeterReadingEntity
-        {
-            Id = Guid.NewGuid(),
-            WaterMeterId = dto.WaterMeterId,
-            WaterValue = formattedValue,
-            DifferenceValue = previousReading != null ? Math.Round(currentValue - previousValue, 3) : 0,
-            ReadingDate = dto.ReadingDate.ToUniversalTime(),
-            CreatedAt = DateTime.UtcNow
-        };
+            // Форматируем значение в нужный формат (00000,000)
+            string formattedValue = FormatWaterValue(dto.WaterValue);
+            
+            // Преобразуем строковые значения в double для расчета разницы
+            double currentValue = ParseWaterValue(formattedValue);
+            double previousValue = previousReading != null ? ParseWaterValue(previousReading.WaterValue) : 0;
+            
+            // Проверяем, что новое показание не меньше предыдущего
+            if (previousReading != null && currentValue < previousValue)
+            {
+                _logger.LogWarning("Попытка добавить показание ({CurrentValue}), которое меньше предыдущего ({PreviousValue})",
+                    formattedValue, previousReading.WaterValue);
+                throw new CustomException(ErrorType.MeterReadingLessThanPreviousError353);
+            }
+            
+            // Вычисляем разницу и округляем до 3 десятичных знаков
+            double differenceValue = previousReading != null ? Math.Round(currentValue - previousValue, 3) : 0;
+            
+            var meterReading = new MeterReadingEntity
+            {
+                Id = Guid.NewGuid(),
+                WaterMeterId = dto.WaterMeterId,
+                WaterValue = formattedValue,
+                DifferenceValue = differenceValue,
+                ReadingDate = dto.ReadingDate.ToUniversalTime(),
+                CreatedAt = DateTime.UtcNow
+            };
 
-        await _meterReadingRepository.AddAsync(meterReading);
-        return meterReading;
+            await _meterReadingRepository.AddAsync(meterReading);
+            _logger.LogInformation("Показание успешно добавлено с ID {MeterReadingId}", meterReading.Id);
+            
+            return meterReading;
+        }
+        catch (FormatException ex)
+        {
+            _logger.LogWarning(ex, "Неверный формат показания: {WaterValue}", dto.WaterValue);
+            throw new CustomException(ErrorType.InvalidMeterReadingFormatError354);
+        }
     }
     
     /// <inheritdoc />
     public async Task UpdateMeterReadingAsync(Guid id, MeterReadingUpdateDto dto)
     {
+        if (dto == null)
+        {
+            throw new ArgumentNullException(nameof(dto));
+        }
+        
+        _logger.LogInformation("Обновление показания с ID {MeterReadingId}", id);
+        
         var waterReading = await _meterReadingRepository.GetByIdAsync(id);
         if (waterReading == null)
-            throw new KeyNotFoundException($"MeterReading with ID {dto.WaterMeterId} not found");
+        {
+            _logger.LogWarning("Показание с ID {MeterReadingId} не найдено", id);
+            throw new CustomException(ErrorType.MeterReadingNotFoundError352);
+        }
 
         var previousReading = await _meterReadingRepository.GetLastByWaterMeterIdAsync(dto.WaterMeterId);
 
-        // Форматируем значение в нужный формат (00000,000)
-        string formattedValue = FormatWaterValue(dto.WaterValue);
-        
-        // Преобразуем строковые значения в double для расчета разницы
-        double currentValue = ParseWaterValue(formattedValue);
-        double previousValue = previousReading != null ? ParseWaterValue(previousReading.WaterValue) : 0;
-
-        // Проверяем, что новое показание не меньше предыдущего
-        // Исключение: если мы редактируем само предыдущее показание
-        if (previousReading != null && id != previousReading.Id && currentValue < previousValue)
+        try
         {
-            throw new InvalidOperationException($"Новое показание ({formattedValue}) не может быть меньше предыдущего ({previousReading.WaterValue}).");
+            // Форматируем значение в нужный формат (00000,000)
+            string formattedValue = FormatWaterValue(dto.WaterValue);
+            
+            // Преобразуем строковые значения в double для расчета разницы
+            double currentValue = ParseWaterValue(formattedValue);
+            double previousValue = previousReading != null ? ParseWaterValue(previousReading.WaterValue) : 0;
+
+            // Проверяем, что новое показание не меньше предыдущего
+            // Исключение: если мы редактируем само предыдущее показание
+            if (previousReading != null && id != previousReading.Id && currentValue < previousValue)
+            {
+                _logger.LogWarning("Попытка обновить показание ({CurrentValue}), которое меньше предыдущего ({PreviousValue})",
+                    formattedValue, previousReading.WaterValue);
+                throw new CustomException(ErrorType.MeterReadingLessThanPreviousError353);
+            }
+
+            // Вычисляем разницу и округляем до 3 десятичных знаков
+            double differenceValue = previousReading != null ? Math.Round(currentValue - previousValue, 3) : 0;
+
+            waterReading.WaterMeterId = dto.WaterMeterId;
+            waterReading.WaterValue = formattedValue;
+            waterReading.DifferenceValue = differenceValue;
+
+            await _meterReadingRepository.UpdateAsync(waterReading);
+            _logger.LogInformation("Показание с ID {MeterReadingId} успешно обновлено", id);
         }
-
-        waterReading.WaterMeterId = dto.WaterMeterId;
-        waterReading.WaterValue = formattedValue;
-        waterReading.DifferenceValue = previousReading != null ? Math.Round(currentValue - previousValue, 3) : 0;
-
-        await _meterReadingRepository.UpdateAsync(waterReading);
+        catch (FormatException ex)
+        {
+            _logger.LogWarning(ex, "Неверный формат показания: {WaterValue}", dto.WaterValue);
+            throw new CustomException(ErrorType.InvalidMeterReadingFormatError354);
+        }
     }
     
     /// <inheritdoc />
     public async Task DeleteMeterReadingAsync(Guid id)
     {
+        _logger.LogInformation("Удаление показания с ID {MeterReadingId}", id);
+        
         var meterReading = await _meterReadingRepository.GetByIdAsync(id);
         if (meterReading == null)
         {
-            throw new KeyNotFoundException($"Показание с ID {id} не найдено.");
+            _logger.LogWarning("Показание с ID {MeterReadingId} не найдено", id);
+            throw new CustomException(ErrorType.MeterReadingNotFoundError352);
         }
 
         await _meterReadingRepository.DeleteAsync(meterReading);
+        _logger.LogInformation("Показание с ID {MeterReadingId} успешно удалено", id);
     }
     
     /// <summary>
@@ -108,6 +161,11 @@ public class MeterReadingCommand : IMeterReadingCommand
     /// <returns>Числовое значение показаний</returns>
     private double ParseWaterValue(string waterValue)
     {
+        if (string.IsNullOrEmpty(waterValue))
+        {
+            throw new FormatException("Значение показания не может быть пустым");
+        }
+        
         // Заменяем запятую на точку для корректного парсинга в double
         string normalizedValue = waterValue.Replace(',', '.');
         if (double.TryParse(normalizedValue, NumberStyles.Any, CultureInfo.InvariantCulture, out double result))
@@ -126,13 +184,17 @@ public class MeterReadingCommand : IMeterReadingCommand
     private string FormatWaterValue(string input)
     {
         if (string.IsNullOrEmpty(input))
+        {
             return "00000,000";
+        }
             
         // Разделяем целую и дробную части
         string[] parts = input.Split(',');
         
         if (parts.Length != 2)
+        {
             throw new FormatException($"Неправильный формат значения '{input}'. Должен быть в формате 'целое,дробное'.");
+        }
             
         string integerPart = parts[0];
         string fractionalPart = parts[1];

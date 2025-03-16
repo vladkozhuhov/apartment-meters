@@ -25,8 +25,8 @@ public interface IWaterMeterRepository
     /// Получить счетчик по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор счетчика</param>
-    /// <returns>Показание счетчика</returns>
-    Task<WaterMeterEntity> GetByIdAsync(Guid id);
+    /// <returns>Показание счетчика или null, если не найден</returns>
+    Task<WaterMeterEntity?> GetByIdAsync(Guid id);
 
     /// <summary>
     /// Изменение информации о счетчике

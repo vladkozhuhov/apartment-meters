@@ -5,28 +5,35 @@ using Domain.Entities;
 namespace Application.Interfaces.Commands;
 
 /// <summary>
-/// Интерфейс для операций, изменяющих данные водомеров
+/// Интерфейс для операций, изменяющих данные показаний водомеров
 /// </summary>
 public interface IMeterReadingCommand
 {
     /// <summary>
-    /// Добавить показание водомера
+    /// Добавляет новое показание водомера
     /// </summary>
     /// <param name="dto">Данные для добавления показания</param>
-    /// <returns>Task</returns>
+    /// <returns>Созданная сущность показания водомера</returns>
+    /// <exception cref="ArgumentNullException">Если dto равен null</exception>
+    /// <exception cref="InvalidOperationException">Если новое показание меньше предыдущего</exception>
+    /// <exception cref="FormatException">Если формат показания неверный</exception>
     Task<MeterReadingEntity> AddMeterReadingAsync(MeterReadingAddDto dto);
     
     /// <summary>
-    /// Обновить данные пользователя
+    /// Обновляет данные показания водомера
     /// </summary>
-    /// <param name="dto">DTO с обновленными данными пользователя</param>
-    /// <returns>Task для отслеживания операции</returns>
+    /// <param name="id">Идентификатор показания для обновления</param>
+    /// <param name="dto">DTO с обновленными данными показания</param>
+    /// <exception cref="ArgumentNullException">Если dto равен null</exception>
+    /// <exception cref="KeyNotFoundException">Если показание с указанным id не найдено</exception>
+    /// <exception cref="InvalidOperationException">Если новое показание меньше предыдущего</exception>
+    /// <exception cref="FormatException">Если формат показания неверный</exception>
     Task UpdateMeterReadingAsync(Guid id, MeterReadingUpdateDto dto);
     
     /// <summary>
-    /// Удалить показание
+    /// Удаляет показание водомера
     /// </summary>
-    /// <param name="id">Идентификатор показания</param>
-    /// <returns>Task</returns>
+    /// <param name="id">Идентификатор показания для удаления</param>
+    /// <exception cref="KeyNotFoundException">Если показание с указанным id не найдено</exception>
     Task DeleteMeterReadingAsync(Guid id);
 }

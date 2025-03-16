@@ -20,4 +20,10 @@ public interface IWaterMeterQuery
     /// <param name="id">Идентификатор счетчика</param>
     /// <returns>Задача, содержащая данные счетчика или null, если счетчик не найден</returns>
     Task<WaterMeterEntity> GetWaterMeterByIdAsync(Guid id);
+    
+    /// <summary>
+    /// Получить данные всех счетчиков
+    /// </summary>
+    /// <returns>Задача, содержащая коллекцию всех счетчиков</returns>
+    Task<IEnumerable<WaterMeterEntity>> GetAllWaterMetersAsync();
 }

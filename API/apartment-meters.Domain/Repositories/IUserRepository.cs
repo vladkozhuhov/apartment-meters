@@ -42,9 +42,9 @@ public interface IUserRepository
     Task DeleteAsync(UserEntity userEntity);
     
     /// <summary>
-    /// Получить номер квартиры по пользователю
+    /// Получить пользователя по номеру квартиры
     /// </summary>
     /// <param name="apartmentNumber">Номер квартиры</param>
-    /// <returns>Номер квартиры</returns>
+    /// <returns>Пользователь или null, если не найден</returns>
     Task<UserEntity?> GetByApartmentNumberAsync(int apartmentNumber);
 }
