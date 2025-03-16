@@ -1,0 +1,40 @@
+name: Автоматическое форматирование кода
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Ветка для форматирования'
+        required: true
+        default: 'develop'
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.target_branch }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    
+    - name: Install .NET tools
+      run: dotnet tool install --global dotnet-format
+      
+    - name: Format code
+      run: |
+        echo "Запуск автоматического форматирования кода..."
+        dotnet format API/apartment-meters.sln --verbosity detailed
+        
+    - name: Commit changes
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git add .
+        git diff --quiet && git diff --staged --quiet || git commit -m "style: Автоматическое форматирование кода"
+        git push 
