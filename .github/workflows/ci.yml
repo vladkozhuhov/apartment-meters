@@ -1,0 +1,58 @@
+name: .NET CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    
+    - name: Restore dependencies
+      run: dotnet restore apartment-meters/API/apartment-meters.sln
+      
+    - name: Install .NET tools
+      run: |
+        dotnet tool install --global dotnet-format
+        dotnet tool install --global dotnet-coverage
+        
+    - name: Code quality check
+      run: dotnet format apartment-meters/API/apartment-meters.sln --verify-no-changes --verbosity diagnostic
+    
+    - name: Build
+      run: dotnet build apartment-meters/API/apartment-meters.sln --no-restore
+    
+    - name: Test with coverage
+      run: dotnet test apartment-meters/API/apartment-meters.sln --no-build --verbosity normal --collect:"XPlat Code Coverage"
+    
+    - name: Generate coverage report
+      run: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
+        
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coveragereport
+      
+    - name: Publish
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      run: dotnet publish apartment-meters/API/apartment-meters.API/apartment-meters.API.csproj -c Release -o ./publish
+    
+    - name: Upload build artifacts
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      uses: actions/upload-artifact@v3
+      with:
+        name: apartment-meters-api
+        path: ./publish 

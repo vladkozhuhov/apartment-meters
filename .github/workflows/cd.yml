@@ -1,0 +1,56 @@
+name: .NET CD
+
+on:
+  workflow_run:
+    workflows: [".NET CI"]
+    branches: [main, master]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/github-script@v6
+      with:
+        script: |
+          let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+             owner: context.repo.owner,
+             repo: context.repo.repo,
+             run_id: context.payload.workflow_run.id,
+          });
+          let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+            return artifact.name == "apartment-meters-api"
+          })[0];
+          let download = await github.rest.actions.downloadArtifact({
+             owner: context.repo.owner,
+             repo: context.repo.repo,
+             artifact_id: matchArtifact.id,
+             archive_format: 'zip',
+          });
+          let fs = require('fs');
+          fs.writeFileSync('apartment-meters-api.zip', Buffer.from(download.data));
+    
+    - name: Unzip artifacts
+      run: unzip apartment-meters-api.zip -d apartment-meters-api
+    
+    # В реальном приложении здесь будут шаги для деплоя, например:
+    # - Копирование файлов на сервер через SSH/SCP
+    # - Деплой в Docker или Kubernetes
+    # - Деплой в облачный сервис (Azure, AWS, etc.)
+    
+    - name: Deploy to staging (simulation)
+      run: |
+        echo "Deploying to staging environment..."
+        echo "Application would be deployed to staging server"
+    
+    # В реальной ситуации здесь могут быть шаги для:
+    # - Запуска smoke тестов
+    # - Проверки работоспособности приложения
+    # - Мониторинга первых минут работы
+    
+    - name: Notify deployment
+      run: echo "Application was successfully deployed to staging environment" 

@@ -1,0 +1,77 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    
+    - name: Restore dependencies
+      run: dotnet restore apartment-meters/API/apartment-meters.sln
+    
+    - name: Build
+      run: dotnet build apartment-meters/API/apartment-meters.sln --configuration Release --no-restore
+    
+    - name: Test
+      run: dotnet test apartment-meters/API/apartment-meters.sln --configuration Release --no-build
+    
+    - name: Publish API
+      run: dotnet publish apartment-meters/API/apartment-meters.API/apartment-meters.API.csproj --configuration Release --output ./publish
+    
+    - name: Create ZIP artifact
+      run: zip -r apartment-meters-api-${{ github.ref_name }}.zip ./publish
+    
+    - name: Extract release notes
+      id: extract_release_notes
+      run: |
+        # Получаем последний тег
+        CURRENT_TAG=${{ github.ref_name }}
+        
+        # Пытаемся найти предыдущий тег
+        PREV_TAG=$(git tag --sort=-creatordate | grep -v $CURRENT_TAG | head -n 1)
+        
+        if [ -z "$PREV_TAG" ]; then
+          # Если предыдущего тега нет, берем коммиты с начала истории
+          git log --pretty=format:"- %s" > CHANGELOG.md
+        else
+          # Иначе берем коммиты между текущим и предыдущим тегом
+          git log --pretty=format:"- %s" $PREV_TAG..$CURRENT_TAG > CHANGELOG.md
+        fi
+        
+        echo "changelog=$(cat CHANGELOG.md)" >> $GITHUB_OUTPUT
+    
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      id: create_release
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref_name }}
+        body: |
+          ## Изменения в релизе ${{ github.ref_name }}
+          
+          ${{ steps.extract_release_notes.outputs.changelog }}
+        draft: false
+        prerelease: false
+    
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./apartment-meters-api-${{ github.ref_name }}.zip
+        asset_name: apartment-meters-api-${{ github.ref_name }}.zip
+        asset_content_type: application/zip 

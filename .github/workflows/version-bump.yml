@@ -1,0 +1,90 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Type of version bump (major, minor, patch)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+        
+    - name: Set up Git
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        
+    - name: Get current version
+      id: current_version
+      run: |
+        # Получаем последний тег, если он есть
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        echo "Current version: $LATEST_TAG"
+        
+        # Убираем "v" в начале и разбиваем на компоненты
+        VERSION=${LATEST_TAG#v}
+        IFS='.' read -ra VERSION_PARTS <<< "$VERSION"
+        
+        MAJOR=${VERSION_PARTS[0]:-0}
+        MINOR=${VERSION_PARTS[1]:-0}
+        PATCH=${VERSION_PARTS[2]:-0}
+        
+        echo "CURRENT_MAJOR=$MAJOR" >> $GITHUB_OUTPUT
+        echo "CURRENT_MINOR=$MINOR" >> $GITHUB_OUTPUT
+        echo "CURRENT_PATCH=$PATCH" >> $GITHUB_OUTPUT
+        echo "CURRENT_VERSION=$VERSION" >> $GITHUB_OUTPUT
+        
+    - name: Calculate new version
+      id: new_version
+      run: |
+        MAJOR=${{ steps.current_version.outputs.CURRENT_MAJOR }}
+        MINOR=${{ steps.current_version.outputs.CURRENT_MINOR }}
+        PATCH=${{ steps.current_version.outputs.CURRENT_PATCH }}
+        
+        if [[ "${{ github.event.inputs.version_type }}" == "major" ]]; then
+          MAJOR=$((MAJOR + 1))
+          MINOR=0
+          PATCH=0
+        elif [[ "${{ github.event.inputs.version_type }}" == "minor" ]]; then
+          MINOR=$((MINOR + 1))
+          PATCH=0
+        else
+          PATCH=$((PATCH + 1))
+        fi
+        
+        NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+        
+    - name: Update version in project files
+      run: |
+        NEW_VERSION=${{ steps.new_version.outputs.NEW_VERSION }}
+        
+        # Обновляем версию в .csproj файлах
+        find apartment-meters/API -name "*.csproj" -type f -exec sed -i "s/<Version>.*<\/Version>/<Version>$NEW_VERSION<\/Version>/g" {} \;
+        
+        # Если нет тега Version, добавляем его
+        find apartment-meters/API -name "*.csproj" -type f -exec grep -l "<PropertyGroup>" {} \; | xargs -I{} grep -L "<Version>" {} | xargs -I{} sed -i "s/<PropertyGroup>/<PropertyGroup>\n    <Version>$NEW_VERSION<\/Version>/g" {} \;
+        
+    - name: Commit changes
+      run: |
+        NEW_VERSION=${{ steps.new_version.outputs.NEW_VERSION }}
+        
+        git add .
+        git commit -m "Bump version to $NEW_VERSION"
+        git tag -a "v$NEW_VERSION" -m "Version $NEW_VERSION"
+        git push
+        git push --tags 
