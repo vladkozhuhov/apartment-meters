@@ -1,41 +1,70 @@
 name: .NET CD
 
+# Временно отключаем workflow
+# on:
+#   workflow_run:
+#     workflows: [".NET CI"]
+#     branches: [main, master]
+#     types:
+#       - completed
+
+# Временное решение: запускаем только вручную
 on:
-  workflow_run:
-    workflows: [".NET CI"]
-    branches: [main, master]
-    types:
-      - completed
+  workflow_dispatch:
+    inputs:
+      manual_trigger:
+        description: 'Ручной запуск деплоя (временное решение)'
+        required: false
+        default: 'yes'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # Убираем проверку успешности CI, так как временно отключаем загрузку артефактов
+    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
     
     steps:
-    - name: Download artifacts
-      uses: actions/github-script@v6
-      with:
-        script: |
-          let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
-             owner: context.repo.owner,
-             repo: context.repo.repo,
-             run_id: context.payload.workflow_run.id,
-          });
-          let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
-            return artifact.name == "apartment-meters-api"
-          })[0];
-          let download = await github.rest.actions.downloadArtifact({
-             owner: context.repo.owner,
-             repo: context.repo.repo,
-             artifact_id: matchArtifact.id,
-             archive_format: 'zip',
-          });
-          let fs = require('fs');
-          fs.writeFileSync('apartment-meters-api.zip', Buffer.from(download.data));
+    # Временно комментируем загрузку артефактов
+    # - name: Download artifacts
+    #   uses: actions/github-script@v6
+    #   with:
+    #     script: |
+    #       let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+    #          owner: context.repo.owner,
+    #          repo: context.repo.repo,
+    #          run_id: context.payload.workflow_run.id,
+    #       });
+    #       let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+    #         return artifact.name == "apartment-meters-api"
+    #       })[0];
+    #       let download = await github.rest.actions.downloadArtifact({
+    #          owner: context.repo.owner,
+    #          repo: context.repo.repo,
+    #          artifact_id: matchArtifact.id,
+    #          archive_format: 'zip',
+    #       });
+    #       let fs = require('fs');
+    #       fs.writeFileSync('apartment-meters-api.zip', Buffer.from(download.data));
     
-    - name: Unzip artifacts
-      run: unzip apartment-meters-api.zip -d apartment-meters-api
+    # - name: Unzip artifacts
+    #   run: unzip apartment-meters-api.zip -d apartment-meters-api
+    
+    # Вместо этого, временно добавляем проверку кода и сборку проекта
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    
+    - name: Restore dependencies
+      run: dotnet restore API/apartment-meters.sln
+    
+    - name: Build
+      run: dotnet build API/apartment-meters.sln --no-restore
+      
+    - name: Publish
+      run: dotnet publish API/apartment-meters.API/apartment-meters.API.csproj -c Release -o ./publish
     
     # В реальном приложении здесь будут шаги для деплоя, например:
     # - Копирование файлов на сервер через SSH/SCP

@@ -35,24 +35,26 @@ jobs:
     - name: Test with coverage
       run: dotnet test API/apartment-meters.sln --no-build --verbosity normal --collect:"XPlat Code Coverage"
     
-    - name: Generate coverage report
-      run: |
-        dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
+    # Временно закомментировано из-за проблем с actions/upload-artifact
+    # - name: Generate coverage report
+    #   run: |
+    #     dotnet tool install -g dotnet-reportgenerator-globaltool
+    #     reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
         
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v1
-      with:
-        name: coverage-report
-        path: coveragereport
+    # - name: Upload coverage report
+    #   uses: actions/upload-artifact@v1
+    #   with:
+    #     name: coverage-report
+    #     path: coveragereport
       
     - name: Publish
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
       run: dotnet publish API/apartment-meters.API/apartment-meters.API.csproj -c Release -o ./publish
     
-    - name: Upload build artifacts
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-      uses: actions/upload-artifact@v1
-      with:
-        name: apartment-meters-api
-        path: ./publish 
+    # Временно закомментировано из-за проблем с actions/upload-artifact
+    # - name: Upload build artifacts
+    #   if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    #   uses: actions/upload-artifact@v1
+    #   with:
+    #     name: apartment-meters-api
+    #     path: ./publish 
