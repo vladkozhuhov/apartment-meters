@@ -1,9 +1,5 @@
 # Apartment Meters
 
-<p align="center">
-  <img src="https://github.com/vladkozhuhov/apartment-meters/assets/YOUR_ASSET_ID/apartment-meters-logo.png" alt="Apartment Meters Logo" width="200"/>
-</p>
-
 > Modern utility meter management system for apartment buildings with user-friendly interface and reliable backend.
 
 [![CI Status](https://github.com/vladkozhuhov/apartment-meters/actions/workflows/ci.yml/badge.svg)](https://github.com/vladkozhuhov/apartment-meters/actions/workflows/ci.yml)
@@ -14,21 +10,16 @@ Apartment Meters is a full-featured system for managing utility meters in apartm
 
 ### Key Features
 
-- 🔐 **Authentication & Authorization** — secure login and registration system
+- 🔐 **Authentication** — secure login system
 - 📊 **Meter Reading Management** — submission, storage, and tracking of readings
 - 👤 **User Management** — creation and editing of user profiles
 - 📱 **Responsive Interface** — works on mobile devices and desktops
-- 📈 **Analytics & Reports** — visualization of resource consumption data
-- 🔔 **Notifications** — reminders for reading submissions
 
 ## 🛠️ Technology Stack
 
 ### Frontend
 - **React** — JavaScript library for building user interfaces
 - **TypeScript** — strongly typed programming language
-- **SCSS** — CSS preprocessor for enhanced styling
-- **Redux** — state management library
-- **Material UI** — React UI components with Material Design
 
 ### Backend
 - **ASP.NET Core** — cross-platform framework for building modern APIs
@@ -80,11 +71,6 @@ API/
    docker-compose up
    ```
 
-3. Access the application:
-   - Frontend: http://localhost:4200
-   - Backend API: http://localhost:5000
-   - Swagger: http://localhost:5000/swagger
-
 ### Local Development Setup
 
 #### Backend
@@ -102,9 +88,9 @@ API/
 
 #### Frontend
 
-1. Navigate to the WebClient directory:
+1. Navigate to the UI directory:
    ```bash
-   cd apartment-meters/WebClient
+   cd apartment-meters/UI
    ```
 
 2. Install dependencies and start the application:
@@ -119,9 +105,6 @@ API/
 
 - `main` — main branch containing stable release code
 - `develop` — development branch containing code for the next release
-- `feature/*` — branches for new features
-- `bugfix/*` — branches for bug fixes
-- `release/*` — branches for release preparation
 
 ### Creating New Features
 
