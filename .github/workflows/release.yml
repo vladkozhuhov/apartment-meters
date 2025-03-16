@@ -18,16 +18,16 @@ jobs:
         dotnet-version: 8.0.x
     
     - name: Restore dependencies
-      run: dotnet restore apartment-meters/API/apartment-meters.sln
+      run: dotnet restore API/apartment-meters.sln
     
     - name: Build
-      run: dotnet build apartment-meters/API/apartment-meters.sln --configuration Release --no-restore
+      run: dotnet build API/apartment-meters.sln --configuration Release --no-restore
     
     - name: Test
-      run: dotnet test apartment-meters/API/apartment-meters.sln --configuration Release --no-build
+      run: dotnet test API/apartment-meters.sln --configuration Release --no-build
     
     - name: Publish API
-      run: dotnet publish apartment-meters/API/apartment-meters.API/apartment-meters.API.csproj --configuration Release --output ./publish
+      run: dotnet publish API/apartment-meters.API/apartment-meters.API.csproj --configuration Release --output ./publish
     
     - name: Create ZIP artifact
       run: zip -r apartment-meters-api-${{ github.ref_name }}.zip ./publish
