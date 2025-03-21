@@ -21,17 +21,18 @@ export interface WaterMeterUpdateRequest {
 }
 
 export const getWaterMeterById = async (id: string) => {
-    const response = await api.get(`/api/function/waterMeterById-get/${id}`);
+    const response = await api.get(`/api/water-meters/${id}`);
     return response.data;
 };
 
 export const getWaterMetersByUserId = async (userId: string) => {
-    const response = await api.get(`/api/function/waterMeterByUser-get/${userId}`);
+    const response = await api.get(`/api/water-meters/by-user/${userId}`);
     return response.data;
 };
 
 export const addWaterMeter = async (waterMeterRequest: WaterMeterRequest) => {
-    await api.post('/api/function/waterMeter-add', waterMeterRequest);
+    const response = await api.post('/api/water-meters', waterMeterRequest);
+    return response.data;
 };
 
 export const updateWaterMeter = async (id: string, waterMeterRequest: WaterMeterUpdateRequest) => {
@@ -56,9 +57,10 @@ export const updateWaterMeter = async (id: string, waterMeterRequest: WaterMeter
     console.log('Отправка данных на сервер:', waterMeterUpdateDto);
     
     // Отправляем только сам DTO объект, без обертки
-    await api.put(`/api/function/waterMeter-update/${id}`, waterMeterUpdateDto);
+    const response = await api.put(`/api/water-meters/${id}`, waterMeterUpdateDto);
+    return response.data;
 };
 
 export const deleteWaterMeter = async (id: string) => {
-    await api.delete(`/api/function/waterMeter-delete/${id}`);
+    await api.delete(`/api/water-meters/${id}`);
 };

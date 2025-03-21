@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import api from '../services/api';
+import { login, saveAuthData } from '../services/authService';
+import dynamic from 'next/dynamic';
 
-const LoginPage: React.FC = () => {
+// Делаем компонент доступным только на клиенте, без SSR
+const LoginPage = () => {
   const [apartmentNumber, setApartmentNumber] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,30 +23,38 @@ const LoginPage: React.FC = () => {
     }
 
     try {
-      const response = await api.post('/api/function/login', 
-        {
-          apartmentNumber: Number(apartmentNumber),
-          password,
-        }, 
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      console.log('Отправка запроса авторизации...');
 
-      if (response.status === 200) {
-        const userData = response.data;
+      // Используем новый сервис аутентификации с JWT
+      const userData = await login({
+        username: apartmentNumber, // отправляем номер квартиры как username
+        password
+      });
 
-        if (userData.role === 0) {
-          localStorage.setItem('id', response.data.id);
-          localStorage.setItem('apartmentNumber', response.data.apartmentNumber);
-          router.push('/user');
-        } 
-        else if (userData.role === 1) {
-          router.push('/admin');
-        }
-      }
+      console.log('Данные авторизации получены:', userData);
+
+      // Сохраняем данные аутентификации
+      saveAuthData(userData);
+      
+      // Дополнительно сохраняем номер квартиры для совместимости
+      localStorage.setItem('apartmentNumber', userData.username);
+      
+      // Определяем роль пользователя для перенаправления
+      const roles = userData.roles || [];
+      
+      console.log('Успешный вход, перенаправление...', { 
+        roles, 
+        isAdmin: roles.includes('Admin') 
+      });
+      
+      // Используем прямое перенаправление 
+      const redirectUrl = roles.includes('Admin') ? '/admin' : '/user';
+      console.log('Перенаправление на:', redirectUrl);
+      
+      // Устанавливаем небольшую задержку и используем window.location.replace
+      setTimeout(() => {
+        window.location.replace(redirectUrl);
+      }, 300);
     } 
     catch (err: any) {
       console.error('Ошибка авторизации:', err);
@@ -148,4 +158,5 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+// Экспортируем компонент с отключенным SSR
+export default dynamic(() => Promise.resolve(LoginPage), { ssr: false });

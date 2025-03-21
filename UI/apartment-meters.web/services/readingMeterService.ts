@@ -9,31 +9,30 @@ export interface MeterReadingRequest {
 }
 
 export const getAllMeterReading = async () => {
-    const response = await api.get('/api/function/meterReadings-get');
-
+    const response = await api.get('/api/meter-readings');
     return response.data;
 };
 
 export const getMeterReadingByWaterMeterId = async (waterMeterId: string) => {
-    const response = await api.get(`/api/function/meterReadingByWaterMeterId-get/${waterMeterId}`);
-
+    const response = await api.get(`/api/meter-readings/by-water-meter/${waterMeterId}`);
     return response.data;
 };
 
 export const getMeterReadingById = async (id: string) => {
-    const response = await api.get(`/api/function/meterReadingById-get/${id}`);
-
+    const response = await api.get(`/api/meter-readings/${id}`);
     return response.data;
 };
 
-export const addMeterReading = async (id: string, meterReadingRequest: MeterReadingRequest) => {
-    await api.post('/api/function/meterReading-add', meterReadingRequest);
+export const addMeterReading = async (meterReadingRequest: MeterReadingRequest) => {
+    const response = await api.post('/api/meter-readings', meterReadingRequest);
+    return response.data;
 };
 
 export const updateMeterReading = async (id: string, meterReadingRequest: MeterReadingRequest) => {
-    await api.post(`/api/function/meterReading-update/${id}`, meterReadingRequest);
+    const response = await api.put(`/api/meter-readings/${id}`, meterReadingRequest);
+    return response.data;
 };
 
 export const deleteMeterReading = async (id: string) => {
-    await api.post(`/api/function/meterReading-delete/${id}`);
+    await api.delete(`/api/meter-readings/${id}`);
 };

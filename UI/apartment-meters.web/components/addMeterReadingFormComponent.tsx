@@ -84,7 +84,7 @@ const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuc
         console.log(`Отправка показаний для счетчика ${meter.id} со значением ${formattedValue}`);
         
         try {
-          await addMeterReading(meter.id, {
+          await addMeterReading({
             id: "",
             waterMeterId: meter.id,
             waterValue: formattedValue,

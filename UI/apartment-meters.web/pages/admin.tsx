@@ -1,15 +1,16 @@
-"use admin"
+"use client"
 
 import React, { useEffect, useState } from 'react';
 import { getAllMeterReading } from '../services/readingMeterService';
 import { getAllUser, UserRequest } from '../services/userService';
 import UsersList from '@/components/UserListComponent';
 import { getWaterMetersByUserId } from '../services/waterMeterService';
+import { isAuthenticated, logout } from '../services/authService';
+import { useRouter } from 'next/router';
 
 interface MeterReading {
   id: string;
   waterValue: string;
-  totalValue: number;
   differenceValue: number;
   readingDate: Date;
   waterMeterId: string;
@@ -35,13 +36,13 @@ interface CombinedReading {
   date: Date;
   userId: string;
   bathroomHot: string;
+  bathroomHotDiff: string;
   bathroomCold: string;
-  bathroomTotal: string;
-  bathroomDiff: string;
+  bathroomColdDiff: string;
   kitchenHot: string;
+  kitchenHotDiff: string;
   kitchenCold: string;
-  kitchenTotal: string;
-  kitchenDiff: string;
+  kitchenColdDiff: string;
 }
 
 interface UsersListProps {
@@ -61,12 +62,37 @@ const AdminPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false); // Управление формой пользователей
   const [users, setUsers] = useState<Users[]>([]);
   const [waterMeters, setWaterMeters] = useState<WaterMeter[]>([]);
+  const [isClient, setIsClient] = useState(false);
+  const router = useRouter();
   
   // Состояние для сортировки
   const [sortConfig, setSortConfig] = useState<{
     column: SortColumn;
     direction: SortDirection;
   } | null>(null);
+  
+  // Устанавливаем флаг клиентского рендеринга
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
+  // Проверяем аутентификацию при загрузке страницы
+  useEffect(() => {
+    // Проверяем, что мы на клиенте
+    if (!isClient) return;
+    
+    console.log('Проверка аутентификации на странице администратора');
+    const authStatus = isAuthenticated();
+    console.log('Результат проверки аутентификации:', authStatus);
+    
+    if (!authStatus) {
+      console.log('Перенаправление на страницу входа из-за отсутствия аутентификации');
+      router.push('/login');
+      return;
+    }
+    
+    // Проверка на наличие роли администратора может быть добавлена здесь
+  }, [router, isClient]);
   
   const fetchReadings = async () => {
     try {
@@ -111,6 +137,9 @@ const AdminPage: React.FC = () => {
   };
 
   useEffect(() => {
+    // Проверяем, что мы на клиенте
+    if (!isClient) return;
+    
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -127,7 +156,7 @@ const AdminPage: React.FC = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [isClient]);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -225,13 +254,13 @@ const AdminPage: React.FC = () => {
           date: readingDate,
           userId: waterMeter.userId,
           bathroomHot: '-',
+          bathroomHotDiff: '-',
           bathroomCold: '-',
-          bathroomTotal: '-',
-          bathroomDiff: '-',
+          bathroomColdDiff: '-',
           kitchenHot: '-',
+          kitchenHotDiff: '-',
           kitchenCold: '-',
-          kitchenTotal: '-',
-          kitchenDiff: '-'
+          kitchenColdDiff: '-',
         };
       }
 
@@ -239,19 +268,19 @@ const AdminPage: React.FC = () => {
       if (isKitchen) {
         if (isHot) {
           currentSession.kitchenHot = reading.waterValue;
+          currentSession.kitchenHotDiff = reading.differenceValue.toFixed(3);
         } else {
           currentSession.kitchenCold = reading.waterValue;
+          currentSession.kitchenColdDiff = reading.differenceValue.toFixed(3);
         }
-        currentSession.kitchenTotal = reading.totalValue.toString();
-        currentSession.kitchenDiff = reading.differenceValue.toString();
       } else {
         if (isHot) {
           currentSession.bathroomHot = reading.waterValue;
+          currentSession.bathroomHotDiff = reading.differenceValue.toFixed(3);
         } else {
           currentSession.bathroomCold = reading.waterValue;
+          currentSession.bathroomColdDiff = reading.differenceValue.toFixed(3);
         }
-        currentSession.bathroomTotal = reading.totalValue.toString();
-        currentSession.bathroomDiff = reading.differenceValue.toString();
       }
     });
 
@@ -323,6 +352,11 @@ const AdminPage: React.FC = () => {
       ? <span className="ml-1 text-blue-500">↑</span> 
       : <span className="ml-1 text-blue-500">↓</span>;
   };
+
+  // Если страница еще не загружена на клиенте, показываем пустую разметку
+  if (!isClient) {
+    return <div className="min-h-screen flex items-center justify-center"></div>;
+  }
 
   return (
     <div className="p-5 max-w-7xl mx-auto">
@@ -449,12 +483,12 @@ const AdminPage: React.FC = () => {
                   </tr>
                   <tr>
                     <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
+                    <th className="border border-gray-300 px-4 py-2">Потребление</th>
                     <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
-                    <th className="border border-gray-300 px-4 py-2">Сумма показаний</th>
                     <th className="border border-gray-300 px-4 py-2">Потребление</th>
                     <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
+                    <th className="border border-gray-300 px-4 py-2">Потребление</th>
                     <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
-                    <th className="border border-gray-300 px-4 py-2">Сумма показаний</th>
                     <th className="border border-gray-300 px-4 py-2">Потребление</th>
                   </tr>
                 </thead>
@@ -475,13 +509,13 @@ const AdminPage: React.FC = () => {
                           {user ? user.apartmentNumber : 'Не найден'}
                         </td>
                         <td className="border border-gray-300 px-4 py-2">{reading.bathroomHot}</td>
+                        <td className="border border-gray-300 px-4 py-2">{reading.bathroomHotDiff}</td>
                         <td className="border border-gray-300 px-4 py-2">{reading.bathroomCold}</td>
-                        <td className="border border-gray-300 px-4 py-2">{reading.bathroomTotal}</td>
-                        <td className="border border-gray-300 px-4 py-2">{reading.bathroomDiff}</td>
+                        <td className="border border-gray-300 px-4 py-2">{reading.bathroomColdDiff}</td>
                         <td className="border border-gray-300 px-4 py-2">{reading.kitchenHot}</td>
+                        <td className="border border-gray-300 px-4 py-2">{reading.kitchenHotDiff}</td>
                         <td className="border border-gray-300 px-4 py-2">{reading.kitchenCold}</td>
-                        <td className="border border-gray-300 px-4 py-2">{reading.kitchenTotal}</td>
-                        <td className="border border-gray-300 px-4 py-2">{reading.kitchenDiff}</td>
+                        <td className="border border-gray-300 px-4 py-2">{reading.kitchenColdDiff}</td>
                       </tr>
                     );
                   })}

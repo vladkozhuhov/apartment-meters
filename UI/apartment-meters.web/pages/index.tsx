@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { isAuthenticated } from '../services/authService';
 
 const IndexPage: React.FC = () => {
     const router = useRouter();
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            const isAuthenticated = localStorage.getItem('id');
-            if (isAuthenticated) {
+            if (isAuthenticated()) {
                 router.push('/user');
             } else {
                 router.push('/login');

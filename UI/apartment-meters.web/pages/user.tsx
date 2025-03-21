@@ -5,6 +5,9 @@ import { useRouter } from 'next/router';
 import { getWaterMetersByUserId, WaterMeterRequest } from '../services/waterMeterService';
 import { getMeterReadingByWaterMeterId } from '../services/readingMeterService';
 import AddMeterReadingForm from '@/components/addMeterReadingFormComponent';
+import { isAuthenticated, logout, getCurrentUser } from '../services/authService';
+import { getUserByApartmentNumber } from '../services/userService';
+import api from '../services/api';
 
 interface MeterReading {
   id: string;
@@ -39,8 +42,87 @@ const UserPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const router = useRouter();
   const [apartmentNumber, setApartmentNumber] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
-  const userId = localStorage.getItem('id');
+  // Устанавливаем флаг клиентского рендеринга
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Проверяем аутентификацию при загрузке страницы
+  useEffect(() => {
+    // Проверяем, что мы на клиенте
+    if (!isClient) return;
+    
+    console.log('Проверка аутентификации на странице пользователя');
+    const authStatus = isAuthenticated();
+    console.log('Результат проверки аутентификации:', authStatus);
+    
+    if (!authStatus) {
+      console.log('Перенаправление на страницу входа из-за отсутствия аутентификации');
+      router.push('/login');
+      return;
+    }
+    
+    // Получаем информацию о текущем пользователе
+    const fetchCurrentUser = async () => {
+      try {
+        console.log('Получение информации о текущем пользователе');
+        const user = await getCurrentUser();
+        console.log('Данные о пользователе получены:', user);
+        
+        // Проверяем аутентификацию пользователя, даже если userId отсутствует
+        if (user && user.isAuthenticated) {
+          // Используем apartmentNumber для загрузки пользователя, если userId отсутствует
+          if (!user.userId && user.username) {
+            console.log('userId отсутствует, но пользователь аутентифицирован. Получаем данные по номеру квартиры:', user.username);
+            
+            // Устанавливаем номер квартиры для отображения
+            setApartmentNumber(user.username);
+            localStorage.setItem('apartmentNumber', user.username);
+            
+            // Получаем пользователя по номеру квартиры
+            try {
+              const userData = await getUserByApartmentNumber(user.username);
+              if (userData && userData.id) {
+                setUserId(userData.id);
+                localStorage.setItem('id', userData.id);
+                console.log('Получен userId по номеру квартиры:', userData.id);
+              } else {
+                console.warn('Не удалось получить ID пользователя по номеру квартиры');
+              }
+            } catch (err) {
+              console.error('Ошибка при получении данных пользователя по номеру квартиры:', err);
+            }
+          } else if (user.userId) {
+            // Стандартный путь, если userId есть
+            setUserId(user.userId);
+            localStorage.setItem('id', user.userId);
+            
+            // Если существует username в ответе, устанавливаем его как номер квартиры
+            if (user.username) {
+              setApartmentNumber(user.username);
+              localStorage.setItem('apartmentNumber', user.username);
+            }
+          }
+        } else {
+          // Если информация о пользователе не получена, перенаправляем на страницу входа
+          console.log('Информация о пользователе не получена, выполняем выход');
+          logout();
+          router.push('/login');
+        }
+      } catch (err) {
+        console.error('Ошибка при получении данных пользователя:', err);
+        setError('Не удалось загрузить данные пользователя');
+        // При ошибке также выполняем выход
+        logout();
+        router.push('/login');
+      }
+    };
+    
+    fetchCurrentUser();
+  }, [router, isClient]);
 
   const combineReadings = (meters: WaterMeter[]): CombinedReading[] => {
     const allReadings: CombinedReading[] = [];
@@ -149,18 +231,12 @@ const UserPage: React.FC = () => {
 
   const fetchUserWaterMeters = async () => {
     if (!userId) {
-      router.push('/login');
-      return;
-    } else {
-      const storedApartment = localStorage.getItem('apartmentNumber');
-      if (storedApartment) {
-        setApartmentNumber(storedApartment);
-      }
+      return; // Ждем, пока userId будет установлен
     }
 
     try {
       setLoading(true);
-      const meters = await getWaterMetersByUserId(userId);
+      const meters = await getWaterMetersByUserId(userId as string);
       const metersWithReadings = await Promise.all(
         meters.map(async (meter: WaterMeterRequest) => {
           const readings = await getMeterReadingByWaterMeterId(meter.id);
@@ -170,23 +246,46 @@ const UserPage: React.FC = () => {
       setWaterMeters(metersWithReadings);
     } catch (err: any) {
       console.error('Ошибка при получении данных о счетчиках:', err);
+      // Если ошибка 401 - перенаправляем на страницу входа
+      if (err.response && err.response.status === 401) {
+        logout();
+        router.push('/login');
+        return;
+      }
       setError('Не удалось загрузить данные. Пожалуйста, попробуйте позже.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Загружаем данные счетчиков при изменении userId
   useEffect(() => {
-    fetchUserWaterMeters();
-  }, [router, userId]);
+    if (userId && isClient) {
+      fetchUserWaterMeters();
+    }
+  }, [userId, isClient]);
 
   const handleLogout = () => {
-    localStorage.removeItem('userId');
+    logout();
     router.push('/login');
   };
 
-  if (!userId) {
-    return null;
+  // Если страница еще не загружена на клиенте, показываем пустую разметку,
+  // чтобы избежать различий между серверным и клиентским рендерингом
+  if (!isClient) {
+    return <div className="min-h-screen flex items-center justify-center"></div>;
+  }
+
+  // Показываем загрузку, пока не получили userId
+  if (loading && !userId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-3"></div>
+          <p className="text-gray-600">Загрузка данных...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -266,7 +365,7 @@ const UserPage: React.FC = () => {
 
       {showForm && (
         <AddMeterReadingForm
-          userId={userId}
+          userId={userId || ''}
           onSuccess={() => {
             setShowForm(false);
             fetchUserWaterMeters();
