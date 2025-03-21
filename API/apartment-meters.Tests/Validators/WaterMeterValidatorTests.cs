@@ -1,9 +1,6 @@
-using System;
-using System.Threading.Tasks;
 using Application.Models.WaterMeterModel;
 using Application.Validators;
 using Domain.Enums;
-using Xunit;
 
 namespace Tests.Validators;
 

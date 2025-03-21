@@ -32,6 +32,10 @@ public static class DependencyInjection
         
         // Регистрация кэширующих репозиториев для запросов (ICachedRepository)
         services.AddMemoryCache();
+        
+        // Добавляем распределенный кэш в памяти для IDistributedCache
+        services.AddDistributedMemoryCache();
+        
         services.AddScoped<ICachedRepository<Domain.Entities.MeterReadingEntity, Guid>, CachedMeterReadingRepository>();
         services.AddScoped<ICachedRepository<Domain.Entities.UserEntity, Guid>, CachedUserRepository>();
         services.AddScoped<ICachedRepository<Domain.Entities.WaterMeterEntity, Guid>, CachedWaterMeterRepository>();

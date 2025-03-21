@@ -1,9 +1,8 @@
-using System.Net;
 using Application.Interfaces.Commands;
 using Application.Interfaces.Queries;
-using Application.Models;
 using Application.Models.MeterReadingModel;
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -16,6 +15,7 @@ namespace API.Controllers;
 [Route("api/meter-readings")]
 [Produces("application/json")]
 [EnableRateLimiting("api-readings")]
+[Authorize]
 public class MeterReadingController : ControllerBase
 {
     private readonly IMeterReadingCommand _command;

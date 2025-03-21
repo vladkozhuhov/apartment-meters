@@ -52,4 +52,29 @@ public class UserQuery : IUserQuery
         _logger.LogInformation("Получение всех пользователей");
         return await _cachedRepository.GetAllCachedAsync();
     }
+    
+    /// <inheritdoc />
+    public async Task<UserEntity> GetUserByApartmentNumberAsync(int apartmentNumber)
+    {
+        _logger.LogInformation("Получение пользователя с номером квартиры {ApartmentNumber}", apartmentNumber);
+        
+        // Проверяем в кэше
+        var allUsers = await _cachedRepository.GetAllCachedAsync();
+        var cachedUser = allUsers.FirstOrDefault(u => u.ApartmentNumber == apartmentNumber);
+        
+        if (cachedUser != null)
+        {
+            return cachedUser;
+        }
+        
+        // Если не найдено в кэше, запрашиваем из репозитория
+        var user = await _userRepository.GetByApartmentNumberAsync(apartmentNumber);
+        
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"Пользователь с номером квартиры {apartmentNumber} не найден");
+        }
+        
+        return user;
+    }
 }

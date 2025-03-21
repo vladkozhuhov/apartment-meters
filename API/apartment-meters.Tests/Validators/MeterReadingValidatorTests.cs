@@ -1,8 +1,5 @@
-using System;
-using System.Threading.Tasks;
 using Application.Models.MeterReadingModel;
 using Application.Validators;
-using Xunit;
 
 namespace Tests.Validators;
 

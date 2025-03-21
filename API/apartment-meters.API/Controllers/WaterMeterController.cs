@@ -1,10 +1,9 @@
-using System.Net;
 using Application.Interfaces.Commands;
 using Application.Interfaces.Queries;
 using Application.Models.WaterMeterModel;
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace API.Controllers;
 
@@ -14,6 +13,7 @@ namespace API.Controllers;
 [ApiController]
 [Route("api/water-meters")]
 [Produces("application/json")]
+[Authorize]
 public class WaterMeterController : ControllerBase
 {
     private readonly IWaterMeterCommand _command;

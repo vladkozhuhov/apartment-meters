@@ -1,11 +1,9 @@
-using System.Net;
 using Application.Interfaces.Commands;
 using Application.Interfaces.Queries;
-using Application.Models;
 using Application.Models.UsersModel;
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace API.Controllers;
 
@@ -15,6 +13,7 @@ namespace API.Controllers;
 [ApiController]
 [Route("api/users")]
 [Produces("application/json")]
+[Authorize] // По умолчанию требуется авторизация для всех методов
 public class UserController : ControllerBase
 {
     private readonly IUserCommand _command;
@@ -43,6 +42,7 @@ public class UserController : ControllerBase
     /// <param name="id">Идентификатор пользователя</param>
     /// <returns>Информация о пользователе</returns>
     [HttpGet("{id:guid}")]
+    [Authorize(Roles = "Admin,User")] // Разрешаем доступ для админов и обычных пользователей
     [ProducesResponseType(typeof(UserEntity), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -54,10 +54,42 @@ public class UserController : ControllerBase
     }
     
     /// <summary>
+    /// Получить пользователя по номеру квартиры
+    /// </summary>
+    /// <param name="apartmentNumber">Номер квартиры</param>
+    /// <returns>Информация о пользователе</returns>
+    [HttpGet("by-apartment/{apartmentNumber}")]
+    [Authorize(Roles = "Admin,User")] // Разрешаем доступ для админов и обычных пользователей
+    [ProducesResponseType(typeof(UserEntity), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetUserByApartmentNumber(string apartmentNumber)
+    {
+        _logger.LogInformation("Запрос на получение пользователя с номером квартиры {ApartmentNumber}", apartmentNumber);
+        
+        if (!int.TryParse(apartmentNumber, out int apartmentNumberInt))
+        {
+            return BadRequest("Номер квартиры должен быть числом");
+        }
+        
+        try
+        {
+            var user = await _query.GetUserByApartmentNumberAsync(apartmentNumberInt);
+            return Ok(user);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+    
+    /// <summary>
     /// Получить список всех пользователей
     /// </summary>
     /// <returns>Список пользователей</returns>
     [HttpGet]
+    [Authorize(Roles = "Admin")] // Только админы могут получить список всех пользователей
     [ProducesResponseType(typeof(IEnumerable<UserEntity>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAllUsers()
@@ -73,6 +105,7 @@ public class UserController : ControllerBase
     /// <param name="userAddDto">Данные нового пользователя</param>
     /// <returns>Информация о созданном пользователе</returns>
     [HttpPost]
+    [AllowAnonymous] // Оставляем возможность создавать пользователей без авторизации для тестирования
     [ProducesResponseType(typeof(UserEntity), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -90,6 +123,7 @@ public class UserController : ControllerBase
     /// <param name="userUpdateDto">Обновленные данные пользователя</param>
     /// <returns>Результат операции</returns>
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin")] // Только админы могут обновлять данные пользователей
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -107,6 +141,7 @@ public class UserController : ControllerBase
     /// <param name="id">Идентификатор пользователя</param>
     /// <returns>Результат операции</returns>
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")] // Только админы могут удалять пользователей
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]

@@ -112,6 +112,30 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         {
             options.IncludeXmlComments(xmlPath);
         }
+
+       // Добавляем поддержку JWT
+       options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+       {
+           In = ParameterLocation.Header,
+           Description = "Введите токен в формате Bearer {токен}",
+           Name = "Authorization",
+           Type = SecuritySchemeType.ApiKey
+       });
+
+       options.AddSecurityRequirement(new OpenApiSecurityRequirement
+       {
+           {
+               new OpenApiSecurityScheme
+               {
+                   Reference = new OpenApiReference
+                   {
+                       Type = ReferenceType.SecurityScheme,
+                       Id = "Bearer"
+                   }
+               },
+               new string[] {}
+           }
+       });
     });
 
     // Настройка подключения к PostgreSQL и другим сервисам
@@ -138,23 +162,25 @@ void ConfigureMiddleware(WebApplication app, IWebHostEnvironment env)
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Apartment Meters API v1");
-        c.RoutePrefix = string.Empty; // Swagger UI на корневом URL
+        c.RoutePrefix = "swagger"; // Swagger UI будет доступен по пути /swagger
     });
 
     // CORS
     app.UseCors(builder =>
     {
         builder.WithHeaders().AllowAnyHeader();
-        builder.WithOrigins("http://localhost:3000");
+        builder.WithOrigins("http://localhost:3000") // Добавляем поддержку swaggerUI
+               .SetIsOriginAllowed(origin => true); // Разрешаем все источники во время разработки
         builder.WithMethods().AllowAnyMethod();
+        builder.AllowCredentials(); // Разрешаем передачу учетных данных
     });
 
     // Аутентификация и авторизация
     app.UseAuthentication();
     app.UseAuthorization();
     
-    // Используем Antiforgery
-    app.UseAntiforgery();
+    // Временно отключаем Antiforgery для решения проблемы с авторизацией в Swagger
+    // app.UseAntiforgery();
     
     app.MapControllers();
 }

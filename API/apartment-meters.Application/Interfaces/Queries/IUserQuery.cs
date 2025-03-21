@@ -19,4 +19,11 @@ public interface IUserQuery
     /// <param name="id">Идентификатор пользователя</param>
     /// <returns>Задача, содержащая данные пользователя или null, если пользователь не найден</returns>
     Task<UserEntity> GetUserByIdAsync(Guid id);
+    
+    /// <summary>
+    /// Получить данные пользователя по номеру квартиры
+    /// </summary>
+    /// <param name="apartmentNumber">Номер квартиры</param>
+    /// <returns>Задача, содержащая данные пользователя или null, если пользователь не найден</returns>
+    Task<UserEntity> GetUserByApartmentNumberAsync(int apartmentNumber);
 }
