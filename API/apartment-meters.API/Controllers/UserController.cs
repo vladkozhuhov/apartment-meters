@@ -1,7 +1,10 @@
 using Application.Interfaces.Commands;
 using Application.Interfaces.Queries;
 using Application.Models.UsersModel;
+using Application.Services;
+using Application.Exceptions;
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,11 +16,12 @@ namespace API.Controllers;
 [ApiController]
 [Route("api/users")]
 [Produces("application/json")]
-[Authorize] // По умолчанию требуется авторизация для всех методов
+[Authorize]
 public class UserController : ControllerBase
 {
     private readonly IUserCommand _command;
     private readonly IUserQuery _query;
+    private readonly IErrorHandlingService _errorHandlingService;
     private readonly ILogger<UserController> _logger;
     
     /// <summary>
@@ -25,14 +29,17 @@ public class UserController : ControllerBase
     /// </summary>
     /// <param name="command">Сервис для выполнения команд над пользователями</param>
     /// <param name="query">Сервис для выполнения запросов о пользователях</param>
+    /// <param name="errorHandlingService">Сервис обработки ошибок</param>
     /// <param name="logger">Сервис логирования</param>
     public UserController(
         IUserCommand command, 
         IUserQuery query,
+        IErrorHandlingService errorHandlingService,
         ILogger<UserController> logger)
     {
         _command = command ?? throw new ArgumentNullException(nameof(command));
         _query = query ?? throw new ArgumentNullException(nameof(query));
+        _errorHandlingService = errorHandlingService ?? throw new ArgumentNullException(nameof(errorHandlingService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -50,7 +57,15 @@ public class UserController : ControllerBase
     {
         _logger.LogInformation("Запрос на получение пользователя с ID {UserId}", id);
         var user = await _query.GetUserByIdAsync(id);
-        return user != null ? Ok(user) : NotFound($"Пользователь с ID {id} не найден");
+        
+        if (user == null)
+        {
+            _errorHandlingService.ThrowNotFoundException(
+                ErrorType.UserDataNotFoundError201,
+                $"Пользователь с ID {id} не найден");
+        }
+        
+        return Ok(user);
     }
     
     /// <summary>
@@ -70,7 +85,9 @@ public class UserController : ControllerBase
         
         if (!int.TryParse(apartmentNumber, out int apartmentNumberInt))
         {
-            return BadRequest("Номер квартиры должен быть числом");
+            _errorHandlingService.ThrowBusinessLogicException(
+                ErrorType.InvalidApartmentNumberError451,
+                "Номер квартиры должен быть числом");
         }
         
         try
@@ -78,9 +95,12 @@ public class UserController : ControllerBase
             var user = await _query.GetUserByApartmentNumberAsync(apartmentNumberInt);
             return Ok(user);
         }
-        catch (KeyNotFoundException ex)
+        catch (KeyNotFoundException)
         {
-            return NotFound(ex.Message);
+            _errorHandlingService.ThrowNotFoundException(
+                ErrorType.UserNotFoundError101,
+                $"Пользователь с номером квартиры {apartmentNumber} не найден");
+            return NotFound(); // Эта строка не будет выполнена, нужна для компиляции
         }
     }
     
@@ -112,8 +132,20 @@ public class UserController : ControllerBase
     public async Task<IActionResult> AddUser([FromBody] UserAddDto userAddDto)
     {
         _logger.LogInformation("Запрос на создание нового пользователя");
-        var createdUser = await _command.AddUserAsync(userAddDto);
-        return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
+        
+        try
+        {
+            var createdUser = await _command.AddUserAsync(userAddDto);
+            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при создании пользователя");
+            _errorHandlingService.ThrowBusinessLogicException(
+                ErrorType.InvalidDataFormatError401,
+                "Произошла ошибка при создании пользователя");
+            return BadRequest(); // Эта строка не будет выполнена, нужна для компиляции
+        }
     }
 
     /// <summary>
@@ -131,8 +163,27 @@ public class UserController : ControllerBase
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserUpdateDto userUpdateDto)
     {
         _logger.LogInformation("Запрос на обновление пользователя с ID {UserId}", id);
-        await _command.UpdateUserAsync(id, userUpdateDto);
-        return NoContent();
+        
+        try
+        {
+            await _command.UpdateUserAsync(id, userUpdateDto);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            _errorHandlingService.ThrowNotFoundException(
+                ErrorType.UserDataNotFoundError201,
+                $"Пользователь с ID {id} не найден");
+            return NotFound(); // Эта строка не будет выполнена, нужна для компиляции
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при обновлении пользователя");
+            _errorHandlingService.ThrowBusinessLogicException(
+                ErrorType.UserUpdateFailedError202,
+                "Произошла ошибка при обновлении пользователя");
+            return BadRequest(); // Эта строка не будет выполнена, нужна для компиляции
+        }
     }
 
     /// <summary>
@@ -148,7 +199,26 @@ public class UserController : ControllerBase
     public async Task<IActionResult> DeleteUser(Guid id)
     {
         _logger.LogInformation("Запрос на удаление пользователя с ID {UserId}", id);
-        await _command.DeleteUserAsync(id);
-        return NoContent();
+        
+        try
+        {
+            await _command.DeleteUserAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            _errorHandlingService.ThrowNotFoundException(
+                ErrorType.UserDataNotFoundError201,
+                $"Пользователь с ID {id} не найден");
+            return NotFound(); // Эта строка не будет выполнена, нужна для компиляции
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при удалении пользователя");
+            _errorHandlingService.ThrowBusinessLogicException(
+                ErrorType.UserDeletionFailedError302,
+                "Невозможно удалить данные по пользователю");
+            return BadRequest(); // Эта строка не будет выполнена, нужна для компиляции
+        }
     }
 }

@@ -1,6 +1,8 @@
 using System.Text.RegularExpressions;
 using Application.Models.MeterReadingModel;
 using FluentValidation;
+using Domain.Enums;
+using Application.Exceptions;
 
 namespace Application.Validators;
 
@@ -14,16 +16,20 @@ public class MeterReadingAddDtoValidator : AbstractValidator<MeterReadingAddDto>
     public MeterReadingAddDtoValidator()
     {
         RuleFor(x => x.WaterMeterId)
-            .NotEmpty().WithMessage("Идентификатор счетчика не может быть пустым");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyWaterMeterIdError470.ToString())
+            .WithMessage(ErrorType.EmptyWaterMeterIdError470.GetMessage());
             
         RuleFor(x => x.WaterValue)
-            .NotEmpty().WithMessage("Показание счетчика не может быть пустым")
-            .MaximumLength(20).WithMessage("Показание счетчика не может быть длиннее 20 символов")
-            .Matches(WaterValueRegex).WithMessage("Формат показаний должен содержать до 5 цифр до запятой и до 3 после");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyWaterValueError480.ToString())
+            .WithMessage(ErrorType.EmptyWaterValueError480.GetMessage())
+            .Matches(WaterValueRegex).WithErrorCode(ErrorType.InvalidWaterValueFormatError481.ToString())
+            .WithMessage(ErrorType.InvalidWaterValueFormatError481.GetMessage());
             
         RuleFor(x => x.ReadingDate)
-            .NotEmpty().WithMessage("Дата показания не может быть пустой")
-            .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Дата показания не может быть в будущем");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyReadingDateError482.ToString())
+            .WithMessage(ErrorType.EmptyReadingDateError482.GetMessage())
+            .LessThanOrEqualTo(DateTime.UtcNow).WithErrorCode(ErrorType.FutureReadingDateError483.ToString())
+            .WithMessage(ErrorType.FutureReadingDateError483.GetMessage());
     }
 }
 
@@ -37,11 +43,13 @@ public class MeterReadingUpdateDtoValidator : AbstractValidator<MeterReadingUpda
     public MeterReadingUpdateDtoValidator()
     {
         RuleFor(x => x.WaterMeterId)
-            .NotEmpty().WithMessage("Идентификатор счетчика не может быть пустым");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyWaterMeterIdError470.ToString())
+            .WithMessage(ErrorType.EmptyWaterMeterIdError470.GetMessage());
             
         RuleFor(x => x.WaterValue)
-            .NotEmpty().WithMessage("Показание счетчика не может быть пустым")
-            .MaximumLength(20).WithMessage("Показание счетчика не может быть длиннее 20 символов")
-            .Matches(WaterValueRegex).WithMessage("Формат показаний должен содержать до 5 цифр до запятой и до 3 после");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyWaterValueError480.ToString())
+            .WithMessage(ErrorType.EmptyWaterValueError480.GetMessage())
+            .Matches(WaterValueRegex).WithErrorCode(ErrorType.InvalidWaterValueFormatError481.ToString())
+            .WithMessage(ErrorType.InvalidWaterValueFormatError481.GetMessage());
     }
 } 

@@ -2,6 +2,7 @@ using Application.Models.WaterMeterModel;
 using FluentValidation;
 using System.Text.RegularExpressions;
 using Domain.Enums;
+using Application.Exceptions;
 
 namespace Application.Validators;
 
@@ -15,23 +16,31 @@ public class WaterMeterAddDtoValidator : AbstractValidator<WaterMeterAddDto>
     public WaterMeterAddDtoValidator()
     {
         RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage("Идентификатор пользователя не может быть пустым");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyUserIdError463.ToString())
+            .WithMessage(ErrorType.EmptyUserIdError463.GetMessage());
 
         RuleFor(x => x.PlaceOfWaterMeter)
-            .IsInEnum().WithMessage("Указано недопустимое расположение счетчика");
+            .IsInEnum().WithErrorCode(ErrorType.InvalidWaterMeterPlaceError471.ToString())
+            .WithMessage(ErrorType.InvalidWaterMeterPlaceError471.GetMessage());
 
         RuleFor(x => x.WaterType)
-            .IsInEnum().WithMessage("Указан недопустимый тип счетчика");
+            .IsInEnum().WithErrorCode(ErrorType.InvalidWaterTypeError472.ToString())
+            .WithMessage(ErrorType.InvalidWaterTypeError472.GetMessage());
 
         RuleFor(x => x.FactoryNumber)
-            .NotEmpty().WithMessage("Заводской номер счетчика не может быть пустым")
-            .MaximumLength(10).WithMessage("Заводской номер счетчика не может быть длиннее 10 символов")
-            .Matches(FactoryNumberRegex).WithMessage("Заводской номер должен содержать только буквы и цифры");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyFactoryNumberError473.ToString())
+            .WithMessage(ErrorType.EmptyFactoryNumberError473.GetMessage())
+            .MaximumLength(10).WithErrorCode(ErrorType.FactoryNumberTooLongError474.ToString())
+            .WithMessage(ErrorType.FactoryNumberTooLongError474.GetMessage())
+            .Matches(FactoryNumberRegex).WithErrorCode(ErrorType.InvalidFactoryNumberFormatError475.ToString())
+            .WithMessage(ErrorType.InvalidFactoryNumberFormatError475.GetMessage());
 
         RuleFor(x => x.FactoryYear)
-            .NotEmpty().WithMessage("Дата установки счетчика не может быть пустой")
+            .NotEmpty().WithErrorCode(ErrorType.EmptyFactoryYearError476.ToString())
+            .WithMessage(ErrorType.EmptyFactoryYearError476.GetMessage())
             .Must(date => date <= DateOnly.FromDateTime(DateTime.Now))
-            .WithMessage("Дата установки счетчика не может быть в будущем");
+            .WithErrorCode(ErrorType.FutureFactoryYearError477.ToString())
+            .WithMessage(ErrorType.FutureFactoryYearError477.GetMessage());
     }
 }
 
@@ -45,38 +54,45 @@ public class WaterMeterUpdateDtoValidator : AbstractValidator<WaterMeterUpdateDt
     public WaterMeterUpdateDtoValidator()
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Идентификатор счетчика не может быть пустым");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyWaterMeterIdError470.ToString())
+            .WithMessage(ErrorType.EmptyWaterMeterIdError470.GetMessage());
 
         When(x => x.UserId.HasValue, () =>
         {
             RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("Идентификатор пользователя не может быть пустым");
+                .NotEmpty().WithErrorCode(ErrorType.EmptyUserIdError463.ToString())
+                .WithMessage(ErrorType.EmptyUserIdError463.GetMessage());
         });
 
         When(x => x.PlaceOfWaterMeter.HasValue, () =>
         {
             RuleFor(x => x.PlaceOfWaterMeter)
-                .IsInEnum().WithMessage("Указано недопустимое расположение счетчика");
+                .IsInEnum().WithErrorCode(ErrorType.InvalidWaterMeterPlaceError471.ToString())
+                .WithMessage(ErrorType.InvalidWaterMeterPlaceError471.GetMessage());
         });
 
         When(x => x.WaterType.HasValue, () =>
         {
             RuleFor(x => x.WaterType)
-                .IsInEnum().WithMessage("Указан недопустимый тип счетчика");
+                .IsInEnum().WithErrorCode(ErrorType.InvalidWaterTypeError472.ToString())
+                .WithMessage(ErrorType.InvalidWaterTypeError472.GetMessage());
         });
 
         When(x => !string.IsNullOrEmpty(x.FactoryNumber), () =>
         {
             RuleFor(x => x.FactoryNumber)
-                .MaximumLength(10).WithMessage("Заводской номер счетчика не может быть длиннее 10 символов")
-                .Matches(FactoryNumberRegex).WithMessage("Заводской номер должен содержать только буквы и цифры");
+                .MaximumLength(10).WithErrorCode(ErrorType.FactoryNumberTooLongError474.ToString())
+                .WithMessage(ErrorType.FactoryNumberTooLongError474.GetMessage())
+                .Matches(FactoryNumberRegex).WithErrorCode(ErrorType.InvalidFactoryNumberFormatError475.ToString())
+                .WithMessage(ErrorType.InvalidFactoryNumberFormatError475.GetMessage());
         });
 
         When(x => x.FactoryYear.HasValue, () =>
         {
             RuleFor(x => x.FactoryYear)
                 .Must(date => date <= DateOnly.FromDateTime(DateTime.Now))
-                .WithMessage("Дата установки счетчика не может быть в будущем");
+                .WithErrorCode(ErrorType.FutureFactoryYearError477.ToString())
+                .WithMessage(ErrorType.FutureFactoryYearError477.GetMessage());
         });
     }
 } 

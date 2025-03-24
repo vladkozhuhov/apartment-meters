@@ -28,6 +28,39 @@ public static class ErrorMessages
             ErrorType.InvalidMeterReadingFormatError354 => "Неверный формат показания счетчика. Формат должен быть 'целое,дробное' (до 5 цифр до запятой и до 3 после).",
             ErrorType.InvalidDataFormatError401 => "Неправильный формат данных.",
             ErrorType.MissingRequiredParametersError402 => "Отсутствуют обязательные параметры.",
+            
+            // Ошибки валидации пользователей
+            ErrorType.EmptyApartmentNumberError450 => "Номер квартиры не может быть пустым.",
+            ErrorType.InvalidApartmentNumberError451 => "Номер квартиры должен быть положительным числом.",
+            ErrorType.EmptyLastNameError452 => "Фамилия не может быть пустой.",
+            ErrorType.LastNameTooLongError453 => "Фамилия не может быть длиннее 50 символов.",
+            ErrorType.EmptyFirstNameError454 => "Имя не может быть пустым.",
+            ErrorType.FirstNameTooLongError455 => "Имя не может быть длиннее 50 символов.",
+            ErrorType.MiddleNameTooLongError456 => "Отчество не может быть длиннее 50 символов.",
+            ErrorType.EmptyPasswordError457 => "Пароль не может быть пустым.",
+            ErrorType.PasswordTooShortError458 => "Пароль должен содержать минимум 8 символов.",
+            ErrorType.InvalidPasswordFormatError459 => "Пароль должен содержать как минимум одну заглавную букву, одну строчную букву и одну цифру.",
+            ErrorType.EmptyPhoneNumberError460 => "Номер телефона не может быть пустым.",
+            ErrorType.InvalidPhoneFormatError461 => "Номер телефона должен быть в формате +7XXXXXXXXXX.",
+            ErrorType.InvalidUserRoleError462 => "Указана недопустимая роль пользователя.",
+            ErrorType.EmptyUserIdError463 => "Идентификатор пользователя не может быть пустым.",
+            
+            // Ошибки валидации счетчиков
+            ErrorType.EmptyWaterMeterIdError470 => "Идентификатор счетчика не может быть пустым.",
+            ErrorType.InvalidWaterMeterPlaceError471 => "Указано недопустимое расположение счетчика.",
+            ErrorType.InvalidWaterTypeError472 => "Указан недопустимый тип счетчика.",
+            ErrorType.EmptyFactoryNumberError473 => "Заводской номер счетчика не может быть пустым.",
+            ErrorType.FactoryNumberTooLongError474 => "Заводской номер счетчика не может быть длиннее 10 символов.",
+            ErrorType.InvalidFactoryNumberFormatError475 => "Заводской номер должен содержать только буквы и цифры.",
+            ErrorType.EmptyFactoryYearError476 => "Дата установки счетчика не может быть пустой.",
+            ErrorType.FutureFactoryYearError477 => "Дата установки счетчика не может быть в будущем.",
+            
+            // Ошибки валидации показаний счетчиков
+            ErrorType.EmptyWaterValueError480 => "Показание счетчика не может быть пустым.",
+            ErrorType.InvalidWaterValueFormatError481 => "Формат показаний должен содержать до 5 цифр до запятой и до 3 после.",
+            ErrorType.EmptyReadingDateError482 => "Дата показания не может быть пустой.",
+            ErrorType.FutureReadingDateError483 => "Дата показания не может быть в будущем.",
+            
             ErrorType.InternalServerError501 => "Внутренняя ошибка сервера.",
             ErrorType.ServiceUnavailableError502 => "Временная недоступность сервиса.",
             _ => "Неизвестная ошибка."

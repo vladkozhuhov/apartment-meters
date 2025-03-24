@@ -1,7 +1,10 @@
+using Application.Exceptions;
 using Application.Interfaces.Commands;
 using Application.Interfaces.Queries;
 using Application.Models.MeterReadingModel;
+using Application.Services;
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -20,6 +23,7 @@ public class MeterReadingController : ControllerBase
 {
     private readonly IMeterReadingCommand _command;
     private readonly IMeterReadingQuery _query;
+    private readonly IErrorHandlingService _errorHandlingService;
     private readonly ILogger<MeterReadingController> _logger;
 
     /// <summary>
@@ -27,14 +31,17 @@ public class MeterReadingController : ControllerBase
     /// </summary>
     /// <param name="command">Сервис команд для показаний счетчиков</param>
     /// <param name="query">Сервис запросов для показаний счетчиков</param>
+    /// <param name="errorHandlingService">Сервис обработки ошибок</param>
     /// <param name="logger">Сервис логирования</param>
     public MeterReadingController(
         IMeterReadingCommand command, 
         IMeterReadingQuery query,
+        IErrorHandlingService errorHandlingService,
         ILogger<MeterReadingController> logger)
     {
         _command = command ?? throw new ArgumentNullException(nameof(command));
         _query = query ?? throw new ArgumentNullException(nameof(query));
+        _errorHandlingService = errorHandlingService ?? throw new ArgumentNullException(nameof(errorHandlingService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -64,8 +71,18 @@ public class MeterReadingController : ControllerBase
     public async Task<IActionResult> GetMeterReadingsByWaterMeterId(Guid waterMeterId)
     {
         _logger.LogInformation("Запрос на получение показаний для счетчика {WaterMeterId}", waterMeterId);
-        var readings = await _query.GetMeterReadingByWaterMeterIdAsync(waterMeterId);
-        return Ok(readings);
+        
+        try
+        {
+            var readings = await _query.GetMeterReadingByWaterMeterIdAsync(waterMeterId);
+            return Ok(readings);
+        }
+        catch(Exception)
+        {
+            _errorHandlingService.ThrowNotFoundException(ErrorType.WaterMeterNotFoundError351, 
+                $"Счетчик с идентификатором {waterMeterId} не найден.");
+            return NotFound(); // Эта строка не будет выполнена, нужна для компиляции
+        }
     }
     
     /// <summary>
@@ -80,7 +97,14 @@ public class MeterReadingController : ControllerBase
     public async Task<IActionResult> GetMeterReadingById(Guid id)
     {
         _logger.LogInformation("Запрос на получение показания с ID {MeterReadingId}", id);
+        
         var reading = await _query.GetMeterReadingByIdAsync(id);
+        if (reading == null)
+        {
+            _errorHandlingService.ThrowNotFoundException(ErrorType.MeterReadingNotFoundError352, 
+                $"Показание счетчика с идентификатором {id} не найдено.");
+        }
+        
         return Ok(reading);
     }
 
@@ -96,8 +120,24 @@ public class MeterReadingController : ControllerBase
     public async Task<IActionResult> AddMeterReading([FromBody] MeterReadingAddDto request)
     {
         _logger.LogInformation("Запрос на добавление нового показания для счетчика {WaterMeterId}", request.WaterMeterId);
-        var createdReading = await _command.AddMeterReadingAsync(request);
-        return CreatedAtAction(nameof(GetMeterReadingById), new { id = createdReading.Id }, createdReading);
+        
+        try
+        {
+            var createdReading = await _command.AddMeterReadingAsync(request);
+            return CreatedAtAction(nameof(GetMeterReadingById), new { id = createdReading.Id }, createdReading);
+        }
+        catch (BusinessLogicException ex) when (ex.ErrorType == ErrorType.MeterReadingLessThanPreviousError353)
+        {
+            // Просто пробрасываем ошибку, фильтр исключений её перехватит и вернёт правильный ответ
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при добавлении показания счетчика");
+            _errorHandlingService.ThrowBusinessLogicException(ErrorType.InvalidDataFormatError401, 
+                "Произошла ошибка при добавлении показания счетчика.");
+            return BadRequest(); // Эта строка не будет выполнена, нужна для компиляции
+        }
     }
     
     /// <summary>
@@ -130,7 +170,17 @@ public class MeterReadingController : ControllerBase
     public async Task<IActionResult> DeleteMeterReading(Guid id)
     {
         _logger.LogInformation("Запрос на удаление показания с ID {MeterReadingId}", id);
-        await _command.DeleteMeterReadingAsync(id);
-        return NoContent();
+        
+        try
+        {
+            await _command.DeleteMeterReadingAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            _errorHandlingService.ThrowNotFoundException(ErrorType.MeterReadingNotFoundError352, 
+                $"Показание счетчика с идентификатором {id} не найдено.");
+            return NotFound(); // Эта строка не будет выполнена, нужна для компиляции
+        }
     }
 }

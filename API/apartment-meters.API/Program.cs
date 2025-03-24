@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Threading.RateLimiting;
 using API.Converters;
 using API.Extensions;
+using API.Filters;
 using Application;
 using Application.Validators;
 using FluentValidation;
@@ -26,14 +27,21 @@ app.Run();
 void ConfigureServices(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
 {
     // Настройка контроллеров и JSON сериализации
-    services.AddControllers()
+    services.AddControllers(options =>
+        {
+            // Регистрируем глобальный фильтр исключений
+            options.Filters.Add<ApiExceptionFilterAttribute>();
+        })
         .AddJsonOptions(options =>
         {
             // Добавляем конвертер для типа DateOnly
             options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
-        })
-        .AddFluentValidation(); // Добавляем поддержку FluentValidation
+        });
         
+    // Добавляем поддержку FluentValidation (новым способом)    
+    services.AddFluentValidationAutoValidation();
+    services.AddFluentValidationClientsideAdapters();
+    
     // Регистрация валидаторов
     services.AddValidatorsFromAssemblyContaining<MeterReadingAddDtoValidator>();
     
@@ -151,8 +159,8 @@ void ConfigureMiddleware(WebApplication app, IWebHostEnvironment env)
     // Автоматически применяем миграции при запуске
     app.ApplyMigrations();
 
-    // Глобальный обработчик исключений
-    app.UseGlobalExceptionHandler();
+    // Убираем глобальный обработчик исключений, так как используем ApiExceptionFilterAttribute
+    // app.UseGlobalExceptionHandler();
 
     // Ограничение скорости запросов
     app.UseRateLimiter();

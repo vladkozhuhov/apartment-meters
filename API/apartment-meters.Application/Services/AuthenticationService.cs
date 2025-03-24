@@ -7,7 +7,7 @@ using Domain.Enums;
 using Domain.Repositories;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Validators;
+namespace Application.Services;
 
 /// <summary>
 /// Реализация сервиса авторизации
@@ -39,30 +39,40 @@ public class AuthenticationService : IAuthenticationService
     /// </summary>
     /// <param name="loginDto">Данные для авторизации</param>
     /// <returns>Информация о пользователе при успешной авторизации</returns>
-    /// <exception cref="CustomException">Выбрасывается при неверных учетных данных</exception>
+    /// <exception cref="BusinessLogicException">Выбрасывается при неверных учетных данных</exception>
     public async Task<UserEntity> LoginAsync(LoginDto loginDto)
     {
-        _logger.LogInformation("Попытка входа в систему для квартиры {ApartmentNumber}", loginDto.ApartmentNumber);
-        
-        var user = await _userRepository.GetByApartmentNumberAsync(loginDto.ApartmentNumber);
+        _logger.LogInformation("Попытка входа пользователя с номером квартиры {ApartmentNumber}", loginDto.ApartmentNumber);
 
+        var user = await _userRepository.GetByApartmentNumberAsync(loginDto.ApartmentNumber);
         if (user == null)
         {
             _logger.LogWarning("Пользователь с номером квартиры {ApartmentNumber} не найден", loginDto.ApartmentNumber);
-            throw new CustomException(ErrorType.UserNotFoundError101);
+            throw new BusinessLogicException(ErrorType.UserNotFoundError101);
         }
 
         if (user.Password != loginDto.Password)
         {
             _logger.LogWarning("Неверный пароль для пользователя с номером квартиры {ApartmentNumber}", loginDto.ApartmentNumber);
-            throw new CustomException(ErrorType.InvalidPasswordError102);
+            throw new BusinessLogicException(ErrorType.InvalidPasswordError102);
         }
 
         // Кэшируем пользователя после успешной аутентификации
         await _cachedRepository.GetByIdCachedAsync(user.Id);
-        
-        _logger.LogInformation("Успешный вход в систему для пользователя {UserName} из квартиры {ApartmentNumber}", 
-            $"{user.LastName} {user.FirstName}", loginDto.ApartmentNumber);
+
+        _logger.LogInformation("Успешный вход пользователя с номером квартиры {ApartmentNumber}", loginDto.ApartmentNumber);
         return user;
+    }
+
+    /// <summary>
+    /// Проверяет соответствие пароля хешу
+    /// </summary>
+    /// <param name="password">Пароль</param>
+    /// <param name="passwordHash">Хеш пароля</param>
+    /// <returns>true если пароль верный, иначе false</returns>
+    private bool VerifyPassword(string password, string passwordHash)
+    {
+        // TODO: Реализовать проверку пароля
+        return true;
     }
 }

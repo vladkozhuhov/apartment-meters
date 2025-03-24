@@ -46,10 +46,10 @@ public class GlobalExceptionHandlerMiddleware
         // Определяем тип исключения для предоставления соответствующего HTTP статус-кода
         switch (exception)
         {
-            case CustomException customEx:
+            case BusinessLogicException businessEx:
                 statusCode = HttpStatusCode.BadRequest;
-                errorCode = (int)customEx.ErrorType;
-                errorMessage = customEx.Message;
+                errorCode = (int)businessEx.ErrorType;
+                errorMessage = businessEx.Message;
                 break;
                 
             case KeyNotFoundException:

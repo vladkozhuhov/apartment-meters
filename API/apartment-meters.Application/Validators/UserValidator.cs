@@ -1,6 +1,8 @@
 using Application.Models.UsersModel;
 using FluentValidation;
 using System.Text.RegularExpressions;
+using Domain.Enums;
+using Application.Exceptions;
 
 namespace Application.Validators;
 
@@ -15,32 +17,45 @@ public class UserAddDtoValidator : AbstractValidator<UserAddDto>
     public UserAddDtoValidator()
     {
         RuleFor(x => x.ApartmentNumber)
-            .NotEmpty().WithMessage("Номер квартиры не может быть пустым")
-            .GreaterThan(0).WithMessage("Номер квартиры должен быть положительным числом");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyApartmentNumberError450.ToString())
+            .WithMessage(ErrorType.EmptyApartmentNumberError450.GetMessage())
+            .GreaterThan(0).WithErrorCode(ErrorType.InvalidApartmentNumberError451.ToString())
+            .WithMessage(ErrorType.InvalidApartmentNumberError451.GetMessage());
 
         RuleFor(x => x.LastName)
-            .NotEmpty().WithMessage("Фамилия не может быть пустой")
-            .MaximumLength(50).WithMessage("Фамилия не может быть длиннее 50 символов");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyLastNameError452.ToString())
+            .WithMessage(ErrorType.EmptyLastNameError452.GetMessage())
+            .MaximumLength(50).WithErrorCode(ErrorType.LastNameTooLongError453.ToString())
+            .WithMessage(ErrorType.LastNameTooLongError453.GetMessage());
 
         RuleFor(x => x.FirstName)
-            .NotEmpty().WithMessage("Имя не может быть пустым")
-            .MaximumLength(50).WithMessage("Имя не может быть длиннее 50 символов");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyFirstNameError454.ToString())
+            .WithMessage(ErrorType.EmptyFirstNameError454.GetMessage())
+            .MaximumLength(50).WithErrorCode(ErrorType.FirstNameTooLongError455.ToString())
+            .WithMessage(ErrorType.FirstNameTooLongError455.GetMessage());
 
         RuleFor(x => x.MiddleName)
-            .MaximumLength(50).WithMessage("Отчество не может быть длиннее 50 символов")
+            .MaximumLength(50).WithErrorCode(ErrorType.MiddleNameTooLongError456.ToString())
+            .WithMessage(ErrorType.MiddleNameTooLongError456.GetMessage())
             .When(x => !string.IsNullOrEmpty(x.MiddleName));
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Пароль не может быть пустым")
-            .MinimumLength(8).WithMessage("Пароль должен содержать минимум 8 символов")
-            .Matches(PasswordRegex).WithMessage("Пароль должен содержать как минимум одну заглавную букву, одну строчную букву и одну цифру");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyPasswordError457.ToString())
+            .WithMessage(ErrorType.EmptyPasswordError457.GetMessage())
+            .MinimumLength(8).WithErrorCode(ErrorType.PasswordTooShortError458.ToString())
+            .WithMessage(ErrorType.PasswordTooShortError458.GetMessage())
+            .Matches(PasswordRegex).WithErrorCode(ErrorType.InvalidPasswordFormatError459.ToString())
+            .WithMessage(ErrorType.InvalidPasswordFormatError459.GetMessage());
 
         RuleFor(x => x.PhoneNumber)
-            .NotEmpty().WithMessage("Номер телефона не может быть пустым")
-            .Matches(PhoneRegex).WithMessage("Номер телефона должен быть в формате +7XXXXXXXXXX");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyPhoneNumberError460.ToString())
+            .WithMessage(ErrorType.EmptyPhoneNumberError460.GetMessage())
+            .Matches(PhoneRegex).WithErrorCode(ErrorType.InvalidPhoneFormatError461.ToString())
+            .WithMessage(ErrorType.InvalidPhoneFormatError461.GetMessage());
 
         RuleFor(x => x.Role)
-            .IsInEnum().WithMessage("Указана недопустимая роль пользователя");
+            .IsInEnum().WithErrorCode(ErrorType.InvalidUserRoleError462.ToString())
+            .WithMessage(ErrorType.InvalidUserRoleError462.GetMessage());
     }
 }
 
@@ -55,49 +70,58 @@ public class UserUpdateDtoValidator : AbstractValidator<UserUpdateDto>
     public UserUpdateDtoValidator()
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Идентификатор пользователя не может быть пустым");
+            .NotEmpty().WithErrorCode(ErrorType.EmptyUserIdError463.ToString())
+            .WithMessage(ErrorType.EmptyUserIdError463.GetMessage());
 
         When(x => x.ApartmentNumber.HasValue, () =>
         {
             RuleFor(x => x.ApartmentNumber)
-                .GreaterThan(0).WithMessage("Номер квартиры должен быть положительным числом");
+                .GreaterThan(0).WithErrorCode(ErrorType.InvalidApartmentNumberError451.ToString())
+                .WithMessage(ErrorType.InvalidApartmentNumberError451.GetMessage());
         });
 
         When(x => !string.IsNullOrEmpty(x.LastName), () =>
         {
             RuleFor(x => x.LastName)
-                .MaximumLength(50).WithMessage("Фамилия не может быть длиннее 50 символов");
+                .MaximumLength(50).WithErrorCode(ErrorType.LastNameTooLongError453.ToString())
+                .WithMessage(ErrorType.LastNameTooLongError453.GetMessage());
         });
 
         When(x => !string.IsNullOrEmpty(x.FirstName), () =>
         {
             RuleFor(x => x.FirstName)
-                .MaximumLength(50).WithMessage("Имя не может быть длиннее 50 символов");
+                .MaximumLength(50).WithErrorCode(ErrorType.FirstNameTooLongError455.ToString())
+                .WithMessage(ErrorType.FirstNameTooLongError455.GetMessage());
         });
 
         When(x => !string.IsNullOrEmpty(x.MiddleName), () =>
         {
             RuleFor(x => x.MiddleName)
-                .MaximumLength(50).WithMessage("Отчество не может быть длиннее 50 символов");
+                .MaximumLength(50).WithErrorCode(ErrorType.MiddleNameTooLongError456.ToString())
+                .WithMessage(ErrorType.MiddleNameTooLongError456.GetMessage());
         });
 
         When(x => !string.IsNullOrEmpty(x.Password), () =>
         {
             RuleFor(x => x.Password)
-                .MinimumLength(8).WithMessage("Пароль должен содержать минимум 8 символов")
-                .Matches(PasswordRegex).WithMessage("Пароль должен содержать как минимум одну заглавную букву, одну строчную букву и одну цифру");
+                .MinimumLength(8).WithErrorCode(ErrorType.PasswordTooShortError458.ToString())
+                .WithMessage(ErrorType.PasswordTooShortError458.GetMessage())
+                .Matches(PasswordRegex).WithErrorCode(ErrorType.InvalidPasswordFormatError459.ToString())
+                .WithMessage(ErrorType.InvalidPasswordFormatError459.GetMessage());
         });
 
         When(x => !string.IsNullOrEmpty(x.PhoneNumber), () =>
         {
             RuleFor(x => x.PhoneNumber)
-                .Matches(PhoneRegex).WithMessage("Номер телефона должен быть в формате +7XXXXXXXXXX");
+                .Matches(PhoneRegex).WithErrorCode(ErrorType.InvalidPhoneFormatError461.ToString())
+                .WithMessage(ErrorType.InvalidPhoneFormatError461.GetMessage());
         });
 
         When(x => x.Role.HasValue, () =>
         {
             RuleFor(x => x.Role)
-                .IsInEnum().WithMessage("Указана недопустимая роль пользователя");
+                .IsInEnum().WithErrorCode(ErrorType.InvalidUserRoleError462.ToString())
+                .WithMessage(ErrorType.InvalidUserRoleError462.GetMessage());
         });
     }
 } 

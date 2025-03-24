@@ -56,7 +56,7 @@ public class MeterReadingCommand : IMeterReadingCommand
             {
                 _logger.LogWarning("Попытка добавить показание ({CurrentValue}), которое меньше предыдущего ({PreviousValue})",
                     formattedValue, previousReading.WaterValue);
-                throw new CustomException(ErrorType.MeterReadingLessThanPreviousError353);
+                throw new MeterReadingValidationException(ErrorType.MeterReadingLessThanPreviousError353);
             }
             
             // Вычисляем разницу и округляем до 3 десятичных знаков
@@ -80,7 +80,7 @@ public class MeterReadingCommand : IMeterReadingCommand
         catch (FormatException ex)
         {
             _logger.LogWarning(ex, "Неверный формат показания: {WaterValue}", dto.WaterValue);
-            throw new CustomException(ErrorType.InvalidMeterReadingFormatError354);
+            throw new MeterReadingValidationException(ErrorType.InvalidMeterReadingFormatError354);
         }
     }
     
@@ -98,7 +98,7 @@ public class MeterReadingCommand : IMeterReadingCommand
         if (waterReading == null)
         {
             _logger.LogWarning("Показание с ID {MeterReadingId} не найдено", id);
-            throw new CustomException(ErrorType.MeterReadingNotFoundError352);
+            throw new MeterReadingValidationException(ErrorType.MeterReadingNotFoundError352);
         }
 
         var previousReading = await _meterReadingRepository.GetLastByWaterMeterIdAsync(dto.WaterMeterId);
@@ -118,7 +118,7 @@ public class MeterReadingCommand : IMeterReadingCommand
             {
                 _logger.LogWarning("Попытка обновить показание ({CurrentValue}), которое меньше предыдущего ({PreviousValue})",
                     formattedValue, previousReading.WaterValue);
-                throw new CustomException(ErrorType.MeterReadingLessThanPreviousError353);
+                throw new MeterReadingValidationException(ErrorType.MeterReadingLessThanPreviousError353);
             }
 
             // Вычисляем разницу и округляем до 3 десятичных знаков
@@ -134,7 +134,7 @@ public class MeterReadingCommand : IMeterReadingCommand
         catch (FormatException ex)
         {
             _logger.LogWarning(ex, "Неверный формат показания: {WaterValue}", dto.WaterValue);
-            throw new CustomException(ErrorType.InvalidMeterReadingFormatError354);
+            throw new MeterReadingValidationException(ErrorType.InvalidMeterReadingFormatError354);
         }
     }
     
@@ -147,7 +147,7 @@ public class MeterReadingCommand : IMeterReadingCommand
         if (meterReading == null)
         {
             _logger.LogWarning("Показание с ID {MeterReadingId} не найдено", id);
-            throw new CustomException(ErrorType.MeterReadingNotFoundError352);
+            throw new MeterReadingValidationException(ErrorType.MeterReadingNotFoundError352);
         }
 
         await _meterReadingRepository.DeleteAsync(meterReading);

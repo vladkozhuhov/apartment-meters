@@ -2,6 +2,7 @@ using Application.Exceptions;
 using Application.Interfaces.Commands;
 using Application.Interfaces.Repositories;
 using Application.Models.LoginModels;
+using Application.Services;
 using Application.Validators;
 using Domain.Entities;
 using Domain.Enums;
@@ -101,7 +102,7 @@ public class AuthenticationServiceTests
             .ReturnsAsync(user);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<CustomException>(
+        var exception = await Assert.ThrowsAsync<BusinessLogicException>(
             () => _authService.LoginAsync(loginDto));
         
         Assert.Equal(ErrorType.InvalidPasswordError102, exception.ErrorType);
@@ -124,7 +125,7 @@ public class AuthenticationServiceTests
             .ReturnsAsync((UserEntity)null);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<CustomException>(
+        var exception = await Assert.ThrowsAsync<BusinessLogicException>(
             () => _authService.LoginAsync(loginDto));
         
         Assert.Equal(ErrorType.UserNotFoundError101, exception.ErrorType);
