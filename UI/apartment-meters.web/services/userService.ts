@@ -38,8 +38,16 @@ export const addUser = async (userRequest: UserRequest) => {
 };
 
 export const updateUser = async (id: string, userRequest: UserRequest) => {
-    const response = await api.put(`/api/users/${id}`, userRequest);
-    return response.data;
+    console.log(`Отправка запроса на обновление пользователя ${id}:`, userRequest);
+    try {
+        const response = await api.put(`/api/users/${id}`, userRequest);
+        console.log('Успешный ответ:', response.data);
+        return response.data;
+    } catch (error: any) {
+        console.error('Ошибка при обновлении пользователя:', error);
+        console.log('Детали ошибки:', error?.response?.data);
+        throw error;
+    }
 };
 
 export const deleteUser = async (id: string) => {

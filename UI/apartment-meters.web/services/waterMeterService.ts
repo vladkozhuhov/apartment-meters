@@ -7,7 +7,7 @@ export interface WaterMeterRequest {
     userId: string;
     placeOfWaterMeter: number;
     waterType: number;
-    factoryNumber: number;
+    factoryNumber: string;
     factoryYear: Date;
 }
 
@@ -16,7 +16,7 @@ export interface WaterMeterUpdateRequest {
     userId?: string;
     placeOfWaterMeter?: number;
     waterType?: number;
-    factoryNumber?: number;
+    factoryNumber?: string;
     factoryYear?: Date;
 }
 
@@ -47,10 +47,14 @@ export const updateWaterMeter = async (id: string, waterMeterRequest: WaterMeter
             WaterType: waterMeterRequest.waterType 
         }),
         ...(waterMeterRequest.factoryNumber !== undefined && { 
-            FactoryNumber: waterMeterRequest.factoryNumber.toString() 
+            // Заводской номер должен быть строкой
+            FactoryNumber: waterMeterRequest.factoryNumber
         }),
         ...(waterMeterRequest.factoryYear !== undefined && { 
-            FactoryYear: waterMeterRequest.factoryYear 
+            // Преобразуем дату в формат ISO с отсечением времени (только дата)
+            FactoryYear: waterMeterRequest.factoryYear instanceof Date 
+                ? waterMeterRequest.factoryYear.toISOString().split('T')[0] 
+                : waterMeterRequest.factoryYear 
         })
     };
     

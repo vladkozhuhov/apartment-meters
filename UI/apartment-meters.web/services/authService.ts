@@ -12,12 +12,74 @@ export interface LoginResponse {
   username: string;
   roles: string[];
   expiration: string;
+  errorCode?: string;    // Код ошибки из бэкенда
+  errorType?: string;    // Тип ошибки из бэкенда
+  errorMessage?: string; // Текстовое сообщение об ошибке
+}
+
+// Добавляем интерфейс для расширенной ошибки
+interface EnhancedError extends Error {
+  response?: any;
 }
 
 // Функция для входа в систему
 export const login = async (loginData: LoginRequest): Promise<LoginResponse> => {
-  const response = await api.post('/api/auth/login', loginData);
-  return response.data;
+  try {
+    const response = await api.post('/api/auth/login', loginData);
+    
+    // Проверяем, что ответ - это не HTML (например, страница 404)
+    if (typeof response.data === 'string' && 
+        (response.data.includes('<!DOCTYPE html>') || 
+         response.data.includes('<html>'))) {
+      console.error('Получен HTML-ответ вместо данных авторизации');
+      throw new Error('Неверный номер квартиры или пароль');
+    }
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('Ошибка при выполнении запроса авторизации:', error);
+    
+    // Проверяем, содержит ли ответ HTML (страница 404)
+    if (error.response && typeof error.response.data === 'string' && 
+        (error.response.data.includes('<!DOCTYPE html>') || 
+         error.response.data.includes('<html>'))) {
+      console.error('Получен HTML-ответ в ошибке авторизации');
+      throw new Error('Неверный номер квартиры или пароль');
+    }
+    
+    // Ошибка 404 (сервер не найден)
+    if (error.response && error.response.status === 404) {
+      throw new Error('Неверный номер квартиры или пароль');
+    }
+    
+    // Ошибка 401 (неавторизован)
+    if (error.response && error.response.status === 401) {
+      throw new Error('Неверный номер квартиры или пароль');
+    }
+    
+    // Ошибка 400 (неверный запрос)
+    if (error.response && error.response.status === 400) {
+      throw new Error('Неверный формат данных для входа');
+    }
+    
+    // Другие ошибки ответа сервера
+    if (error.response && error.response.status) {
+      const errorMessage = 
+        error.response.data?.Message || 
+        error.response.data?.message || 
+        error.response.data?.detail || 
+        error.response.data?.title || 
+        'Неверный номер квартиры или пароль';
+      
+      const enhancedError: EnhancedError = new Error(errorMessage);
+      enhancedError.name = 'AuthenticationError';
+      enhancedError.response = error.response;
+      throw enhancedError;
+    }
+    
+    // Ошибки сети или другие ошибки
+    throw new Error('Сервер недоступен. Пожалуйста, проверьте соединение и повторите попытку.');
+  }
 };
 
 // Функция для проверки текущего пользователя

@@ -8,7 +8,12 @@ const IndexPage: React.FC = () => {
     useEffect(() => {
         if (typeof window !== 'undefined') {
             if (isAuthenticated()) {
-                router.push('/user');
+                // Определяем роль пользователя для перенаправления
+                const userRole = localStorage.getItem('role');
+                const redirectUrl = userRole === 'Admin' ? '/admin' : '/user';
+                
+                // Используем router.push без опции replace
+                router.push(redirectUrl);
             } else {
                 router.push('/login');
             }

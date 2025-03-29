@@ -4,10 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { getWaterMetersByUserId, WaterMeterRequest } from '../services/waterMeterService';
 import { getMeterReadingByWaterMeterId } from '../services/readingMeterService';
-import AddMeterReadingForm from '@/components/addMeterReadingFormComponent';
+import AddMeterReadingForm from '@/components/AddMeterReadingComponent';
 import { isAuthenticated, logout, getCurrentUser } from '../services/authService';
 import { getUserByApartmentNumber } from '../services/userService';
 import api from '../services/api';
+import { useError } from '../contexts/ErrorContext';
 
 interface MeterReading {
   id: string;
@@ -38,12 +39,12 @@ interface CombinedReading {
 const UserPage: React.FC = () => {
   const [waterMeters, setWaterMeters] = useState<WaterMeter[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const router = useRouter();
   const [apartmentNumber, setApartmentNumber] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const { showError, clearError } = useError();
 
   // Устанавливаем флаг клиентского рендеринга
   useEffect(() => {
@@ -114,7 +115,7 @@ const UserPage: React.FC = () => {
         }
       } catch (err) {
         console.error('Ошибка при получении данных пользователя:', err);
-        setError('Не удалось загрузить данные пользователя');
+        showError('Не удалось загрузить данные пользователя', 'error');
         // При ошибке также выполняем выход
         logout();
         router.push('/login');
@@ -252,7 +253,7 @@ const UserPage: React.FC = () => {
         router.push('/login');
         return;
       }
-      setError('Не удалось загрузить данные. Пожалуйста, попробуйте позже.');
+      showError('Не удалось загрузить данные. Пожалуйста, попробуйте позже.', 'error');
     } finally {
       setLoading(false);
     }
@@ -262,8 +263,9 @@ const UserPage: React.FC = () => {
   useEffect(() => {
     if (userId && isClient) {
       fetchUserWaterMeters();
+      clearError(); // Очищаем ошибки при загрузке данных
     }
-  }, [userId, isClient]);
+  }, [userId, isClient, clearError]);
 
   const handleLogout = () => {
     logout();
@@ -377,10 +379,6 @@ const UserPage: React.FC = () => {
       {loading ? (
         <div className="mt-4 bg-white rounded-lg shadow-md p-6">
           <p>Загрузка данных...</p>
-        </div>
-      ) : error ? (
-        <div className="mt-4 bg-white rounded-lg shadow-md p-6">
-          <p className="text-red-500">{error}</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-md p-6">
