@@ -59,6 +59,7 @@ export enum ErrorType {
   InvalidWaterValueFormatError481 = 'InvalidWaterValueFormatError481',
   EmptyReadingDateError482 = 'EmptyReadingDateError482',
   FutureReadingDateError483 = 'FutureReadingDateError483',
+  MeterReadingOutsideAllowedPeriodError484 = 'MeterReadingOutsideAllowedPeriodError484',
   
   // Системные ошибки (500+)
   InternalServerError501 = 'InternalServerError501',
@@ -210,6 +211,8 @@ export const useErrorHandler = () => {
         return 'Дата показания не может быть пустой.';
       case ErrorType.FutureReadingDateError483:
         return 'Дата показания не может быть в будущем.';
+      case ErrorType.MeterReadingOutsideAllowedPeriodError484:
+        return 'Показания можно подавать только с 23 по 25 число месяца.';
       
       // Системные ошибки
       case ErrorType.InternalServerError501:

@@ -22,7 +22,8 @@ const METER_READING_ERRORS = {
   EMPTY_VALUE: ErrorType.EmptyWaterValueError480,
   INVALID_VALUE_FORMAT: ErrorType.InvalidWaterValueFormatError481,
   EMPTY_DATE: ErrorType.EmptyReadingDateError482,
-  FUTURE_DATE: ErrorType.FutureReadingDateError483
+  FUTURE_DATE: ErrorType.FutureReadingDateError483,
+  OUTSIDE_ALLOWED_PERIOD: ErrorType.MeterReadingOutsideAllowedPeriodError484
 };
 
 const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuccess, onCancel }) => {
@@ -103,6 +104,8 @@ const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuc
           return 'Дата показания не может быть пустой.';
         case METER_READING_ERRORS.FUTURE_DATE:
           return 'Дата показания не может быть в будущем.';
+        case METER_READING_ERRORS.OUTSIDE_ALLOWED_PERIOD:
+          return 'Показания можно подавать только с 23 по 25 число месяца.';
         default:
           // Используем сообщение от сервера, если оно есть
           return error?.response?.data?.message || 
