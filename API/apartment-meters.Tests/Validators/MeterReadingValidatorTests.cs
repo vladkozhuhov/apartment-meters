@@ -31,7 +31,7 @@ public class MeterReadingValidatorTests
         {
             WaterMeterId = Guid.NewGuid(),
             WaterValue = "123,45",
-            ReadingDate = DateTime.UtcNow.AddDays(-1)
+            ReadingDate = DateTime.Parse("2025-01-25")
         };
 
         // Act

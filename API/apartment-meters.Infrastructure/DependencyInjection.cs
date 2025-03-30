@@ -84,6 +84,10 @@ public static class DependencyInjection
         {
             options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
             options.AddPolicy("UserOrAdmin", policy => policy.RequireRole("User", "Admin"));
+            
+            // Добавляем политику для API/auth/me, которая требует только аутентификации
+            options.AddPolicy("AuthenticatedUserAPI", policy => 
+                policy.AddRequirements(new ApiAuthMeRequirement()));
         });
 
         // Register services

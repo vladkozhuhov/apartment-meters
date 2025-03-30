@@ -238,6 +238,11 @@ public enum ErrorType
     /// </summary>
     FutureReadingDateError483 = 483,
     
+    /// <summary>
+    /// Показания можно подавать только с 23 по 25 число месяца
+    /// </summary>
+    MeterReadingOutsideAllowedPeriodError484 = 484,
+    
     #endregion
 
     #endregion

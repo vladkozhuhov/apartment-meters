@@ -84,23 +84,37 @@ public class AuthController : ControllerBase
     /// <response code="200">Информация о пользователе получена</response>
     /// <response code="401">Пользователь не авторизован</response>
     [HttpGet("me")]
+    [Authorize(Policy = "AuthenticatedUserAPI")]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public ActionResult<object> GetCurrentUser()
     {
         try
         {
-            var userId = User.FindFirst("sub")?.Value;
-            var username = User.FindFirst("name")?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
+            
+            _logger.LogInformation("Запрос информации о пользователе. UserId: {UserId}, Username: {Username}", userId, username);
+            
+            foreach (var claim in User.Claims)
+            {
+                _logger.LogInformation("Claim: Type = {ClaimType}, Value = {ClaimValue}", claim.Type, claim.Value);
+            }
+            
+            var roles = User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
+            _logger.LogInformation("Роли пользователя: {Roles}", string.Join(", ", roles));
             
             if (User.Identity == null || !User.Identity.IsAuthenticated || string.IsNullOrEmpty(userId))
             {
+                _logger.LogWarning("Пользователь не аутентифицирован. Identity null: {IdentityNull}, IsAuthenticated: {IsAuthenticated}, UserId: {UserId}", 
+                    User.Identity == null, User.Identity?.IsAuthenticated, userId);
+                
                 _errorHandlingService.ThrowBusinessLogicException(
                     ErrorType.InvalidTokenError104,
                     "Пользователь не авторизован");
             }
             
-            _logger.LogInformation("Запрос информации о пользователе. UserId: {UserId}", userId);
+            _logger.LogInformation("Информация о пользователе успешно получена. UserId: {UserId}", userId);
 
             return Ok(new
             {

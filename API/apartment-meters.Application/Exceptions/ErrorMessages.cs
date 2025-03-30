@@ -60,6 +60,7 @@ public static class ErrorMessages
             ErrorType.InvalidWaterValueFormatError481 => "Формат показаний должен содержать до 5 цифр до запятой и до 3 после.",
             ErrorType.EmptyReadingDateError482 => "Дата показания не может быть пустой.",
             ErrorType.FutureReadingDateError483 => "Дата показания не может быть в будущем.",
+            ErrorType.MeterReadingOutsideAllowedPeriodError484 => "Показания можно подавать только с 23 по 25 число месяца.",
             
             ErrorType.InternalServerError501 => "Внутренняя ошибка сервера.",
             ErrorType.ServiceUnavailableError502 => "Временная недоступность сервиса.",

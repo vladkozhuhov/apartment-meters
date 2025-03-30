@@ -10,14 +10,16 @@ namespace Tests.Orders.Commands;
 public class WaterMeterCommandTests
 {
     private readonly Mock<IWaterMeterRepository> _repositoryMock;
+    private readonly Mock<IMeterReadingRepository> _meterReadingRepositoryMock;
     private readonly Mock<ILogger<WaterMeterCommand>> _loggerMock;
     private readonly WaterMeterCommand _command;
 
     public WaterMeterCommandTests()
     {
         _repositoryMock = new Mock<IWaterMeterRepository>();
+        _meterReadingRepositoryMock = new Mock<IMeterReadingRepository>();
         _loggerMock = new Mock<ILogger<WaterMeterCommand>>();
-        _command = new WaterMeterCommand(_repositoryMock.Object, _loggerMock.Object);
+        _command = new WaterMeterCommand(_repositoryMock.Object, _meterReadingRepositoryMock.Object, _loggerMock.Object);
     }
 
     /// <summary>
@@ -112,5 +114,48 @@ public class WaterMeterCommandTests
 
         // Act & Assert
         Assert.ThrowsAsync<KeyNotFoundException>(() => _command.DeleteWaterMeterAsync(id));
+    }
+
+    /// <summary>
+    /// Проверяет, что при изменении критических полей (номер или дата) счетчика удаляются все связанные показания.
+    /// </summary>
+    [Fact]
+    public async Task UpdateWaterMeterAsync_ShouldDeleteRelatedReadingsWhenCriticalFieldsChange()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        var existingMeter = new WaterMeterEntity 
+        { 
+            Id = id, 
+            FactoryNumber = "WM123456",
+            FactoryYear = new DateOnly(2022, 1, 1)
+        };
+        
+        var dto = new WaterMeterUpdateDto
+        {
+            FactoryNumber = "WM654321" // Измененный номер счетчика
+        };
+
+        var readings = new List<MeterReadingEntity>
+        {
+            new MeterReadingEntity { Id = Guid.NewGuid(), WaterMeterId = id },
+            new MeterReadingEntity { Id = Guid.NewGuid(), WaterMeterId = id }
+        };
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(existingMeter);
+        _meterReadingRepositoryMock.Setup(r => r.GetByWaterMeterIdAsync(id)).ReturnsAsync(readings);
+
+        // Act
+        await _command.UpdateWaterMeterAsync(id, dto);
+
+        // Assert
+        Assert.Equal(dto.FactoryNumber, existingMeter.FactoryNumber);
+        _repositoryMock.Verify(r => r.UpdateAsync(existingMeter), Times.Once);
+        
+        // Проверяем, что для каждого показания был вызван метод DeleteAsync
+        foreach (var reading in readings)
+        {
+            _meterReadingRepositoryMock.Verify(r => r.DeleteAsync(reading), Times.Once);
+        }
     }
 }

@@ -3,9 +3,11 @@ using Application.Behaviors;
 using Application.Interfaces.Commands;
 using Application.Interfaces.Queries;
 using Application.Interfaces.Services;
+using Application.Models.MeterReadingModel;
 using Application.Orders.Commands;
 using Application.Orders.Queries;
 using Application.Services;
+using Application.Validators;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Configuration;
@@ -35,7 +37,14 @@ public static class DependencyInjection
         
         // Регистрация валидаторов
         services.AddFluentValidationAutoValidation();
-        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        
+        // Регистрация всех валидаторов, кроме MeterReadingAddDtoValidator
+        // (он регистрируется отдельно ниже, т.к. требует внедрения зависимостей)
+        services.AddValidatorsFromAssemblyContaining<MeterReadingUpdateDtoValidator>();
+        
+        // Регистрация валидатора MeterReadingAddDtoValidator с поддержкой внедрения зависимостей
+        services.AddScoped<IValidator<MeterReadingAddDto>, MeterReadingAddDtoValidator>(
+            provider => new MeterReadingAddDtoValidator(provider.GetRequiredService<IErrorHandlingService>()));
         
         // Регистрация сервисов команд
         services.AddScoped<IMeterReadingCommand, MeterReadingCommand>();
@@ -46,9 +55,6 @@ public static class DependencyInjection
         services.AddScoped<IMeterReadingQuery, MeterReadingQuery>();
         services.AddScoped<IUserQuery, UserQuery>();
         services.AddScoped<IWaterMeterQuery, WaterMeterQuery>();
-        
-        // Регистрация сервиса аутентификации
-        // Примечание: фактическая реализация будет зарегистрирована в слое инфраструктуры
         
         // Регистрация сервиса обработки ошибок
         services.AddScoped<IErrorHandlingService, ErrorHandlingService>();

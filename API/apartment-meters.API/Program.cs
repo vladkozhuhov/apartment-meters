@@ -3,11 +3,11 @@ using System.Threading.RateLimiting;
 using API.Converters;
 using API.Extensions;
 using API.Filters;
+using API.Middleware;
 using Application;
-using Application.Validators;
-using FluentValidation;
 using FluentValidation.AspNetCore;
 using Infrastructure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using Persistence;
 
@@ -26,6 +26,18 @@ app.Run();
 // Методы конфигурации для улучшения читаемости
 void ConfigureServices(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
 {
+    // Настройка CORS - добавляем до других сервисов
+    services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policy =>
+        {
+            policy.WithOrigins("http://localhost:3000")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        });
+    });
+    
     // Настройка контроллеров и JSON сериализации
     services.AddControllers(options =>
         {
@@ -42,8 +54,13 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddFluentValidationAutoValidation();
     services.AddFluentValidationClientsideAdapters();
     
-    // Регистрация валидаторов
-    services.AddValidatorsFromAssemblyContaining<MeterReadingAddDtoValidator>();
+    // Регистрация валидаторов перенесена в Application/DependencyInjection.cs
+    
+    // Добавляем HttpContextAccessor для доступа к HttpContext
+    services.AddHttpContextAccessor();
+    
+    // Регистрируем наш AuthorizationHandler
+    services.AddSingleton<IAuthorizationHandler, ApiAuthMeAuthorizationHandler>();
     
     // Добавляем защиту от CSRF-атак
     services.AddAntiforgery(options =>
@@ -159,10 +176,9 @@ void ConfigureMiddleware(WebApplication app, IWebHostEnvironment env)
     // Автоматически применяем миграции при запуске
     app.ApplyMigrations();
 
-    // Убираем глобальный обработчик исключений, так как используем ApiExceptionFilterAttribute
-    // app.UseGlobalExceptionHandler();
+    // CORS должен быть размещен перед другими middleware для правильной работы
+    app.UseCors();
 
-    // Ограничение скорости запросов
     app.UseRateLimiter();
 
     // Swagger UI
@@ -173,21 +189,13 @@ void ConfigureMiddleware(WebApplication app, IWebHostEnvironment env)
         c.RoutePrefix = "swagger"; // Swagger UI будет доступен по пути /swagger
     });
 
-    // CORS
-    app.UseCors(builder =>
-    {
-        builder.WithHeaders().AllowAnyHeader();
-        builder.WithOrigins("http://localhost:3000") // Добавляем поддержку swaggerUI
-               .SetIsOriginAllowed(origin => true); // Разрешаем все источники во время разработки
-        builder.WithMethods().AllowAnyMethod();
-        builder.AllowCredentials(); // Разрешаем передачу учетных данных
-    });
+    // Добавляем наш кастомный middleware перед стандартным
+    app.UseCustomAuthorization();
 
     // Аутентификация и авторизация
     app.UseAuthentication();
     app.UseAuthorization();
     
-    // Временно отключаем Antiforgery для решения проблемы с авторизацией в Swagger
     // app.UseAntiforgery();
     
     app.MapControllers();

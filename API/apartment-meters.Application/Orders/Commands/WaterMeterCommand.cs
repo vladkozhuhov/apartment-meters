@@ -12,18 +12,22 @@ namespace Application.Orders.Commands;
 public class WaterMeterCommand : IWaterMeterCommand
 {
     private readonly IWaterMeterRepository _waterMeterRepository;
+    private readonly IMeterReadingRepository _meterReadingRepository;
     private readonly ILogger<WaterMeterCommand> _logger;
 
     /// <summary>
     /// Конструктор сервиса команд для счетчика воды
     /// </summary>
     /// <param name="waterMeterRepository">Репозиторий счетчиков воды</param>
+    /// <param name="meterReadingRepository">Репозиторий показаний счетчиков</param>
     /// <param name="logger">Сервис логирования</param>
     public WaterMeterCommand(
         IWaterMeterRepository waterMeterRepository,
+        IMeterReadingRepository meterReadingRepository,
         ILogger<WaterMeterCommand> logger)
     {
         _waterMeterRepository = waterMeterRepository ?? throw new ArgumentNullException(nameof(waterMeterRepository));
+        _meterReadingRepository = meterReadingRepository ?? throw new ArgumentNullException(nameof(meterReadingRepository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -60,6 +64,10 @@ public class WaterMeterCommand : IWaterMeterCommand
             throw new KeyNotFoundException($"Счетчик воды с ID {id} не найден");
         }
 
+        // Проверка, изменяются ли критические поля (номер или дата установки)
+        bool factoryNumberChanged = !string.IsNullOrEmpty(dto.FactoryNumber) && dto.FactoryNumber != waterMeter.FactoryNumber;
+        bool factoryYearChanged = dto.FactoryYear.HasValue && dto.FactoryYear != waterMeter.FactoryYear;
+        
         if (dto.PlaceOfWaterMeter.HasValue)
             waterMeter.PlaceOfWaterMeter = dto.PlaceOfWaterMeter.Value;
             
@@ -74,6 +82,21 @@ public class WaterMeterCommand : IWaterMeterCommand
 
         await _waterMeterRepository.UpdateAsync(waterMeter);
         _logger.LogInformation("Счетчик воды с ID {WaterMeterId} успешно обновлен", id);
+        
+        // Если изменился номер или дата установки счетчика, удаляем все связанные показания
+        if (factoryNumberChanged || factoryYearChanged)
+        {
+            _logger.LogInformation("Изменены критические данные счетчика (номер или дата установки). Удаление всех связанных показаний...");
+            var readings = await _meterReadingRepository.GetByWaterMeterIdAsync(id);
+            
+            foreach (var reading in readings)
+            {
+                await _meterReadingRepository.DeleteAsync(reading);
+                _logger.LogInformation("Удалено показание с ID {ReadingId} для счетчика {WaterMeterId}", reading.Id, id);
+            }
+            
+            _logger.LogInformation("Все показания для счетчика с ID {WaterMeterId} успешно удалены после изменения критических данных", id);
+        }
     }
 
     /// <inheritdoc />

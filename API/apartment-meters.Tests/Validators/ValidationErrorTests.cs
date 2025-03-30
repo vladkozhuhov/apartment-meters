@@ -128,7 +128,7 @@ public class ValidationErrorTests
             {
                 WaterMeterId = Guid.NewGuid(),
                 WaterValue = "12345,678",
-                ReadingDate = DateTime.UtcNow.AddDays(-1)
+                ReadingDate = DateTime.Parse("2025-01-23")
             };
 
             var result = _validator.TestValidate(model);
