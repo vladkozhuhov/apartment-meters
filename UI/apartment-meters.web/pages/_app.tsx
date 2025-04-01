@@ -6,6 +6,7 @@ import ErrorAlert from '../components/ErrorAlert';
 import dynamic from 'next/dynamic';
 import api from '../services/api';
 import { setErrorHandler } from '../services/api';
+import pushNotificationService from '../services/pushNotificationService';
 
 // Расширяем интерфейс Console для добавления нашего свойства
 declare global {
@@ -142,6 +143,42 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     setIsClient(true);
+    
+    // Регистрируем сервис-воркер для PWA и автоматически подписываем на уведомления
+    if (
+      typeof window !== 'undefined' && 
+      'serviceWorker' in navigator
+    ) {
+      try {
+        // Проверяем поддержку и пытаемся зарегистрировать сервис-воркер
+        if (pushNotificationService.isSupported()) {
+          // Регистрируем сервис-воркер
+          pushNotificationService.registerServiceWorker()
+            .then(() => {
+              console.log('Сервис-воркер успешно зарегистрирован');
+              
+              // Проверяем, не подписан ли уже пользователь
+              return pushNotificationService.getSubscriptionStatus();
+            })
+            .then((status) => {
+              // Если пользователь еще не подписан, пытаемся подписать
+              if (status === 'not-subscribed') {
+                return pushNotificationService.subscribe();
+              }
+            })
+            .then((subscription) => {
+              if (subscription) {
+                console.log('Пользователь автоматически подписан на уведомления');
+              }
+            })
+            .catch((error) => {
+              console.error('Ошибка при работе с сервис-воркером:', error);
+            });
+        }
+      } catch (error) {
+        console.error('Ошибка при инициализации сервис-воркера:', error);
+      }
+    }
   }, []);
 
   if (!isClient) {

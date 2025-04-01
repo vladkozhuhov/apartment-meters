@@ -4,6 +4,7 @@ import React, { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { logout, isAuthenticated } from '../services/authService';
+import PushNotificationComponent from '../components/PushNotificationComponent';
 
 interface LayoutProps {
   children: ReactNode;
@@ -51,14 +52,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 isAuth ? (
                   <>
                     <li>
-                      <Link href="/user" className="flex items-center space-x-2 hover:text-blue-200 transition-colors duration-200">
-                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                        </svg>
-                        <span>Личный кабинет</span>
-                      </Link>
-                    </li>
-                    <li>
                       <button
                         onClick={handleLogout}
                         className="flex items-center space-x-2 hover:text-blue-200 transition-colors duration-200"
@@ -90,7 +83,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </nav>
         </div>
       </header>
-      <main className="flex-grow container mx-auto px-4 py-6">
+      <main className="flex-grow p-4">
+        {isClient && isAuth && (
+          <div className="mb-2">
+            <PushNotificationComponent />
+          </div>
+        )}
         {children}
       </main>
       <footer className="bg-gray-800 text-white py-6 px-8">

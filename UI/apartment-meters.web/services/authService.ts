@@ -117,7 +117,9 @@ export const isAuthenticated = (): boolean => {
     const expirationDate = new Date(expiration);
     const now = new Date();
     
-    if (expirationDate < now) {
+    // Добавляем допуск 1 минуту для компенсации разницы во времени между клиентом и сервером
+    const bufferTime = 1 * 60 * 1000; // 1 минута в миллисекундах
+    if (expirationDate.getTime() - now.getTime() < -bufferTime) {
       // Токен истек, очищаем хранилище
       console.log('Аутентификация не пройдена: токен истек');
       logout();
