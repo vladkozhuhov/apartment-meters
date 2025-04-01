@@ -29,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IWaterMeterRepository, WaterMeterRepository>();
         services.AddScoped<IMeterReadingRepository, MeterReadingRepository>();
+        services.AddScoped<IPushSubscriptionRepository, PushSubscriptionRepository>();
         
         // Регистрация кэширующих репозиториев для запросов (ICachedRepository)
         services.AddMemoryCache();

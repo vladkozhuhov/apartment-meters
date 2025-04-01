@@ -10,6 +10,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserEntity> Users { get; set; }
     public DbSet<WaterMeterEntity> WaterMeters { get; set; }
     public DbSet<MeterReadingEntity> MeterReadings { get; set; }
+    public DbSet<PushSubscriptionEntity> PushSubscriptions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

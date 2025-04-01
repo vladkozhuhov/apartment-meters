@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Infrastructure.Auth;
 using System.Security.Claims;
+using Application.Models.NotificationModel;
 
 namespace Infrastructure;
 
@@ -25,6 +26,13 @@ public static class DependencyInjection
 
         // Регистрируем фоновые задачи как синглтон, чтобы сохранять состояние всех задач
         services.AddSingleton<IBackgroundTaskService, BackgroundTaskService>();
+        
+        // Конфигурация настроек Web Push уведомлений
+        services.Configure<PushNotificationSettings>(
+            configuration.GetSection("PushNotificationSettings"));
+            
+        // Регистрация сервиса Web Push уведомлений
+        services.AddScoped<IPushNotificationService, PushNotificationService>();
         
         // Configure JWT
         var jwtSettingsSection = configuration.GetSection("JwtSettings");
@@ -52,7 +60,7 @@ public static class DependencyInjection
                 ValidIssuer = jwtSettings.Issuer,
                 ValidAudience = jwtSettings.Audience,
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero,
+                ClockSkew = TimeSpan.FromMinutes(1),
                 // Не автоматически выбираем провайдер для проверки ключа подписи
                 NameClaimType = ClaimTypes.Name,
                 RoleClaimType = ClaimTypes.Role

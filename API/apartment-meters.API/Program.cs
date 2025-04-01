@@ -7,6 +7,7 @@ using API.Middleware;
 using Application;
 using FluentValidation.AspNetCore;
 using Infrastructure;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using Persistence;
@@ -167,6 +168,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddPersistenceServices(configuration);
     services.AddInfrastructureServices(configuration);
     services.AddApplicationServices(configuration);
+
+    // Добавляем фоновую службу для отправки уведомлений
+    services.AddHostedService<MeterReadingNotificationService>();
 
     // Регистрация сервиса аутентификации перенесена в слой приложения (DependencyInjection.cs)
 }

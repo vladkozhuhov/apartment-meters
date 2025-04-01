@@ -76,7 +76,7 @@ public class AuthenticationService : IAuthenticationService
             Token = token,
             Username = user.ApartmentNumber.ToString(),
             Roles = roles,
-            Expiration = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes)
+            Expiration = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpiryMinutes)
         };
         
         _logger.LogInformation("Аутентификация успешна для пользователя {UserId}", user.Id);

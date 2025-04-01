@@ -51,7 +51,7 @@ public class JwtService : IJwtService
             issuer: _jwtSettings.Issuer,
             audience: _jwtSettings.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
+            expires: DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpiryMinutes),
             signingCredentials: credentials
         );
 
@@ -73,7 +73,7 @@ public class JwtService : IJwtService
             ValidIssuer = _jwtSettings.Issuer,
             ValidAudience = _jwtSettings.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey)),
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.FromMinutes(1)
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -97,22 +97,6 @@ public class JwtService : IJwtService
     public string? ValidateToken(string token)
     {
         _logger.LogInformation("Валидация токена");
-        
-        if (string.IsNullOrEmpty(token))
-        {
-            _logger.LogWarning("Токен пустой или null");
-            return null;
-        }
-
-        var principal = GetPrincipalFromToken(token);
-        if (principal == null)
-        {
-            _logger.LogWarning("Не удалось получить ClaimsPrincipal из токена");
-            return null;
-        }
-
-        var userId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
-        _logger.LogInformation("Токен валидирован успешно для пользователя {UserId}", userId);
-        return userId;
+        return GetPrincipalFromToken(token)?.Identity?.Name;
     }
 }
