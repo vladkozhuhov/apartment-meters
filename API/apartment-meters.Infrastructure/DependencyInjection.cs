@@ -34,6 +34,9 @@ public static class DependencyInjection
         // Регистрация сервиса Web Push уведомлений
         services.AddScoped<IPushNotificationService, PushNotificationService>();
         
+        // Регистрация сервиса миграции паролей
+        services.AddSingleton<PasswordMigrationService>();
+        
         // Configure JWT
         var jwtSettingsSection = configuration.GetSection("JwtSettings");
         services.Configure<JwtSettings>(jwtSettingsSection);

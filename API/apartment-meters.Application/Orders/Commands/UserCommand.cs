@@ -4,6 +4,7 @@ using Application.Models.UsersModel;
 using Domain.Entities;
 using Domain.Repositories;
 using Microsoft.Extensions.Logging;
+using BCrypt.Net;
 
 namespace Application.Orders.Commands;
 
@@ -33,6 +34,9 @@ public class UserCommand : IUserCommand
     {
         _logger.LogInformation("Добавление нового пользователя");
         
+        // Хешируем пароль перед сохранением
+        string hashedPassword = HashPassword(dto.Password);
+        
         var user = new UserEntity
         {
             Id = Guid.NewGuid(),
@@ -40,7 +44,7 @@ public class UserCommand : IUserCommand
             LastName = dto.LastName,
             FirstName = dto.FirstName,
             MiddleName = dto.MiddleName,
-            Password = dto.Password,
+            Password = hashedPassword, // Используем хешированный пароль
             PhoneNumber = dto.PhoneNumber,
             Role = dto.Role,
         };
@@ -67,7 +71,23 @@ public class UserCommand : IUserCommand
         user.FirstName = dto.FirstName ?? user.FirstName;
         user.MiddleName = dto.MiddleName ?? user.MiddleName;
         user.ApartmentNumber = dto.ApartmentNumber ?? user.ApartmentNumber;
-        user.Password = dto.Password ?? user.Password;
+        
+        // Обновляем пароль только если он был предоставлен и изменен
+        if (!string.IsNullOrEmpty(dto.Password) && dto.Password != user.Password)
+        {
+            // Проверяем, не хешированный ли уже пароль
+            if (dto.Password.StartsWith("$2a$") || dto.Password.StartsWith("$2b$") || dto.Password.StartsWith("$2y$"))
+            {
+                // Пароль уже хеширован (например, из админ-панели)
+                user.Password = dto.Password;
+            }
+            else
+            {
+                // Хешируем новый пароль
+                user.Password = HashPassword(dto.Password);
+            }
+        }
+        
         user.PhoneNumber = dto.PhoneNumber ?? user.PhoneNumber;
         user.Role = dto.Role ?? user.Role;
 
@@ -89,5 +109,24 @@ public class UserCommand : IUserCommand
 
         await _userRepository.DeleteAsync(user);
         _logger.LogInformation("Пользователь с ID {UserId} успешно удален", id);
+    }
+    
+    /// <summary>
+    /// Хеширует пароль с использованием BCrypt
+    /// </summary>
+    /// <param name="password">Пароль в открытом виде</param>
+    /// <returns>Хешированный пароль</returns>
+    private string HashPassword(string password)
+    {
+        try
+        {
+            // Генерируем соль и хешируем пароль
+            return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при хешировании пароля");
+            throw;
+        }
     }
 }

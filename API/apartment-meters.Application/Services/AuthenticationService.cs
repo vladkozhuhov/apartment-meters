@@ -6,6 +6,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.Repositories;
 using Microsoft.Extensions.Logging;
+using BCrypt.Net;
 
 namespace Application.Services;
 
@@ -51,7 +52,8 @@ public class AuthenticationService : IAuthenticationService
             throw new BusinessLogicException(ErrorType.UserNotFoundError101);
         }
 
-        if (user.Password != loginDto.Password)
+        // Проверяем пароль с использованием BCrypt
+        if (!VerifyPassword(loginDto.Password, user.Password))
         {
             _logger.LogWarning("Неверный пароль для пользователя с номером квартиры {ApartmentNumber}", loginDto.ApartmentNumber);
             throw new BusinessLogicException(ErrorType.InvalidPasswordError102);
@@ -72,7 +74,25 @@ public class AuthenticationService : IAuthenticationService
     /// <returns>true если пароль верный, иначе false</returns>
     private bool VerifyPassword(string password, string passwordHash)
     {
-        // TODO: Реализовать проверку пароля
-        return true;
+        try
+        {
+            // Проверяем, начинается ли пароль с префикса BCrypt
+            if (passwordHash.StartsWith("$2a$") || passwordHash.StartsWith("$2b$") || passwordHash.StartsWith("$2y$"))
+            {
+                // Верифицируем хешированный пароль
+                return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+            }
+            else
+            {
+                // Для обратной совместимости - простое сравнение, если пароль еще не хеширован
+                // Это временное решение для существующих пользователей
+                return password == passwordHash;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при проверке пароля");
+            return false;
+        }
     }
 }

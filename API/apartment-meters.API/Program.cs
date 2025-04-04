@@ -7,6 +7,7 @@ using API.Middleware;
 using Application;
 using FluentValidation.AspNetCore;
 using Infrastructure;
+using Infrastructure.Extensions;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
@@ -27,7 +28,6 @@ app.Run();
 // Методы конфигурации для улучшения читаемости
 void ConfigureServices(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
 {
-    // Настройка CORS - добавляем до других сервисов
     services.AddCors(options =>
     {
         options.AddDefaultPolicy(policy =>
@@ -51,7 +51,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
         });
         
-    // Добавляем поддержку FluentValidation (новым способом)    
+    // Добавляем поддержку FluentValidation (новым способом)
     services.AddFluentValidationAutoValidation();
     services.AddFluentValidationClientsideAdapters();
     
@@ -171,14 +171,15 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     // Добавляем фоновую службу для отправки уведомлений
     services.AddHostedService<MeterReadingNotificationService>();
-
-    // Регистрация сервиса аутентификации перенесена в слой приложения (DependencyInjection.cs)
 }
 
 void ConfigureMiddleware(WebApplication app, IWebHostEnvironment env)
 {
     // Автоматически применяем миграции при запуске
     app.ApplyMigrations();
+    
+    // Запускаем миграцию паролей
+    app.MigratePasswords();
 
     // CORS должен быть размещен перед другими middleware для правильной работы
     app.UseCors();
@@ -199,8 +200,6 @@ void ConfigureMiddleware(WebApplication app, IWebHostEnvironment env)
     // Аутентификация и авторизация
     app.UseAuthentication();
     app.UseAuthorization();
-    
-    // app.UseAntiforgery();
     
     app.MapControllers();
 }

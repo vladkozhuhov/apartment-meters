@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Persistence.Contexts;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using BCrypt.Net;
 
 namespace Infrastructure.Auth;
 
@@ -50,8 +51,8 @@ public class AuthenticationService : IAuthenticationService
 
         _logger.LogInformation("Пользователь найден. ID: {UserId}, Роль: {Role}", user.Id, user.Role);
 
-        // Проверка пароля (в реальном проекте должна быть проверка хеша)
-        if (user.Password != password)
+        // Проверка пароля с использованием BCrypt или прямое сравнение для обратной совместимости
+        if (!VerifyPassword(password, user.Password))
         {
             _logger.LogWarning("Неверный пароль для пользователя с номером квартиры {ApartmentNumber}", apartmentNumber);
             return null;
@@ -81,5 +82,35 @@ public class AuthenticationService : IAuthenticationService
         
         _logger.LogInformation("Аутентификация успешна для пользователя {UserId}", user.Id);
         return response;
+    }
+    
+    /// <summary>
+    /// Проверяет соответствие пароля хешу
+    /// </summary>
+    /// <param name="password">Пароль</param>
+    /// <param name="passwordHash">Хеш пароля</param>
+    /// <returns>true если пароль верный, иначе false</returns>
+    private bool VerifyPassword(string password, string passwordHash)
+    {
+        try
+        {
+            // Проверяем, начинается ли пароль с префикса BCrypt
+            if (passwordHash.StartsWith("$2a$") || passwordHash.StartsWith("$2b$") || passwordHash.StartsWith("$2y$"))
+            {
+                // Верифицируем хешированный пароль
+                return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+            }
+            else
+            {
+                // Для обратной совместимости - простое сравнение, если пароль еще не хеширован
+                // Это временное решение для существующих пользователей
+                return password == passwordHash;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при проверке пароля");
+            return false;
+        }
     }
 }
