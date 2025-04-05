@@ -36,9 +36,8 @@ public class UserUpdateDto
     public string? MiddleName { get; set; }
     
     /// <summary>
-    /// Пароль пользователя
+    /// Пароль пользователя (необязательное поле при обновлении)
     /// </summary>
-    [Required]
     public string? Password { get; set; } 
 
     /// <summary>

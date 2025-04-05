@@ -72,10 +72,10 @@ public class UserCommand : IUserCommand
         user.MiddleName = dto.MiddleName ?? user.MiddleName;
         user.ApartmentNumber = dto.ApartmentNumber ?? user.ApartmentNumber;
         
-        // Обновляем пароль только если он был предоставлен и изменен
-        if (!string.IsNullOrEmpty(dto.Password) && dto.Password != user.Password)
+        // Обновляем пароль только если он был предоставлен и не пустой
+        if (!string.IsNullOrEmpty(dto.Password))
         {
-            // Проверяем, не хешированный ли уже пароль
+            // Если пароль начинается с $ - это может быть хешированный пароль
             if (dto.Password.StartsWith("$2a$") || dto.Password.StartsWith("$2b$") || dto.Password.StartsWith("$2y$"))
             {
                 // Пароль уже хеширован (например, из админ-панели)
@@ -86,6 +86,12 @@ public class UserCommand : IUserCommand
                 // Хешируем новый пароль
                 user.Password = HashPassword(dto.Password);
             }
+            
+            _logger.LogInformation("Пароль пользователя с ID {UserId} был обновлен", id);
+        }
+        else 
+        {
+            _logger.LogInformation("Пароль пользователя с ID {UserId} остался без изменений (пустой пароль в запросе)", id);
         }
         
         user.PhoneNumber = dto.PhoneNumber ?? user.PhoneNumber;
@@ -121,6 +127,7 @@ public class UserCommand : IUserCommand
         try
         {
             // Генерируем соль и хешируем пароль
+            // WorkFactor 12 - оптимальный баланс между безопасностью и производительностью
             return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
         }
         catch (Exception ex)
