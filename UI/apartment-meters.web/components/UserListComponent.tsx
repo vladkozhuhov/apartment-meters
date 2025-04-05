@@ -86,6 +86,12 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
     factoryYear?: string;
   }>({});
 
+  const [newPassword, setNewPassword] = useState<string>("");  // Новое состояние для хранения нового пароля
+  const [isChangingPassword, setIsChangingPassword] = useState(false);  // Флаг для отслеживания изменения пароля
+
+  // Добавляем регулярное выражение для проверки формата пароля
+  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setFilter({ apartment: value });
@@ -108,6 +114,8 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
     // Очищаем предыдущие ошибки формы
     setFormErrors({});
     setEditingUser(user.id);
+    setNewPassword("");  // Сбрасываем новый пароль
+    setIsChangingPassword(false);  // Сбрасываем флаг изменения пароля
     setEditForm({
       id: user.id,
       apartmentNumber: user.apartmentNumber,
@@ -115,7 +123,6 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
       firstName: user.firstName,
       middleName: user.middleName,
       phoneNumber: user.phoneNumber,
-      password: user.password,
       role: user.role
     });
   };
@@ -128,6 +135,17 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
       factoryNumber: meter.factoryNumber,
       factoryYear: meter.factoryYear
     });
+  };
+
+  const validatePassword = (password: string): string | null => {
+    if (!password) return null; // Пустой пароль не проверяем, так как он означает "не менять пароль"
+    if (password.length < 8) {
+      return 'Пароль должен содержать минимум 8 символов.';
+    }
+    if (!passwordPattern.test(password)) {
+      return 'Пароль должен содержать как минимум одну заглавную букву, одну строчную букву и одну цифру.';
+    }
+    return null;
   };
 
   // Обработка ошибок от API, возвращает понятное сообщение для пользователя
@@ -319,6 +337,16 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
         return;
       }
 
+      // Проверяем пароль, если он был изменен
+      if (isChangingPassword && newPassword) {
+        const passwordError = validatePassword(newPassword);
+        if (passwordError) {
+          setFormErrors(prev => ({ ...prev, password: passwordError }));
+          setUpdateLoading(false);
+          return;
+        }
+      }
+
       // Объединяем существующие данные с изменениями
       const updatedUserData: UserRequest = {
         id: userId,
@@ -327,7 +355,7 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
         firstName: editForm.firstName || userToUpdate.firstName,
         middleName: editForm.middleName || userToUpdate.middleName,
         phoneNumber: editForm.phoneNumber || userToUpdate.phoneNumber,
-        password: editForm.password || userToUpdate.password,
+        password: isChangingPassword ? newPassword : "",
         role: userToUpdate.role
       };
 
@@ -572,42 +600,12 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
   ) => (
     <div>
       <label className="block text-sm font-medium text-gray-700">{label}</label>
-      {name === 'password' ? (
-        <div className="relative">
-          <input
-            type={showEditPassword ? "text" : "password"}
-            value={value}
-            onChange={onChange}
-            className={`mt-1 block w-full rounded-md border ${formErrors[name] ? 'border-red-500' : 'border-gray-300'} px-3 py-2 focus:outline-none ${formErrors[name] ? 'focus:border-red-500 focus:ring-red-500' : 'focus:border-blue-500 focus:ring-blue-500'}`}
-          />
-          <button
-            type="button"
-            className="absolute inset-y-0 right-0 flex items-center px-3 mt-1 text-gray-600 hover:text-gray-800"
-            onClick={() => setShowEditPassword(!showEditPassword)}
-          >
-            {showEditPassword ? (
-              // Иконка "скрыть пароль"
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
-                <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-              </svg>
-            ) : (
-              // Иконка "показать пароль"
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-              </svg>
-            )}
-          </button>
-        </div>
-      ) : (
-        <input
-          type={type}
-          value={value}
-          onChange={onChange}
-          className={`mt-1 block w-full rounded-md border ${formErrors[name] ? 'border-red-500' : 'border-gray-300'} px-3 py-2 focus:outline-none ${formErrors[name] ? 'focus:border-red-500 focus:ring-red-500' : 'focus:border-blue-500 focus:ring-blue-500'}`}
-        />
-      )}
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        className={`mt-1 block w-full rounded-md border ${formErrors[name] ? 'border-red-500' : 'border-gray-300'} px-3 py-2 focus:outline-none ${formErrors[name] ? 'focus:border-red-500 focus:ring-red-500' : 'focus:border-blue-500 focus:ring-blue-500'}`}
+      />
       {formErrors[name] && (
         <p className="mt-1 text-sm text-red-600">{formErrors[name]}</p>
       )}
@@ -632,6 +630,78 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
       />
       {meterFormErrors[name] && (
         <p className="mt-1 text-sm text-red-600">{meterFormErrors[name]}</p>
+      )}
+    </div>
+  );
+
+  // Заменяем renderInputField для пароля специальным компонентом для паролей
+  const renderPasswordField = () => (
+    <div>
+      <label className="block text-sm font-medium text-gray-700">Пароль</label>
+      {!isChangingPassword ? (
+        <div className="mt-1 flex items-center">
+          <span className="inline-block w-full py-2 px-3 border border-gray-300 rounded-md bg-gray-100 text-gray-600">••••••••</span>
+          <button
+            type="button"
+            onClick={() => setIsChangingPassword(true)}
+            className="ml-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200"
+          >
+            Изменить пароль
+          </button>
+        </div>
+      ) : (
+        <div className="relative">
+          <input
+            type={showEditPassword ? "text" : "password"}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Введите новый пароль"
+            className={`mt-1 block w-full rounded-md border ${formErrors.password ? 'border-red-500' : 'border-gray-300'} px-3 py-2 focus:outline-none ${formErrors.password ? 'focus:border-red-500 focus:ring-red-500' : 'focus:border-blue-500 focus:ring-blue-500'}`}
+          />
+          <button
+            type="button"
+            className="absolute inset-y-0 right-0 flex items-center px-3 mt-1 text-gray-600 hover:text-gray-800"
+            onClick={() => setShowEditPassword(!showEditPassword)}
+          >
+            {showEditPassword ? (
+              // Иконка "скрыть пароль"
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
+                <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+              </svg>
+            ) : (
+              // Иконка "показать пароль"
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+              </svg>
+            )}
+          </button>
+          <div className="mt-1 flex items-center">
+            <button
+              type="button"
+              onClick={() => {
+                setIsChangingPassword(false);
+                setNewPassword("");
+                // Очищаем ошибку пароля, если она была
+                setFormErrors(prev => {
+                  const { password, ...rest } = prev;
+                  return rest;
+                });
+              }}
+              className="text-sm text-gray-600 hover:text-gray-800"
+            >
+              Отменить изменение
+            </button>
+          </div>
+          {formErrors.password ? (
+            <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
+          ) : (
+            <p className="mt-1 text-xs text-gray-500">
+              Пароль должен содержать не менее 8 символов, включая заглавную букву, строчную букву и цифру
+            </p>
+          )}
+        </div>
       )}
     </div>
   );
@@ -724,13 +794,7 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
                             (e) => setEditForm(prev => ({ ...prev, phoneNumber: e.target.value }))
                           )}
                           
-                          {renderInputField(
-                            'Пароль',
-                            'password',
-                            editForm.password,
-                            (e) => setEditForm(prev => ({ ...prev, password: e.target.value })),
-                            'password'
-                          )}
+                          {renderPasswordField()}
                         </div>
                         <div className="flex justify-end gap-2">
                           <button
@@ -765,24 +829,8 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
                           </div>
                           <div className="text-sm text-gray-500 mt-1 flex items-center">
                             <span>Пароль: </span>
-                            <span className="font-mono ml-1">{showPassword ? user.password : '••••••••'}</span>
-                            <button
-                              type="button"
-                              className="ml-2 text-gray-600 hover:text-gray-800"
-                              onClick={() => setShowPassword(!showPassword)}
-                            >
-                              {showPassword ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
-                                  <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                                </svg>
-                              ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                                </svg>
-                              )}
-                            </button>
+                            <span className="font-mono ml-1">••••••••</span>
+                            <span className="ml-2 text-xs text-gray-400">(скрыт для безопасности)</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
