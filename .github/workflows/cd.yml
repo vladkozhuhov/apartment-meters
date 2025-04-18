@@ -56,7 +56,7 @@ jobs:
     - name: Create deployment package
       run: |
         mkdir -p deployment
-        cp -r publish deployment/api
+        cp -r publish/* deployment/api/
         cp -r UI/apartment-meters.web/.next deployment/ui
         cp -r UI/apartment-meters.web/public deployment/ui/public
         cp docker-compose.yml deployment/
@@ -95,8 +95,8 @@ jobs:
         scp deploy.tar.gz $SERVER_USER@$SERVER_IP:$DEPLOY_PATH/
         ssh $SERVER_USER@$SERVER_IP "cd $DEPLOY_PATH && \
         mkdir -p backup && \
-        tar -czf backup/backup-$(date +%Y%m%d-%H%M%S).tar.gz API UI docker-compose.yml && \
-        rm -rf API UI && \
+        tar -czf backup/backup-$(date +%Y%m%d-%H%M%S).tar.gz api ui docker-compose.yml && \
+        rm -rf api ui && \
         tar -xzf deploy.tar.gz && \
         rm deploy.tar.gz && \
         docker-compose up -d --build"
