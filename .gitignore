@@ -89,8 +89,8 @@ secrets.json
 
 # Docker
 Dockerfile
-docker-compose.yml
-docker-compose.*.yml
+# docker-compose.yml
+# docker-compose.*.yml
 .dockerignore
 
 # Terraform

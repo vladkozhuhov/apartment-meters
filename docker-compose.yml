@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # Бэкенд API сервис
+  api:
+    build:
+      context: ./API
+      dockerfile: apartment-meters.API/Dockerfile
+    container_name: apartment_meters_api
+    depends_on:
+      - db
+    environment:
+      - ConnectionStrings__SecurityDb=Server=db;Port=5432;Database=apartmentmetersdb;User Id=postgres;Password=12341234;Pooling=true;
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - apartment_meters_network
+    restart: always
+  
+  # База данных PostgreSQL
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12341234
+      POSTGRES_DB: apartmentmetersdb
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    container_name: apartment_meters_db
+    networks:
+      - apartment_meters_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  # Фронтенд сервис
+  frontend:
+    build:
+      context: ./UI/apartment-meters.web
+      dockerfile: Dockerfile
+    container_name: apartment_meters_frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=/api
+    depends_on:
+      - api
+    networks:
+      - apartment_meters_network
+    restart: always
+
+  # Nginx для проксирования и SSL
+  nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - ./nginx/auth:/etc/nginx/auth
+    depends_on:
+      - frontend
+      - api
+    networks:
+      - apartment_meters_network
+
+# Сети
+networks:
+  apartment_meters_network:
+    driver: bridge
