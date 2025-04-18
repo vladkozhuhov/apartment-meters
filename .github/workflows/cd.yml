@@ -1,14 +1,10 @@
 name: .NET CD
 
-# Временно отключаем workflow
-# on:
-#   workflow_run:
-#     workflows: [".NET CI"]
-#     branches: [main, master]
-#     types:
-#       - completed
+# Добавляем конкурентность для предотвращения параллельных запусков
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
-# Временное решение: запускаем только вручную
 on:
   workflow_run:
     workflows: [".NET CI"]
@@ -64,16 +60,31 @@ jobs:
         cp -r UI/apartment-meters.web/.next deployment/ui
         cp -r UI/apartment-meters.web/public deployment/ui/public
         cp docker-compose.yml deployment/
-        cp API/apartment-meters.API/Dockerfile deployment/api/
-        cp UI/apartment-meters.web/Dockerfile deployment/ui/
+        # Проверяем наличие Dockerfile перед копированием
+        if [ -f "API/apartment-meters.API/Dockerfile" ]; then
+          cp API/apartment-meters.API/Dockerfile deployment/api/
+        fi
+        if [ -f "UI/apartment-meters.web/Dockerfile" ]; then
+          cp UI/apartment-meters.web/Dockerfile deployment/ui/
+        fi
         tar -czf deploy.tar.gz -C deployment .
     
     - name: Install SSH key
-      uses: shimataro/ssh-key-action@v2
+      uses: webfactory/ssh-agent@v0.7.0
       with:
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-        if_key_exists: replace
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+    - name: Add known hosts
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+        chmod 644 ~/.ssh/known_hosts
+    
+    - name: Test SSH connection
+      env:
+        SERVER_IP: ${{ secrets.SERVER_IP }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+      run: ssh -v $SERVER_USER@$SERVER_IP "echo 'SSH connection successful'"
     
     - name: Deploy to server
       env:
@@ -96,22 +107,4 @@ jobs:
         SERVER_USER: ${{ secrets.SERVER_USER }}
       run: |
         ssh $SERVER_USER@$SERVER_IP "docker ps | grep apartment_meters"
-        echo "✅ Деплой успешно выполнен на сервер"
-    
-    # В реальном приложении здесь будут шаги для деплоя, например:
-    # - Копирование файлов на сервер через SSH/SCP
-    # - Деплой в Docker или Kubernetes
-    # - Деплой в облачный сервис (Azure, AWS, etc.)
-    
-    - name: Deploy to staging (simulation)
-      run: |
-        echo "Deploying to staging environment..."
-        echo "Application would be deployed to staging server"
-    
-    # В реальной ситуации здесь могут быть шаги для:
-    # - Запуска smoke тестов
-    # - Проверки работоспособности приложения
-    # - Мониторинга первых минут работы
-    
-    - name: Notify deployment
-      run: echo "Application was successfully deployed to staging environment" 
+        echo "✅ Деплой успешно выполнен на сервер" 
