@@ -67,22 +67,23 @@ jobs:
       run: |
         # Создаем структуру директорий
         rm -rf deployment || echo "Директория deployment не существует"
-        mkdir -p deployment/api
-        mkdir -p deployment/ui/public
+        # Создаем директории с БОЛЬШИМИ буквами для соответствия docker-compose.yml
+        mkdir -p deployment/API
+        mkdir -p deployment/UI/public
         
         # Копируем файлы в правильные директории
-        cp -r publish/* deployment/api/ || echo "Ошибка копирования API"
+        cp -r publish/* deployment/API/ || echo "Ошибка копирования API"
         
         # Копируем frontend файлы
         if [ -d "UI/apartment-meters.web/.next" ]; then
-          cp -r UI/apartment-meters.web/.next deployment/ui/ || echo "Ошибка копирования .next"
+          cp -r UI/apartment-meters.web/.next deployment/UI/ || echo "Ошибка копирования .next"
         else
           echo "Директория .next не найдена"
           ls -la UI/apartment-meters.web/
         fi
         
         if [ -d "UI/apartment-meters.web/public" ]; then
-          cp -r UI/apartment-meters.web/public/* deployment/ui/public/ || echo "Ошибка копирования public"
+          cp -r UI/apartment-meters.web/public/* deployment/UI/public/ || echo "Ошибка копирования public"
         else
           echo "Директория public не найдена"
           ls -la UI/apartment-meters.web/
@@ -93,18 +94,18 @@ jobs:
         
         # Копируем Dockerfile если они существуют
         if [ -f "API/apartment-meters.API/Dockerfile" ]; then
-          cp API/apartment-meters.API/Dockerfile deployment/api/ || echo "Ошибка копирования API Dockerfile"
+          cp API/apartment-meters.API/Dockerfile deployment/API/ || echo "Ошибка копирования API Dockerfile"
         fi
         
         if [ -f "UI/apartment-meters.web/Dockerfile" ]; then
-          cp UI/apartment-meters.web/Dockerfile deployment/ui/ || echo "Ошибка копирования UI Dockerfile"
+          cp UI/apartment-meters.web/Dockerfile deployment/UI/ || echo "Ошибка копирования UI Dockerfile"
         fi
         
         # Проверяем создание директорий
         echo "Проверка директорий:"
         ls -la deployment/
-        ls -la deployment/api/ || echo "api директория пуста или отсутствует"
-        ls -la deployment/ui/ || echo "ui директория пуста или отсутствует"
+        ls -la deployment/API/ || echo "API директория пуста или отсутствует"
+        ls -la deployment/UI/ || echo "UI директория пуста или отсутствует"
         
         # Создаем архив с подробным выводом
         echo "Создание архива deploy.tar.gz:"
@@ -143,8 +144,8 @@ jobs:
         # Выполняем деплой на сервере
         ssh $SERVER_USER@$SERVER_IP "cd $DEPLOY_PATH && \
         mkdir -p backup && \
-        tar -czf backup/backup-$(date +%Y%m%d-%H%M%S).tar.gz api ui docker-compose.yml || echo 'Бэкап не создан, продолжаем' && \
-        rm -rf api ui || echo 'Директории не найдены, продолжаем' && \
+        tar -czf backup/backup-$(date +%Y%m%d-%H%M%S).tar.gz API UI docker-compose.yml || echo 'Бэкап не создан, продолжаем' && \
+        rm -rf API UI || echo 'Директории не найдены, продолжаем' && \
         tar -xzf deploy.tar.gz && \
         rm deploy.tar.gz && \
         docker-compose up -d --build"
