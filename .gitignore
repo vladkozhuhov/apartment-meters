@@ -118,3 +118,24 @@ packages/
 
 # Кэширование зависимостей
 /.vs/
+
+# Конфиденциальные данные сервера
+/nginx/
+/certbot/
+/postgres-data/
+/nginx/auth/.htpasswd
+.htpasswd
+
+# SSL сертификаты и ключи
+*.pem
+*.key
+*.crt
+*.cert
+
+# Скрипты настройки и руководства (содержат чувствительные данные)
+/server-setup.sh
+/setup-cicd-access.sh
+/update-config.sh
+/SETUP-GUIDE.md
+/README-CI-CD.md
+/.github/README-secrets.md

@@ -25,7 +25,7 @@ interface EnhancedError extends Error {
 // Функция для входа в систему
 export const login = async (loginData: LoginRequest): Promise<LoginResponse> => {
   try {
-    const response = await api.post('/api/auth/login', loginData);
+    const response = await api.post('/auth/login', loginData);
     
     // Проверяем, что ответ - это не HTML (например, страница 404)
     if (typeof response.data === 'string' && 

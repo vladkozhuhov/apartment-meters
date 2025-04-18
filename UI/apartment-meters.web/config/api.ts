@@ -3,7 +3,7 @@
  */
 
 // Базовый URL для API
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+export const API_BASE_URL = '';
 
 // Таймаут для запросов (в миллисекундах)
 export const API_TIMEOUT = 15000; // 15 секунд
