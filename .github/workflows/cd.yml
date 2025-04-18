@@ -1,8 +1,8 @@
 name: .NET CD
 
-# Настраиваем конкурентность более строго
-concurrency:
-  group: "deploy"
+# Более строгая настройка конкурентности
+concurrency: 
+  group: "cd_deployment"
   cancel-in-progress: true
 
 on:
@@ -20,148 +20,223 @@ on:
 
 jobs:
   deploy:
+    # Добавляем environment для дополнительной защиты от параллельных запусков
+    environment: production
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    
-    - name: Check workspace
-      run: |
-        echo "Проверка рабочей директории:"
-        pwd
-        ls -la
-        echo "Проверка UI директории:"
-        ls -la UI/ || echo "UI директория не найдена"
-        echo "Проверка API директории:"
-        ls -la API/ || echo "API директория не найдена"
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 8.0.x
-    
-    - name: Restore dependencies
-      run: dotnet restore API/apartment-meters.sln
-    
-    - name: Build
-      run: dotnet build API/apartment-meters.sln --no-restore
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       
-    - name: Publish
-      run: dotnet publish API/apartment-meters.API/apartment-meters.API.csproj -c Release -o ./publish
-    
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        
-    - name: Build frontend
-      working-directory: UI/apartment-meters.web
-      run: |
-        npm ci
-        npm run build
-        echo "Содержимое директории после сборки:"
-        ls -la
-        ls -la .next || echo ".next директория не найдена"
+      - name: Check workspace
+        run: |
+          echo "Проверка рабочей директории:"
+          pwd
+          ls -la
+          echo "Проверка UI директории:"
+          ls -la UI/ || echo "UI директория не найдена"
+          echo "Проверка API директории:"
+          ls -la API/ || echo "API директория не найдена"
       
-    - name: Create deployment package
-      run: |
-        # Очищаем и создаем директорию для деплоя
-        rm -rf deployment
-        mkdir -p deployment
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+      
+      - name: Restore dependencies
+        run: dotnet restore API/apartment-meters.sln
+      
+      - name: Build
+        run: dotnet build API/apartment-meters.sln --no-restore
         
-        # Копируем директории API, UI и файл docker-compose.yml
-        echo "Копирование API директории..."
-        mkdir -p deployment/API/apartment-meters.API
-        cp -r publish/* deployment/API/apartment-meters.API/
+      - name: Publish
+        run: dotnet publish API/apartment-meters.API/apartment-meters.API.csproj -c Release -o ./publish
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Build frontend
+        working-directory: UI/apartment-meters.web
+        run: |
+          npm ci
+          npm run build
+          echo "Содержимое директории после сборки:"
+          ls -la
+          ls -la .next || echo ".next директория не найдена"
         
-        echo "Копирование UI директории..."
-        mkdir -p deployment/UI/apartment-meters.web
-        
-        if [ -d "UI/apartment-meters.web/.next" ]; then
-          cp -r UI/apartment-meters.web/.next deployment/UI/apartment-meters.web/
-        else
-          echo "ВНИМАНИЕ: Директория .next не найдена!"
-        fi
-        
-        if [ -d "UI/apartment-meters.web/public" ]; then
-          cp -r UI/apartment-meters.web/public deployment/UI/apartment-meters.web/
-        else
-          echo "ВНИМАНИЕ: Директория public не найдена!"
-        fi
-        
-        # Копируем Dockerfile
-        if [ -f "API/apartment-meters.API/Dockerfile" ]; then
-          cp API/apartment-meters.API/Dockerfile deployment/API/apartment-meters.API/
-        else
-          echo "ВНИМАНИЕ: API Dockerfile не найден!"
-        fi
-        
-        if [ -f "UI/apartment-meters.web/Dockerfile" ]; then
-          cp UI/apartment-meters.web/Dockerfile deployment/UI/apartment-meters.web/
-        else
-          echo "ВНИМАНИЕ: UI Dockerfile не найден!"
-        fi
-        
-        # Копируем docker-compose.yml
-        cp docker-compose.yml deployment/
-        
-        # Проверяем созданную структуру
-        echo "Структура деплой-пакета:"
-        find deployment -type d | sort
-        
-        # Создаем архив
-        tar -czvf deploy.tar.gz -C deployment .
-        
-        # Проверяем содержимое архива
-        echo "Содержимое архива:"
-        tar -tvf deploy.tar.gz
-    
-    - name: Install SSH key
-      uses: webfactory/ssh-agent@v0.7.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-    
-    - name: Add known hosts
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
-        chmod 644 ~/.ssh/known_hosts
-    
-    - name: Test SSH connection
-      env:
-        SERVER_IP: ${{ secrets.SERVER_IP }}
-        SERVER_USER: ${{ secrets.SERVER_USER }}
-      run: ssh -v $SERVER_USER@$SERVER_IP "echo 'SSH connection successful'"
-    
-    - name: Deploy to server
-      env:
-        SERVER_IP: ${{ secrets.SERVER_IP }}
-        SERVER_USER: ${{ secrets.SERVER_USER }}
-        DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-      run: |
-        # Отправка архива на сервер
-        scp deploy.tar.gz $SERVER_USER@$SERVER_IP:$DEPLOY_PATH/
-        
-        # Выполнение деплоя на сервере
-        ssh $SERVER_USER@$SERVER_IP "cd $DEPLOY_PATH && \
-        echo '1. Создание резервной копии...' && \
-        mkdir -p backup && \
-        tar -czf backup/backup-$(date +%Y%m%d-%H%M%S).tar.gz API UI docker-compose.yml || echo 'Резервная копия не создана' && \
-        echo '2. Удаление старых файлов...' && \
-        rm -rf API UI || echo 'Старые директории не найдены' && \
-        echo '3. Распаковка новых файлов...' && \
-        tar -xzf deploy.tar.gz && \
-        rm deploy.tar.gz && \
-        echo '4. Запуск контейнеров...' && \
-        docker-compose up -d --build"
-    
-    - name: Verify deployment
-      env:
-        SERVER_IP: ${{ secrets.SERVER_IP }}
-        SERVER_USER: ${{ secrets.SERVER_USER }}
-      run: |
-        ssh $SERVER_USER@$SERVER_IP "echo 'Статус контейнеров:' && docker ps | grep apartment_meters"
-        echo "✅ Деплой завершен" 
+      - name: Create deployment package
+        run: |
+          # Очищаем и создаем директорию для деплоя
+          rm -rf deployment
+          mkdir -p deployment
+          
+          # Копируем всю директорию API вместо только опубликованных файлов
+          echo "Копирование API директории..."
+          cp -r API deployment/
+          
+          # Копируем собранные файлы API в правильное место для запуска
+          mkdir -p deployment/API/app
+          cp -r publish/* deployment/API/app/
+          
+          echo "Копирование UI директории..."
+          mkdir -p deployment/UI/apartment-meters.web
+          
+          if [ -d "UI/apartment-meters.web/.next" ]; then
+            cp -r UI/apartment-meters.web/.next deployment/UI/apartment-meters.web/
+          else
+            echo "ВНИМАНИЕ: Директория .next не найдена!"
+          fi
+          
+          if [ -d "UI/apartment-meters.web/public" ]; then
+            cp -r UI/apartment-meters.web/public deployment/UI/apartment-meters.web/
+          else
+            echo "ВНИМАНИЕ: Директория public не найдена!"
+          fi
+          
+          # Копируем Dockerfile
+          if [ -f "UI/apartment-meters.web/Dockerfile" ]; then
+            cp UI/apartment-meters.web/Dockerfile deployment/UI/apartment-meters.web/
+          else
+            echo "ВНИМАНИЕ: UI Dockerfile не найден!"
+          fi
+          
+          # Создаем docker-compose.yml построчно
+          echo "Создание docker-compose.yml..."
+          echo "version: '3.8'" > deployment/docker-compose.yml
+          echo "" >> deployment/docker-compose.yml
+          echo "services:" >> deployment/docker-compose.yml
+          echo "  # Бэкенд API сервис" >> deployment/docker-compose.yml
+          echo "  api:" >> deployment/docker-compose.yml
+          echo "    image: apartment_meters_api" >> deployment/docker-compose.yml
+          echo "    container_name: apartment_meters_api" >> deployment/docker-compose.yml
+          echo "    build:" >> deployment/docker-compose.yml
+          echo "      context: ./API" >> deployment/docker-compose.yml
+          echo "      dockerfile: apartment-meters.API/Dockerfile" >> deployment/docker-compose.yml
+          echo "    depends_on:" >> deployment/docker-compose.yml
+          echo "      - db" >> deployment/docker-compose.yml
+          echo "    environment:" >> deployment/docker-compose.yml
+          echo "      - ConnectionStrings__SecurityDb=Server=db;Port=5432;Database=apartmentmetersdb;User Id=postgres;Password=12341234;Pooling=true;" >> deployment/docker-compose.yml
+          echo "      - ASPNETCORE_URLS=http://+:8080" >> deployment/docker-compose.yml
+          echo "    networks:" >> deployment/docker-compose.yml
+          echo "      - apartment_meters_network" >> deployment/docker-compose.yml
+          echo "    restart: always" >> deployment/docker-compose.yml
+          echo "" >> deployment/docker-compose.yml
+          echo "  # База данных PostgreSQL" >> deployment/docker-compose.yml
+          echo "  db:" >> deployment/docker-compose.yml
+          echo "    image: postgres:16" >> deployment/docker-compose.yml
+          echo "    restart: always" >> deployment/docker-compose.yml
+          echo "    environment:" >> deployment/docker-compose.yml
+          echo "      POSTGRES_USER: postgres" >> deployment/docker-compose.yml
+          echo "      POSTGRES_PASSWORD: 12341234" >> deployment/docker-compose.yml
+          echo "      POSTGRES_DB: apartmentmetersdb" >> deployment/docker-compose.yml
+          echo "    volumes:" >> deployment/docker-compose.yml
+          echo "      - ./postgres-data:/var/lib/postgresql/data" >> deployment/docker-compose.yml
+          echo "    container_name: apartment_meters_db" >> deployment/docker-compose.yml
+          echo "    networks:" >> deployment/docker-compose.yml
+          echo "      - apartment_meters_network" >> deployment/docker-compose.yml
+          echo "    healthcheck:" >> deployment/docker-compose.yml
+          echo "      test: [\"CMD-SHELL\", \"pg_isready -U postgres\"]" >> deployment/docker-compose.yml
+          echo "      interval: 10s" >> deployment/docker-compose.yml
+          echo "      timeout: 5s" >> deployment/docker-compose.yml
+          echo "      retries: 5" >> deployment/docker-compose.yml
+          echo "" >> deployment/docker-compose.yml
+          echo "  # Фронтенд сервис" >> deployment/docker-compose.yml
+          echo "  frontend:" >> deployment/docker-compose.yml
+          echo "    image: apartment_meters_frontend" >> deployment/docker-compose.yml
+          echo "    container_name: apartment_meters_frontend" >> deployment/docker-compose.yml
+          echo "    build:" >> deployment/docker-compose.yml
+          echo "      context: ./UI/apartment-meters.web" >> deployment/docker-compose.yml
+          echo "      dockerfile: Dockerfile" >> deployment/docker-compose.yml
+          echo "    environment:" >> deployment/docker-compose.yml
+          echo "      - NEXT_PUBLIC_API_URL=/api" >> deployment/docker-compose.yml
+          echo "    depends_on:" >> deployment/docker-compose.yml
+          echo "      - api" >> deployment/docker-compose.yml
+          echo "    networks:" >> deployment/docker-compose.yml
+          echo "      - apartment_meters_network" >> deployment/docker-compose.yml
+          echo "    restart: always" >> deployment/docker-compose.yml
+          echo "" >> deployment/docker-compose.yml
+          echo "  # Nginx для проксирования и SSL" >> deployment/docker-compose.yml
+          echo "  nginx:" >> deployment/docker-compose.yml
+          echo "    image: nginx:latest" >> deployment/docker-compose.yml
+          echo "    restart: always" >> deployment/docker-compose.yml
+          echo "    ports:" >> deployment/docker-compose.yml
+          echo "      - \"80:80\"" >> deployment/docker-compose.yml
+          echo "      - \"443:443\"" >> deployment/docker-compose.yml
+          echo "    volumes:" >> deployment/docker-compose.yml
+          echo "      - ./nginx/conf.d:/etc/nginx/conf.d" >> deployment/docker-compose.yml
+          echo "      - ./certbot/conf:/etc/letsencrypt" >> deployment/docker-compose.yml
+          echo "      - ./certbot/www:/var/www/certbot" >> deployment/docker-compose.yml
+          echo "      - ./nginx/auth:/etc/nginx/auth" >> deployment/docker-compose.yml
+          echo "    depends_on:" >> deployment/docker-compose.yml
+          echo "      - frontend" >> deployment/docker-compose.yml
+          echo "      - api" >> deployment/docker-compose.yml
+          echo "    networks:" >> deployment/docker-compose.yml
+          echo "      - apartment_meters_network" >> deployment/docker-compose.yml
+          echo "" >> deployment/docker-compose.yml
+          echo "# Сети" >> deployment/docker-compose.yml
+          echo "networks:" >> deployment/docker-compose.yml
+          echo "  apartment_meters_network:" >> deployment/docker-compose.yml
+          echo "    driver: bridge" >> deployment/docker-compose.yml
+          
+          # Проверяем созданную структуру
+          echo "Структура деплой-пакета:"
+          find deployment -type d | sort | head -n 20
+          
+          # Создаем архив
+          tar -czf deploy.tar.gz -C deployment .
+          
+          # Проверяем содержимое архива
+          echo "Содержимое архива (первые 20 файлов):"
+          tar -tvf deploy.tar.gz | head -n 20
+      
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      - name: Add known hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+      
+      - name: Test SSH connection
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: ssh -v $SERVER_USER@$SERVER_IP "echo 'SSH connection successful'"
+      
+      - name: Deploy to server
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          # Отправка архива на сервер
+          scp deploy.tar.gz $SERVER_USER@$SERVER_IP:$DEPLOY_PATH/
+          
+          # Выполнение деплоя на сервере
+          ssh $SERVER_USER@$SERVER_IP "cd $DEPLOY_PATH && \
+          echo '1. Создание резервной копии...' && \
+          mkdir -p backup && \
+          tar -czf backup/backup-$(date +%Y%m%d-%H%M%S).tar.gz API UI docker-compose.yml || echo 'Резервная копия не создана' && \
+          echo '2. Удаление старых файлов...' && \
+          rm -rf API UI docker-compose.yml || echo 'Старые директории не найдены' && \
+          echo '3. Распаковка новых файлов...' && \
+          tar -xzf deploy.tar.gz && \
+          rm deploy.tar.gz && \
+          echo '4. Запуск контейнеров...' && \
+          docker-compose down || echo 'Контейнеры не были запущены' && \
+          docker-compose up -d --build"
+      
+      - name: Verify deployment
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          ssh $SERVER_USER@$SERVER_IP "echo 'Статус контейнеров:' && docker ps | grep apartment_meters"
+          echo "✅ Деплой завершен" 
