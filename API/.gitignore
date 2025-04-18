@@ -85,9 +85,9 @@ secrets.json
 .env.local
 
 # Docker
-Dockerfile
-docker-compose.yml
-docker-compose.*.yml
+# Dockerfile
+# docker-compose.yml
+# docker-compose.*.yml
 .dockerignore
 
 # Terraform
