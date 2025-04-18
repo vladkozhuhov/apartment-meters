@@ -1,8 +1,8 @@
 name: .NET CD
 
-# Добавляем конкурентность для предотвращения параллельных запусков
+# Настраиваем конкурентность более строго
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: "deploy"
   cancel-in-progress: true
 
 on:
@@ -62,55 +62,62 @@ jobs:
       run: |
         npm ci
         npm run build
+        echo "Содержимое директории после сборки:"
+        ls -la
+        ls -la .next || echo ".next директория не найдена"
       
     - name: Create deployment package
       run: |
-        # Создаем структуру директорий
-        rm -rf deployment || echo "Директория deployment не существует"
-        # Создаем директории с БОЛЬШИМИ буквами для соответствия docker-compose.yml
-        mkdir -p deployment/API
-        mkdir -p deployment/UI/public
+        # Очищаем и создаем директорию для деплоя
+        rm -rf deployment
+        mkdir -p deployment
         
-        # Копируем файлы в правильные директории
-        cp -r publish/* deployment/API/ || echo "Ошибка копирования API"
+        # Копируем директории API, UI и файл docker-compose.yml
+        echo "Копирование API директории..."
+        mkdir -p deployment/API/apartment-meters.API
+        cp -r publish/* deployment/API/apartment-meters.API/
         
-        # Копируем frontend файлы
+        echo "Копирование UI директории..."
+        mkdir -p deployment/UI/apartment-meters.web
+        
         if [ -d "UI/apartment-meters.web/.next" ]; then
-          cp -r UI/apartment-meters.web/.next deployment/UI/ || echo "Ошибка копирования .next"
+          cp -r UI/apartment-meters.web/.next deployment/UI/apartment-meters.web/
         else
-          echo "Директория .next не найдена"
-          ls -la UI/apartment-meters.web/
+          echo "ВНИМАНИЕ: Директория .next не найдена!"
         fi
         
         if [ -d "UI/apartment-meters.web/public" ]; then
-          cp -r UI/apartment-meters.web/public/* deployment/UI/public/ || echo "Ошибка копирования public"
+          cp -r UI/apartment-meters.web/public deployment/UI/apartment-meters.web/
         else
-          echo "Директория public не найдена"
-          ls -la UI/apartment-meters.web/
+          echo "ВНИМАНИЕ: Директория public не найдена!"
         fi
         
-        # Копируем docker-compose
-        cp docker-compose.yml deployment/ || echo "Ошибка копирования docker-compose.yml"
-        
-        # Копируем Dockerfile если они существуют
+        # Копируем Dockerfile
         if [ -f "API/apartment-meters.API/Dockerfile" ]; then
-          cp API/apartment-meters.API/Dockerfile deployment/API/ || echo "Ошибка копирования API Dockerfile"
+          cp API/apartment-meters.API/Dockerfile deployment/API/apartment-meters.API/
+        else
+          echo "ВНИМАНИЕ: API Dockerfile не найден!"
         fi
         
         if [ -f "UI/apartment-meters.web/Dockerfile" ]; then
-          cp UI/apartment-meters.web/Dockerfile deployment/UI/ || echo "Ошибка копирования UI Dockerfile"
+          cp UI/apartment-meters.web/Dockerfile deployment/UI/apartment-meters.web/
+        else
+          echo "ВНИМАНИЕ: UI Dockerfile не найден!"
         fi
         
-        # Проверяем создание директорий
-        echo "Проверка директорий:"
-        ls -la deployment/
-        ls -la deployment/API/ || echo "API директория пуста или отсутствует"
-        ls -la deployment/UI/ || echo "UI директория пуста или отсутствует"
+        # Копируем docker-compose.yml
+        cp docker-compose.yml deployment/
         
-        # Создаем архив с подробным выводом
-        echo "Создание архива deploy.tar.gz:"
+        # Проверяем созданную структуру
+        echo "Структура деплой-пакета:"
+        find deployment -type d | sort
+        
+        # Создаем архив
         tar -czvf deploy.tar.gz -C deployment .
-        ls -la deploy.tar.gz
+        
+        # Проверяем содержимое архива
+        echo "Содержимое архива:"
+        tar -tvf deploy.tar.gz
     
     - name: Install SSH key
       uses: webfactory/ssh-agent@v0.7.0
@@ -135,19 +142,20 @@ jobs:
         SERVER_USER: ${{ secrets.SERVER_USER }}
         DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
       run: |
-        # Проверяем архив перед отправкой
-        ls -la deploy.tar.gz
-        
-        # Отправляем архив на сервер
+        # Отправка архива на сервер
         scp deploy.tar.gz $SERVER_USER@$SERVER_IP:$DEPLOY_PATH/
         
-        # Выполняем деплой на сервере
+        # Выполнение деплоя на сервере
         ssh $SERVER_USER@$SERVER_IP "cd $DEPLOY_PATH && \
+        echo '1. Создание резервной копии...' && \
         mkdir -p backup && \
-        tar -czf backup/backup-$(date +%Y%m%d-%H%M%S).tar.gz API UI docker-compose.yml || echo 'Бэкап не создан, продолжаем' && \
-        rm -rf API UI || echo 'Директории не найдены, продолжаем' && \
+        tar -czf backup/backup-$(date +%Y%m%d-%H%M%S).tar.gz API UI docker-compose.yml || echo 'Резервная копия не создана' && \
+        echo '2. Удаление старых файлов...' && \
+        rm -rf API UI || echo 'Старые директории не найдены' && \
+        echo '3. Распаковка новых файлов...' && \
         tar -xzf deploy.tar.gz && \
         rm deploy.tar.gz && \
+        echo '4. Запуск контейнеров...' && \
         docker-compose up -d --build"
     
     - name: Verify deployment
@@ -155,5 +163,5 @@ jobs:
         SERVER_IP: ${{ secrets.SERVER_IP }}
         SERVER_USER: ${{ secrets.SERVER_USER }}
       run: |
-        ssh $SERVER_USER@$SERVER_IP "docker ps | grep apartment_meters || echo 'Контейнеры не найдены'"
-        echo "✅ Деплой успешно выполнен на сервер" 
+        ssh $SERVER_USER@$SERVER_IP "echo 'Статус контейнеров:' && docker ps | grep apartment_meters"
+        echo "✅ Деплой завершен" 
