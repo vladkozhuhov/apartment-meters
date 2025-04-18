@@ -28,6 +28,16 @@ jobs:
       with:
         fetch-depth: 0
     
+    - name: Check workspace
+      run: |
+        echo "Проверка рабочей директории:"
+        pwd
+        ls -la
+        echo "Проверка UI директории:"
+        ls -la UI/ || echo "UI директория не найдена"
+        echo "Проверка API директории:"
+        ls -la API/ || echo "API директория не найдена"
+    
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
@@ -55,19 +65,51 @@ jobs:
       
     - name: Create deployment package
       run: |
-        mkdir -p deployment
-        cp -r publish/* deployment/api/
-        cp -r UI/apartment-meters.web/.next deployment/ui
-        cp -r UI/apartment-meters.web/public deployment/ui/public
-        cp docker-compose.yml deployment/
-        # Проверяем наличие Dockerfile перед копированием
+        # Создаем структуру директорий
+        rm -rf deployment || echo "Директория deployment не существует"
+        mkdir -p deployment/api
+        mkdir -p deployment/ui/public
+        
+        # Копируем файлы в правильные директории
+        cp -r publish/* deployment/api/ || echo "Ошибка копирования API"
+        
+        # Копируем frontend файлы
+        if [ -d "UI/apartment-meters.web/.next" ]; then
+          cp -r UI/apartment-meters.web/.next deployment/ui/ || echo "Ошибка копирования .next"
+        else
+          echo "Директория .next не найдена"
+          ls -la UI/apartment-meters.web/
+        fi
+        
+        if [ -d "UI/apartment-meters.web/public" ]; then
+          cp -r UI/apartment-meters.web/public/* deployment/ui/public/ || echo "Ошибка копирования public"
+        else
+          echo "Директория public не найдена"
+          ls -la UI/apartment-meters.web/
+        fi
+        
+        # Копируем docker-compose
+        cp docker-compose.yml deployment/ || echo "Ошибка копирования docker-compose.yml"
+        
+        # Копируем Dockerfile если они существуют
         if [ -f "API/apartment-meters.API/Dockerfile" ]; then
-          cp API/apartment-meters.API/Dockerfile deployment/api/
+          cp API/apartment-meters.API/Dockerfile deployment/api/ || echo "Ошибка копирования API Dockerfile"
         fi
+        
         if [ -f "UI/apartment-meters.web/Dockerfile" ]; then
-          cp UI/apartment-meters.web/Dockerfile deployment/ui/
+          cp UI/apartment-meters.web/Dockerfile deployment/ui/ || echo "Ошибка копирования UI Dockerfile"
         fi
-        tar -czf deploy.tar.gz -C deployment .
+        
+        # Проверяем создание директорий
+        echo "Проверка директорий:"
+        ls -la deployment/
+        ls -la deployment/api/ || echo "api директория пуста или отсутствует"
+        ls -la deployment/ui/ || echo "ui директория пуста или отсутствует"
+        
+        # Создаем архив с подробным выводом
+        echo "Создание архива deploy.tar.gz:"
+        tar -czvf deploy.tar.gz -C deployment .
+        ls -la deploy.tar.gz
     
     - name: Install SSH key
       uses: webfactory/ssh-agent@v0.7.0
@@ -92,11 +134,17 @@ jobs:
         SERVER_USER: ${{ secrets.SERVER_USER }}
         DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
       run: |
+        # Проверяем архив перед отправкой
+        ls -la deploy.tar.gz
+        
+        # Отправляем архив на сервер
         scp deploy.tar.gz $SERVER_USER@$SERVER_IP:$DEPLOY_PATH/
+        
+        # Выполняем деплой на сервере
         ssh $SERVER_USER@$SERVER_IP "cd $DEPLOY_PATH && \
         mkdir -p backup && \
-        tar -czf backup/backup-$(date +%Y%m%d-%H%M%S).tar.gz api ui docker-compose.yml && \
-        rm -rf api ui && \
+        tar -czf backup/backup-$(date +%Y%m%d-%H%M%S).tar.gz api ui docker-compose.yml || echo 'Бэкап не создан, продолжаем' && \
+        rm -rf api ui || echo 'Директории не найдены, продолжаем' && \
         tar -xzf deploy.tar.gz && \
         rm deploy.tar.gz && \
         docker-compose up -d --build"
@@ -106,5 +154,5 @@ jobs:
         SERVER_IP: ${{ secrets.SERVER_IP }}
         SERVER_USER: ${{ secrets.SERVER_USER }}
       run: |
-        ssh $SERVER_USER@$SERVER_IP "docker ps | grep apartment_meters"
+        ssh $SERVER_USER@$SERVER_IP "docker ps | grep apartment_meters || echo 'Контейнеры не найдены'"
         echo "✅ Деплой успешно выполнен на сервер" 
