@@ -1,25 +1,21 @@
-FROM node:18-alpine AS base
+FROM node:18-alpine
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем файлы package.json и package-lock.json
-COPY package.json package-lock.json ./
-
-# Устанавливаем зависимости
-RUN npm ci
-
-# Копируем остальные файлы проекта
+# Копируем все файлы проекта
 COPY . .
 
+# Устанавливаем только production зависимости 
+# (без повторной сборки, так как .next уже построен)
+RUN npm ci --omit=dev
+
 # Копируем Docker-специфичные переменные окружения
-COPY .env.docker .env
+RUN if [ -f .env.docker ]; then cp .env.docker .env; fi
 
-# Создаем production сборку
-RUN npm run build
-
-# Запускаем проект в production режиме
+# Настройка рабочей среды
 ENV NODE_ENV=production
 EXPOSE 3000
 
+# Запускаем Next.js в production режиме
 CMD ["npm", "start"] 
