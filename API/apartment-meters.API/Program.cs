@@ -9,9 +9,11 @@ using FluentValidation.AspNetCore;
 using Infrastructure;
 using Infrastructure.Extensions;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using Persistence;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +65,10 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     // Регистрируем наш AuthorizationHandler
     services.AddSingleton<IAuthorizationHandler, ApiAuthMeAuthorizationHandler>();
     
+    // Добавляем Basic Authentication для Swagger UI
+    services.AddAuthentication()
+        .AddScheme<AuthenticationSchemeOptions, SwaggerBasicAuthenticationHandler>("SwaggerBasicAuth", null);
+    
     // Добавляем защиту от CSRF-атак
     services.AddAntiforgery(options =>
     {
@@ -77,25 +83,64 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddRateLimiter(options =>
     {
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
-            RateLimitPartition.GetFixedWindowLimiter(
+        {
+            // Проверяем админа по настоящим путям в системе
+            bool isAdmin = context.Request.Path.StartsWithSegments("/admin") ||
+                           // Используем существующую систему ролей/аутентификации
+                           context.User.Identity?.IsAuthenticated == true;
+            
+            if (isAdmin)
+            {
+                // Значительно увеличиваем лимит для админских путей
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: "admin",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        AutoReplenishment = true,
+                        PermitLimit = 5000, // Очень высокий лимит для админов
+                        Window = TimeSpan.FromMinutes(1)
+                    });
+            }
+            
+            // Для обычных пользователей
+            return RateLimitPartition.GetFixedWindowLimiter(
                 partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
-                factory: partition => new FixedWindowRateLimiterOptions
+                factory: _ => new FixedWindowRateLimiterOptions
                 {
                     AutoReplenishment = true,
                     PermitLimit = 100, // Максимальное количество запросов
                     Window = TimeSpan.FromMinutes(1) // За 1 минуту
-                }));
+                });
+        });
                 
         // Добавляем особые лимиты для некоторых конечных точек
         options.AddPolicy("api-readings", context =>
-            RateLimitPartition.GetFixedWindowLimiter(
+        {
+            // Проверка админа по тем же правилам
+            bool isAdmin = context.Request.Path.StartsWithSegments("/admin") ||
+                           context.User.Identity?.IsAuthenticated == true;
+            
+            if (isAdmin)
+            {
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: "admin",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        AutoReplenishment = true,
+                        PermitLimit = 3000, // Увеличиваем лимит для админских запросов
+                        Window = TimeSpan.FromMinutes(1)
+                    });
+            }
+            
+            return RateLimitPartition.GetFixedWindowLimiter(
                 partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
-                factory: partition => new FixedWindowRateLimiterOptions
+                factory: _ => new FixedWindowRateLimiterOptions
                 {
                     AutoReplenishment = true,
                     PermitLimit = 20, // Более строгий лимит для API показаний
                     Window = TimeSpan.FromMinutes(1)
-                }));
+                });
+        });
                 
         options.OnRejected = async (context, token) =>
         {
@@ -139,7 +184,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             options.IncludeXmlComments(xmlPath);
         }
 
-       // Добавляем поддержку JWT
+        // Добавляем поддержку JWT
        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
        {
            In = ParameterLocation.Header,
@@ -157,6 +202,29 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
                    {
                        Type = ReferenceType.SecurityScheme,
                        Id = "Bearer"
+                   }
+               },
+               new string[] {}
+           }
+       });
+       
+       // Добавляем Basic Auth для Swagger
+       options.AddSecurityDefinition("Basic", new OpenApiSecurityScheme
+       {
+           Type = SecuritySchemeType.Http,
+           Scheme = "basic",
+           Description = "Базовая аутентификация для Swagger"
+       });
+       
+       options.AddSecurityRequirement(new OpenApiSecurityRequirement
+       {
+           {
+               new OpenApiSecurityScheme
+               {
+                   Reference = new OpenApiReference
+                   {
+                       Type = ReferenceType.SecurityScheme,
+                       Id = "Basic"
                    }
                },
                new string[] {}
@@ -186,13 +254,22 @@ void ConfigureMiddleware(WebApplication app, IWebHostEnvironment env)
 
     app.UseRateLimiter();
 
-    // Swagger UI
+    // Swagger UI с защитой
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Apartment Meters API v1");
         c.RoutePrefix = "swagger"; // Swagger UI будет доступен по пути /swagger
+        c.EnablePersistAuthorization(); // Важно для сохранения токена аутентификации
+        c.DisplayRequestDuration(); // Показывает длительность запросов
+        
+        // Дополнительно можно настроить JavaScript для улучшения работы с аутентификацией
+        c.DefaultModelsExpandDepth(-1); // Скрываем модели по умолчанию
+        c.DocExpansion(DocExpansion.None); // Не раскрываем операции по умолчанию
     });
+
+    // Добавляем аутентификацию для Swagger
+    app.UseMiddleware<SwaggerBasicAuthMiddleware>();
 
     // Добавляем наш кастомный middleware перед стандартным
     app.UseCustomAuthorization();

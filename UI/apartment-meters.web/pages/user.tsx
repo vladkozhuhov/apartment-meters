@@ -291,20 +291,20 @@ const UserPage: React.FC = () => {
   }
 
   return (
-    <div className="p-5 max-w-7xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div className="flex justify-between items-start mb-6">
+    <div className="p-2 sm:p-5 w-full max-w-full sm:max-w-7xl mx-auto">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+        <div className="flex justify-between items-start mb-4 sm:mb-6">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Личный кабинет</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Личный кабинет</h1>
           </div>
 
           {/* Правая часть с кнопкой */}
           <div>
             <button
               onClick={() => setShowForm(true)}
-              className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center"
+              className="bg-blue-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 flex items-center text-sm sm:text-base"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
               Добавить показания
@@ -313,26 +313,26 @@ const UserPage: React.FC = () => {
         </div>
 
         {/* Информация о квартире */}
-        <div className="bg-blue-50 p-4 rounded-lg mb-6">
+        <div className="bg-blue-50 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 text-sm sm:text-base">
           <p className="text-gray-700">г. Магнитогорск</p>
           <p className="text-gray-700">пр-т Ленина, 90</p>
           <p className="font-medium text-gray-800">{apartmentNumber ? `Квартира ${apartmentNumber}` : 'Загрузка...'}</p>
         </div>
 
         {/* Информация о счетчиках */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">Счетчики в ванной</h2>
-            <div className="space-y-4">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">Счетчики в ванной</h2>
+            <div className="space-y-2 sm:space-y-4">
               {waterMeters.filter(meter => meter.placeOfWaterMeter === 0).map(meter => (
-                <div key={meter.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <div className="flex items-center mb-2">
+                <div key={meter.id} className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+                  <div className="flex items-center mb-1 sm:mb-2">
                     <div className={`w-3 h-3 rounded-full mr-2 ${meter.waterType === 1 ? 'bg-red-500' : 'bg-blue-500'}`} />
-                    <span className="font-medium text-gray-800">
+                    <span className="font-medium text-gray-800 text-sm sm:text-base">
                       {meter.waterType === 1 ? 'Горячая вода' : 'Холодная вода'}
                     </span>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-xs sm:text-sm text-gray-600">
                     <p>Заводской номер: {meter.factoryNumber}</p>
                     <p>Дата установки: {new Date(meter.factoryYear).toLocaleDateString()}</p>
                   </div>
@@ -343,17 +343,17 @@ const UserPage: React.FC = () => {
 
           {waterMeters.some(meter => meter.placeOfWaterMeter === 1) && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-3">Счетчики на кухне</h2>
-              <div className="space-y-4">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">Счетчики на кухне</h2>
+              <div className="space-y-2 sm:space-y-4">
                 {waterMeters.filter(meter => meter.placeOfWaterMeter === 1).map(meter => (
-                  <div key={meter.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <div className="flex items-center mb-2">
+                  <div key={meter.id} className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+                    <div className="flex items-center mb-1 sm:mb-2">
                       <div className={`w-3 h-3 rounded-full mr-2 ${meter.waterType === 1 ? 'bg-red-500' : 'bg-blue-500'}`} />
-                      <span className="font-medium text-gray-800">
+                      <span className="font-medium text-gray-800 text-sm sm:text-base">
                         {meter.waterType === 1 ? 'Горячая вода' : 'Холодная вода'}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-xs sm:text-sm text-gray-600">
                       <p>Заводской номер: {meter.factoryNumber}</p>
                       <p>Дата установки: {new Date(meter.factoryYear).toLocaleDateString()}</p>
                     </div>
@@ -377,48 +377,48 @@ const UserPage: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="mt-4 bg-white rounded-lg shadow-md p-6">
+        <div className="mt-4 bg-white rounded-lg shadow-md p-4 sm:p-6">
           <p>Загрузка данных...</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-6">История показаний водомеров</h2>
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">История показаний водомеров</h2>
           {waterMeters.length === 0 ? (
             <p>Пока нет данных о показаниях.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300">
+            <div className="-mx-4 sm:mx-0 overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-300 text-xs sm:text-sm">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="border border-gray-300 px-4 py-2" rowSpan={2}>Дата</th>
-                    <th className="border border-gray-300 px-4 py-2" colSpan={4}>Ванная</th>
-                    <th className="border border-gray-300 px-4 py-2" colSpan={4}>Кухня</th>
+                    <th className="border border-gray-300 px-2 py-1 sm:px-4 sm:py-2" rowSpan={2}>Дата</th>
+                    <th className="border border-gray-300 px-2 py-1 sm:px-4 sm:py-2" colSpan={4}>Ванная</th>
+                    <th className="border border-gray-300 px-2 py-1 sm:px-4 sm:py-2" colSpan={4}>Кухня</th>
                   </tr>
                   <tr>
-                    <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
-                    <th className="border border-gray-300 px-4 py-2">Потребление</th>
-                    <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
-                    <th className="border border-gray-300 px-4 py-2">Потребление</th>
-                    <th className="border border-gray-300 px-4 py-2">Горячая вода (м³)</th>
-                    <th className="border border-gray-300 px-4 py-2">Потребление</th>
-                    <th className="border border-gray-300 px-4 py-2">Холодная вода (м³)</th>
-                    <th className="border border-gray-300 px-4 py-2">Потребление</th>
+                    <th className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">Горячая вода (м³)</th>
+                    <th className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">Потребление</th>
+                    <th className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">Холодная вода (м³)</th>
+                    <th className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">Потребление</th>
+                    <th className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">Горячая вода (м³)</th>
+                    <th className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">Потребление</th>
+                    <th className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">Холодная вода (м³)</th>
+                    <th className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">Потребление</th>
                   </tr>
                 </thead>
                 <tbody>
                   {combineReadings(waterMeters).map((reading, index) => (
                     <tr key={index} className="text-center">
-                      <td className="border border-gray-300 px-4 py-2">
+                      <td className="border border-gray-300 px-2 py-1 sm:px-4 sm:py-2">
                         {reading.date.toLocaleDateString()}
                       </td>
-                      <td className="border border-gray-300 px-4 py-2">{reading.bathroomHot}</td>
-                      <td className="border border-gray-300 px-4 py-2">{reading.bathroomHotDiff}</td>
-                      <td className="border border-gray-300 px-4 py-2">{reading.bathroomCold}</td>
-                      <td className="border border-gray-300 px-4 py-2">{reading.bathroomColdDiff}</td>
-                      <td className="border border-gray-300 px-4 py-2">{reading.kitchenHot}</td>
-                      <td className="border border-gray-300 px-4 py-2">{reading.kitchenHotDiff}</td>
-                      <td className="border border-gray-300 px-4 py-2">{reading.kitchenCold}</td>
-                      <td className="border border-gray-300 px-4 py-2">{reading.kitchenColdDiff}</td>
+                      <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.bathroomHot}</td>
+                      <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.bathroomHotDiff}</td>
+                      <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.bathroomCold}</td>
+                      <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.bathroomColdDiff}</td>
+                      <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.kitchenHot}</td>
+                      <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.kitchenHotDiff}</td>
+                      <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.kitchenCold}</td>
+                      <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.kitchenColdDiff}</td>
                     </tr>
                   ))}
                 </tbody>
