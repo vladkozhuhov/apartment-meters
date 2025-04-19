@@ -107,7 +107,7 @@ jobs:
             echo "ВНИМАНИЕ: Директория public не найдена!"
           fi
           
-          # Копируем Dockerfile и .env.docker
+          # Копируем Dockerfile и другие необходимые файлы для UI
           if [ -f "UI/apartment-meters.web/Dockerfile" ]; then
             cp UI/apartment-meters.web/Dockerfile deployment/UI/apartment-meters.web/
           else
@@ -122,12 +122,27 @@ jobs:
             echo "ВНИМАНИЕ: Файл .env.docker не найден!"
           fi
           
-          # Копируем package.json для UI
+          # Копируем package.json и package-lock.json для UI
           if [ -f "UI/apartment-meters.web/package.json" ]; then
             cp UI/apartment-meters.web/package.json deployment/UI/apartment-meters.web/
             echo "Файл package.json скопирован успешно"
           else
             echo "ВНИМАНИЕ: Файл package.json не найден!"
+          fi
+          
+          if [ -f "UI/apartment-meters.web/package-lock.json" ]; then
+            cp UI/apartment-meters.web/package-lock.json deployment/UI/apartment-meters.web/
+            echo "Файл package-lock.json скопирован успешно"
+          else
+            echo "ВНИМАНИЕ: Файл package-lock.json не найден, пробуем создать его..."
+            # Попытка создать package-lock.json, если его нет
+            cd UI/apartment-meters.web && npm i --package-lock-only && cd ../../
+            if [ -f "UI/apartment-meters.web/package-lock.json" ]; then
+              cp UI/apartment-meters.web/package-lock.json deployment/UI/apartment-meters.web/
+              echo "Файл package-lock.json успешно создан и скопирован"
+            else
+              echo "КРИТИЧЕСКАЯ ОШИБКА: Не удалось создать package-lock.json!"
+            fi
           fi
           
           # Создаем docker-compose.yml построчно
