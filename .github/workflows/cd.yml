@@ -67,7 +67,17 @@ jobs:
           echo "Содержимое директории после сборки:"
           ls -la
           ls -la .next || echo ".next директория не найдена"
-        
+      
+      - name: Create environment files
+        run: |
+          # Создаем .env.docker для фронтенда
+          echo "# API URL для Docker контейнера" > UI/apartment-meters.web/.env.docker
+          echo "NEXT_PUBLIC_API_URL=/api" >> UI/apartment-meters.web/.env.docker
+          echo "" >> UI/apartment-meters.web/.env.docker
+          echo "# VAPID Keys" >> UI/apartment-meters.web/.env.docker
+          echo "NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}" >> UI/apartment-meters.web/.env.docker
+          echo "NEXT_PUBLIC_VAPID_PRIVATE_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PRIVATE_KEY }}" >> UI/apartment-meters.web/.env.docker
+      
       - name: Create deployment package
         run: |
           # Очищаем и создаем директорию для деплоя
@@ -97,11 +107,27 @@ jobs:
             echo "ВНИМАНИЕ: Директория public не найдена!"
           fi
           
-          # Копируем Dockerfile
+          # Копируем Dockerfile и .env.docker
           if [ -f "UI/apartment-meters.web/Dockerfile" ]; then
             cp UI/apartment-meters.web/Dockerfile deployment/UI/apartment-meters.web/
           else
             echo "ВНИМАНИЕ: UI Dockerfile не найден!"
+          fi
+          
+          # Копируем .env.docker
+          if [ -f "UI/apartment-meters.web/.env.docker" ]; then
+            cp UI/apartment-meters.web/.env.docker deployment/UI/apartment-meters.web/
+            echo "Файл .env.docker скопирован успешно"
+          else
+            echo "ВНИМАНИЕ: Файл .env.docker не найден!"
+          fi
+          
+          # Копируем package.json для UI
+          if [ -f "UI/apartment-meters.web/package.json" ]; then
+            cp UI/apartment-meters.web/package.json deployment/UI/apartment-meters.web/
+            echo "Файл package.json скопирован успешно"
+          else
+            echo "ВНИМАНИЕ: Файл package.json не найден!"
           fi
           
           # Создаем docker-compose.yml построчно
