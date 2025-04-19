@@ -1,17 +1,28 @@
-FROM node:18-alpine
+FROM node:18-alpine AS builder
+
+# Оптимизация npm
+ENV NPM_CONFIG_LOGLEVEL=error
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+ENV npm_config_cache=/tmp/npm-cache
+ENV npm_config_userconfig=/tmp/.npmrc
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем все файлы проекта
-COPY . .
+# Копируем только необходимые файлы для установки пакетов
+COPY package.json package-lock.json ./
 
-# Устанавливаем только production зависимости 
-# (без повторной сборки, так как .next уже построен)
-RUN npm ci --omit=dev
+# Копируем .env.docker и переименовываем
+COPY .env.docker .env
 
-# Копируем Docker-специфичные переменные окружения
-RUN if [ -f .env.docker ]; then cp .env.docker .env; fi
+# Устанавливаем только зависимости, необходимые для запуска
+RUN npm ci --omit=dev --no-audit --no-fund --ignore-scripts --prefer-offline \
+    && npm cache clean --force
+
+# Копируем только необходимые для запуска файлы
+COPY .next ./.next
+COPY public ./public
+COPY next.config.js ./
 
 # Настройка рабочей среды
 ENV NODE_ENV=production

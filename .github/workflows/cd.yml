@@ -92,9 +92,20 @@ jobs:
           mkdir -p deployment/API/app
           cp -r publish/* deployment/API/app/
           
-          echo "Копирование UI директории..."
-          # Копируем весь UI проект, а не только выборочные файлы
-          cp -r UI deployment/
+          echo "Копирование UI директории (оптимизированный способ)..."
+          mkdir -p deployment/UI/apartment-meters.web
+          
+          # Копируем только необходимые файлы для фронтенда
+          cp -r UI/apartment-meters.web/.next deployment/UI/apartment-meters.web/
+          cp -r UI/apartment-meters.web/public deployment/UI/apartment-meters.web/
+          cp UI/apartment-meters.web/package.json deployment/UI/apartment-meters.web/
+          cp UI/apartment-meters.web/package-lock.json deployment/UI/apartment-meters.web/
+          cp UI/apartment-meters.web/.env.docker deployment/UI/apartment-meters.web/
+          cp UI/apartment-meters.web/next.config.js deployment/UI/apartment-meters.web/
+          cp UI/apartment-meters.web/Dockerfile deployment/UI/apartment-meters.web/
+          
+          echo "Проверка скопированных файлов фронтенда:"
+          ls -la deployment/UI/apartment-meters.web/
           
           # Создаем docker-compose.yml построчно
           echo "Создание docker-compose.yml..."
@@ -223,6 +234,7 @@ jobs:
           rm deploy.tar.gz && \
           echo '4. Запуск контейнеров...' && \
           docker-compose down || echo 'Контейнеры не были запущены' && \
+          docker system prune -af --volumes || echo 'Очистка Docker не удалась' && \
           docker-compose up -d --build"
       
       - name: Verify deployment
