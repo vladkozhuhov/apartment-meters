@@ -53,6 +53,11 @@ interface UsersListProps {
 type SortColumn = 'date' | 'apartment';
 type SortDirection = 'asc' | 'desc';
 
+// Функция для отображения только месяца в колонке "Дата"
+const formatDate = (date: Date): string => {
+  return new Date(date).toLocaleDateString('ru-RU', { month: 'long' }).replace(/^./, str => str.toUpperCase());
+};
+
 const AdminPage: React.FC = () => {
   const [readings, setReadings] = useState<MeterReading[]>([]);
   const [filteredReadings, setFilteredReadings] = useState<MeterReading[]>([]);
@@ -439,42 +444,8 @@ const AdminPage: React.FC = () => {
       // Группируем и комбинируем показания
       const combined = combineReadings(result);
       setCombinedReadings(combined);
-      
-      // Обновляем количество страниц для показаний
-      const totalReadingsPages = Math.ceil(combined.length / readingsPerPage);
-      if (currentReadingsPage > totalReadingsPages && totalReadingsPages > 0) {
-        setCurrentReadingsPage(1);
-      }
     }
   }, [readings, filter, waterMeters, users, sortConfig]);
-
-  // Add pagination controls for readings
-  const handlePrevReadingsPage = () => {
-    if (currentReadingsPage > 1) {
-      setCurrentReadingsPage(prev => prev - 1);
-    }
-  };
-  
-  const handleNextReadingsPage = () => {
-    const totalReadingsPages = Math.ceil(combinedReadings.length / readingsPerPage);
-    if (currentReadingsPage < totalReadingsPages) {
-      setCurrentReadingsPage(prev => prev + 1);
-    }
-  };
-  
-  const handleReadingsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newSize = parseInt(e.target.value);
-    setReadingsPerPage(newSize);
-    setCurrentReadingsPage(1);
-  };
-  
-  // Получаем текущую страницу показаний
-  const currentReadings = combinedReadings.slice(
-    (currentReadingsPage - 1) * readingsPerPage,
-    currentReadingsPage * readingsPerPage
-  );
-  
-  const totalReadingsPages = Math.ceil(combinedReadings.length / readingsPerPage);
 
   // Если страница еще не загружена на клиенте, показываем пустую разметку
   if (!isClient) {
@@ -582,17 +553,17 @@ const AdminPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
             <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">История показаний водомеров</h2>
             
-            {/* Pagination Controls for Readings */}
+            {/* Pagination Controls for Users */}
             <div className="flex justify-between items-center mb-4">
               <div className="text-sm text-gray-600">
-                Отображается {currentReadings.length} записей из {combinedReadings.length}
+                Всего: {totalUsers} пользователей, {readings.length} показаний ({combinedReadings.length} записей)
               </div>
               <div className="flex items-center space-x-2">
                 <label className="text-sm text-gray-600">
-                  Показаний на странице:
+                  Пользователей на странице:
                   <select 
-                    value={readingsPerPage} 
-                    onChange={handleReadingsPerPageChange}
+                    value={pageSize} 
+                    onChange={handlePageSizeChange}
                     className="ml-2 border rounded p-1"
                   >
                     <option value={10}>10</option>
@@ -602,19 +573,19 @@ const AdminPage: React.FC = () => {
                   </select>
                 </label>
                 <button 
-                  onClick={handlePrevReadingsPage} 
-                  disabled={currentReadingsPage === 1}
-                  className={`px-3 py-1 rounded ${currentReadingsPage === 1 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                  onClick={handlePrevPage} 
+                  disabled={page === 1}
+                  className={`px-3 py-1 rounded ${page === 1 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                 >
                   &lt; Назад
                 </button>
                 <span className="text-sm">
-                  Страница {currentReadingsPage} из {totalReadingsPages}
+                  Страница {page} из {totalPages}
                 </span>
                 <button 
-                  onClick={handleNextReadingsPage} 
-                  disabled={currentReadingsPage === totalReadingsPages || totalReadingsPages === 0}
-                  className={`px-3 py-1 rounded ${currentReadingsPage === totalReadingsPages || totalReadingsPages === 0 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                  onClick={handleNextPage} 
+                  disabled={page === totalPages}
+                  className={`px-3 py-1 rounded ${page === totalPages ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                 >
                   Вперед &gt;
                 </button>
@@ -656,12 +627,13 @@ const AdminPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentReadings.map((reading, index) => {
+                  {/* Отображаем все показания без пагинации */}
+                  {combineReadings(filteredReadings).map((reading, index) => {
                     const user = users.find((user) => user.id === reading.userId);
                     return (
                       <tr key={index} className="text-center hover:bg-gray-50">
                         <td className="border border-gray-300 px-2 py-1 sm:px-4 sm:py-2">
-                          {new Date(reading.date).toLocaleDateString('ru-RU', { month: 'long', day: 'numeric' }).replace(/^./, str => str.toUpperCase())}
+                          {formatDate(reading.date)}
                         </td>
                         <td className="border border-gray-300 px-2 py-1 sm:px-4 sm:py-2">
                           {user ? user.apartmentNumber : 'Не найден'}
