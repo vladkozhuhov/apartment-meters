@@ -63,6 +63,7 @@ const AdminPage: React.FC = () => {
   const [users, setUsers] = useState<Users[]>([]);
   const [waterMeters, setWaterMeters] = useState<WaterMeter[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [combinedReadings, setCombinedReadings] = useState<CombinedReading[]>([]);
   const router = useRouter();
   
   // Состояние для сортировки
@@ -76,6 +77,8 @@ const AdminPage: React.FC = () => {
   const [pageSize, setPageSize] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [readingsPerPage, setReadingsPerPage] = useState(20);
+  const [currentReadingsPage, setCurrentReadingsPage] = useState(1);
   
   // Устанавливаем флаг клиентского рендеринга
   useEffect(() => {
@@ -241,73 +244,79 @@ const AdminPage: React.FC = () => {
   const combineReadings = (readings: MeterReading[]): CombinedReading[] => {
     const allReadings: CombinedReading[] = [];
     
-    // Сортируем все показания по времени
-    const sortedReadings = [...readings].sort((a, b) => {
-      const timeA = new Date(a.readingDate).getTime();
-      const timeB = new Date(b.readingDate).getTime();
-      return timeA - timeB;
-    });
-
-    // Группируем показания в сессиях
-    let currentSession: CombinedReading | null = null;
-
-    sortedReadings.forEach((reading) => {
-      const readingDate = new Date(reading.readingDate);
+    // Группируем по уникальной дате и идентификатору пользователя
+    const readingMap = new Map<string, MeterReading[]>();
+    
+    // Группировка показаний по дате (только дата без времени) и userId
+    readings.forEach((reading) => {
       const waterMeter = waterMeters.find(wm => wm.id === reading.waterMeterId);
-      
       if (!waterMeter) return;
-
-      const isKitchen = waterMeter.placeOfWaterMeter === 1;
-      const isHot = waterMeter.waterType === 1;
-
-      // Если это первое показание или прошло больше минуты с предыдущего,
-      // создаем новую сессию
-      if (!currentSession || 
-          Math.abs(readingDate.getTime() - new Date(currentSession.date).getTime()) > 60000) {
-        if (currentSession) {
-          allReadings.push(currentSession);
-        }
-        currentSession = {
-          date: readingDate,
-          userId: waterMeter.userId,
-          bathroomHot: '-',
-          bathroomHotDiff: '-',
-          bathroomCold: '-',
-          bathroomColdDiff: '-',
-          kitchenHot: '-',
-          kitchenHotDiff: '-',
-          kitchenCold: '-',
-          kitchenColdDiff: '-',
-        };
+      
+      const userId = waterMeter.userId;
+      const readingDate = new Date(reading.readingDate);
+      // Создаем ключ на основе даты (без времени) и ID пользователя
+      const dateString = `${readingDate.getFullYear()}-${readingDate.getMonth()}-${readingDate.getDate()}`;
+      const key = `${dateString}_${userId}`;
+      
+      if (!readingMap.has(key)) {
+        readingMap.set(key, []);
       }
-
-      // Добавляем показание в текущую сессию
-      if (isKitchen) {
-        if (isHot) {
-          currentSession.kitchenHot = reading.waterValue;
-          currentSession.kitchenHotDiff = reading.differenceValue.toFixed(3);
-        } else {
-          currentSession.kitchenCold = reading.waterValue;
-          currentSession.kitchenColdDiff = reading.differenceValue.toFixed(3);
-        }
-      } else {
-        if (isHot) {
-          currentSession.bathroomHot = reading.waterValue;
-          currentSession.bathroomHotDiff = reading.differenceValue.toFixed(3);
-        } else {
-          currentSession.bathroomCold = reading.waterValue;
-          currentSession.bathroomColdDiff = reading.differenceValue.toFixed(3);
-        }
-      }
+      
+      readingMap.get(key)!.push(reading);
     });
-
-    // Добавляем последнюю сессию
-    if (currentSession) {
-      allReadings.push(currentSession);
-    }
-
+    
+    // Обрабатываем каждую группу показаний
+    readingMap.forEach((groupReadings, key) => {
+      // Находим первое показание для получения даты группы
+      const firstReading = groupReadings[0];
+      const firstWaterMeter = waterMeters.find(wm => wm.id === firstReading.waterMeterId);
+      if (!firstWaterMeter) return;
+      
+      const session: CombinedReading = {
+        date: new Date(firstReading.readingDate),
+        userId: firstWaterMeter.userId,
+        bathroomHot: '-',
+        bathroomHotDiff: '-',
+        bathroomCold: '-',
+        bathroomColdDiff: '-',
+        kitchenHot: '-',
+        kitchenHotDiff: '-',
+        kitchenCold: '-',
+        kitchenColdDiff: '-',
+      };
+      
+      // Заполняем данные по каждому показанию в группе
+      groupReadings.forEach(reading => {
+        const waterMeter = waterMeters.find(wm => wm.id === reading.waterMeterId);
+        if (!waterMeter) return;
+        
+        const isKitchen = waterMeter.placeOfWaterMeter === 1;
+        const isHot = waterMeter.waterType === 1;
+        
+        if (isKitchen) {
+          if (isHot) {
+            session.kitchenHot = reading.waterValue;
+            session.kitchenHotDiff = reading.differenceValue.toFixed(3);
+          } else {
+            session.kitchenCold = reading.waterValue;
+            session.kitchenColdDiff = reading.differenceValue.toFixed(3);
+          }
+        } else {
+          if (isHot) {
+            session.bathroomHot = reading.waterValue;
+            session.bathroomHotDiff = reading.differenceValue.toFixed(3);
+          } else {
+            session.bathroomCold = reading.waterValue;
+            session.bathroomColdDiff = reading.differenceValue.toFixed(3);
+          }
+        }
+      });
+      
+      allReadings.push(session);
+    });
+    
     console.log('Сгруппированные показания:', allReadings);
-
+    
     // Сортируем сгруппированные данные в соответствии с текущими настройками сортировки
     return sortData(allReadings);
   };
@@ -388,6 +397,84 @@ const AdminPage: React.FC = () => {
     setPageSize(newSize);
     setPage(1); // Reset to first page when changing page size
   };
+
+  // Обработчик для фильтрации и пагинации показаний
+  useEffect(() => {
+    if (readings.length > 0) {
+      let result = readings;
+
+      // Применяем фильтры
+      if (filter.apartment) {
+        // Находим пользователя по номеру квартиры
+        const filteredUsers = users.filter(
+          user => user.apartmentNumber.toString() === filter.apartment
+        );
+        
+        // Находим все водомеры этих пользователей
+        const userIds = filteredUsers.map(user => user.id);
+        const relevantWaterMeterIds = waterMeters
+          .filter(wm => userIds.includes(wm.userId))
+          .map(wm => wm.id);
+        
+        // Фильтруем показания по найденным водомерам
+        result = result.filter(
+          reading => relevantWaterMeterIds.includes(reading.waterMeterId)
+        );
+      }
+
+      if (filter.month) {
+        result = result.filter(
+          (r) => new Date(r.readingDate).getMonth() + 1 === parseInt(filter.month)
+        );
+      }
+
+      if (filter.year) {
+        result = result.filter(
+          (r) => new Date(r.readingDate).getFullYear() === parseInt(filter.year)
+        );
+      }
+
+      setFilteredReadings(result);
+      
+      // Группируем и комбинируем показания
+      const combined = combineReadings(result);
+      setCombinedReadings(combined);
+      
+      // Обновляем количество страниц для показаний
+      const totalReadingsPages = Math.ceil(combined.length / readingsPerPage);
+      if (currentReadingsPage > totalReadingsPages && totalReadingsPages > 0) {
+        setCurrentReadingsPage(1);
+      }
+    }
+  }, [readings, filter, waterMeters, users, sortConfig]);
+
+  // Add pagination controls for readings
+  const handlePrevReadingsPage = () => {
+    if (currentReadingsPage > 1) {
+      setCurrentReadingsPage(prev => prev - 1);
+    }
+  };
+  
+  const handleNextReadingsPage = () => {
+    const totalReadingsPages = Math.ceil(combinedReadings.length / readingsPerPage);
+    if (currentReadingsPage < totalReadingsPages) {
+      setCurrentReadingsPage(prev => prev + 1);
+    }
+  };
+  
+  const handleReadingsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSize = parseInt(e.target.value);
+    setReadingsPerPage(newSize);
+    setCurrentReadingsPage(1);
+  };
+  
+  // Получаем текущую страницу показаний
+  const currentReadings = combinedReadings.slice(
+    (currentReadingsPage - 1) * readingsPerPage,
+    currentReadingsPage * readingsPerPage
+  );
+  
+  const totalReadingsPages = Math.ceil(combinedReadings.length / readingsPerPage);
 
   // Если страница еще не загружена на клиенте, показываем пустую разметку
   if (!isClient) {
@@ -495,17 +582,17 @@ const AdminPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
             <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">История показаний водомеров</h2>
             
-            {/* Pagination Controls */}
+            {/* Pagination Controls for Readings */}
             <div className="flex justify-between items-center mb-4">
               <div className="text-sm text-gray-600">
-                Всего: {totalUsers} пользователей, {readings.length} показаний
+                Отображается {currentReadings.length} записей из {combinedReadings.length}
               </div>
               <div className="flex items-center space-x-2">
                 <label className="text-sm text-gray-600">
-                  Элементов на странице:
+                  Показаний на странице:
                   <select 
-                    value={pageSize} 
-                    onChange={handlePageSizeChange}
+                    value={readingsPerPage} 
+                    onChange={handleReadingsPerPageChange}
                     className="ml-2 border rounded p-1"
                   >
                     <option value={10}>10</option>
@@ -515,19 +602,19 @@ const AdminPage: React.FC = () => {
                   </select>
                 </label>
                 <button 
-                  onClick={handlePrevPage} 
-                  disabled={page === 1}
-                  className={`px-3 py-1 rounded ${page === 1 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                  onClick={handlePrevReadingsPage} 
+                  disabled={currentReadingsPage === 1}
+                  className={`px-3 py-1 rounded ${currentReadingsPage === 1 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                 >
                   &lt; Назад
                 </button>
                 <span className="text-sm">
-                  Страница {page} из {totalPages}
+                  Страница {currentReadingsPage} из {totalReadingsPages}
                 </span>
                 <button 
-                  onClick={handleNextPage} 
-                  disabled={page === totalPages}
-                  className={`px-3 py-1 rounded ${page === totalPages ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                  onClick={handleNextReadingsPage} 
+                  disabled={currentReadingsPage === totalReadingsPages || totalReadingsPages === 0}
+                  className={`px-3 py-1 rounded ${currentReadingsPage === totalReadingsPages || totalReadingsPages === 0 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                 >
                   Вперед &gt;
                 </button>
@@ -569,17 +656,12 @@ const AdminPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {combineReadings(filteredReadings).map((reading, index) => {
+                  {currentReadings.map((reading, index) => {
                     const user = users.find((user) => user.id === reading.userId);
-                    console.log('Данные для строки таблицы:', { 
-                      readingUserId: reading.userId, 
-                      foundUser: user,
-                      allUsers: users 
-                    });
                     return (
                       <tr key={index} className="text-center hover:bg-gray-50">
                         <td className="border border-gray-300 px-2 py-1 sm:px-4 sm:py-2">
-                          {new Date(reading.date).toLocaleDateString('ru-RU', { month: 'long' }).replace(/^./, str => str.toUpperCase())}
+                          {new Date(reading.date).toLocaleDateString('ru-RU', { month: 'long', day: 'numeric' }).replace(/^./, str => str.toUpperCase())}
                         </td>
                         <td className="border border-gray-300 px-2 py-1 sm:px-4 sm:py-2">
                           {user ? user.apartmentNumber : 'Не найден'}

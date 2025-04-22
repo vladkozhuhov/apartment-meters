@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAllUser, UserRequest, updateUser } from "../services/userService";
+import { getAllUser, getPaginatedUsers, UserRequest, updateUser } from "../services/userService";
 import { getWaterMetersByUserId, WaterMeterRequest, WaterMeterUpdateRequest, updateWaterMeter } from "../services/waterMeterService";
 import { useError } from '../contexts/ErrorContext';
 import { ErrorType } from '../hooks/useErrorHandler';
@@ -70,6 +70,12 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showEditPassword, setShowEditPassword] = useState(false);
   const { showError, clearError } = useError();
+  
+  // Добавляем состояние для пагинации
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(30);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
   
   // Состояние для хранения ошибок валидации форм
   const [formErrors, setFormErrors] = useState<{
@@ -564,11 +570,18 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
   useEffect(() => {
     const fetchUsersWithMeters = async () => {
       try {
-        const usersData = await getAllUser();
+        setLoading(true);
         
-        // Получаем счетчики для каждого пользователя
+        // Получаем пользователей с пагинацией
+        const response = await getPaginatedUsers(page, pageSize);
+        
+        // Обновляем метаданные пагинации
+        setTotalPages(response.totalPages);
+        setTotalUsers(response.totalCount);
+        
+        // Получаем счетчики для каждого пользователя на текущей странице
         const usersWithMeters = await Promise.all(
-          usersData.map(async (user: UserRequest) => {
+          response.items.map(async (user: UserRequest) => {
             const waterMeters = await getWaterMetersByUserId(user.id);
             return { ...user, waterMeters };
           })
@@ -585,7 +598,26 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
 
     fetchUsersWithMeters();
     clearError(); // Очищаем ошибки при монтировании
-  }, [clearError]);
+  }, [clearError, page, pageSize]);
+
+  // Обработчики для пагинации
+  const handlePrevPage = () => {
+    if (page > 1) {
+      setPage(prev => prev - 1);
+    }
+  };
+  
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      setPage(prev => prev + 1);
+    }
+  };
+  
+  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSize = parseInt(e.target.value);
+    setPageSize(newSize);
+    setPage(1); // Сбрасываем на первую страницу при изменении размера
+  };
 
   const getMeterTypeText = (type: number) => type === 1 ? "Горячая вода" : "Холодная вода";
   const getMeterLocationText = (location: number) => location === 1 ? "Кухня" : "Ванная";
@@ -740,8 +772,47 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
           </div>
         </div>
 
+        {/* Пагинация */}
+        <div className="px-6 py-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+          <div className="text-sm text-gray-600">
+            Всего: {totalUsers} пользователей. Показано {filteredUsers.length} пользователей.
+          </div>
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-600">
+              Пользователей на странице:
+              <select 
+                value={pageSize} 
+                onChange={handlePageSizeChange}
+                className="ml-2 border rounded p-1"
+              >
+                <option value={10}>10</option>
+                <option value={30}>30</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </label>
+            <button 
+              onClick={handlePrevPage} 
+              disabled={page === 1}
+              className={`px-3 py-1 rounded ${page === 1 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            >
+              &lt; Назад
+            </button>
+            <span className="text-sm">
+              Страница {page} из {totalPages}
+            </span>
+            <button 
+              onClick={handleNextPage} 
+              disabled={page === totalPages}
+              className={`px-3 py-1 rounded ${page === totalPages ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            >
+              Вперед &gt;
+            </button>
+          </div>
+        </div>
+
         {/* Содержимое */}
-        <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 200px)' }}>
+        <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 250px)' }}>
           {loading ? (
             <div className="p-6 text-center">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
@@ -966,6 +1037,29 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
               ))}
             </div>
           )}
+        </div>
+        
+        {/* Нижняя пагинация */}
+        <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 flex justify-center items-center">
+          <div className="flex items-center space-x-2">
+            <button 
+              onClick={handlePrevPage} 
+              disabled={page === 1}
+              className={`px-3 py-1 rounded ${page === 1 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            >
+              &lt; Назад
+            </button>
+            <span className="text-sm">
+              Страница {page} из {totalPages}
+            </span>
+            <button 
+              onClick={handleNextPage} 
+              disabled={page === totalPages}
+              className={`px-3 py-1 rounded ${page === totalPages ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            >
+              Вперед &gt;
+            </button>
+          </div>
         </div>
       </div>
     </div>

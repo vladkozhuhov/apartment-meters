@@ -175,4 +175,21 @@ public class UserQuery : IUserQuery
         
         return result;
     }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<UserEntity>> GetPaginatedUsersAsync(int page, int pageSize)
+    {
+        _logger.LogInformation("Получение пагинированных пользователей (страница {Page}, размер {PageSize})", page, pageSize);
+        
+        // Получаем всех пользователей из кэша
+        var users = await _cachedRepository.GetAllCachedAsync();
+        
+        // Применяем пагинацию
+        var paginatedUsers = users
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+        
+        return paginatedUsers;
+    }
 }

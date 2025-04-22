@@ -55,6 +55,17 @@ export const getAllUser = async () => {
     return response.data;
 };
 
+export const getPaginatedUsers = async (page: number = 1, pageSize: number = 30) => {
+    try {
+        console.log(`Получение пагинированных данных пользователей (страница: ${page}, размер: ${pageSize})`);
+        const response = await api.get(`/api/users/paginated?page=${page}&pageSize=${pageSize}`);
+        return response.data;
+    } catch (error) {
+        console.error('Ошибка при получении пагинированных данных пользователей:', error);
+        throw error;
+    }
+};
+
 export const getPaginatedUsersWithMeters = async (page: number = 1, pageSize: number = 20) => {
     try {
         console.log(`Получение пагинированных данных пользователей с их счетчиками (страница: ${page}, размер: ${pageSize})`);
