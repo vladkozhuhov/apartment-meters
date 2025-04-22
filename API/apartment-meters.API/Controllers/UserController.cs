@@ -7,6 +7,9 @@ using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Application.Models.Common;
 
 namespace API.Controllers;
 
@@ -219,6 +222,53 @@ public class UserController : ControllerBase
                 ErrorType.UserDeletionFailedError302,
                 "Невозможно удалить данные по пользователю");
             return BadRequest(); // Эта строка не будет выполнена, нужна для компиляции
+        }
+    }
+
+    /// <summary>
+    /// Получить пользователей с их счетчиками и показаниями для админ-панели с пагинацией
+    /// </summary>
+    /// <param name="page">Номер страницы (начиная с 1)</param>
+    /// <param name="pageSize">Размер страницы</param>
+    /// <returns>Пагинированный список пользователей с их данными</returns>
+    [HttpGet("admin/paginated")]
+    [Authorize(Roles = "Admin")] // Только админы могут получить эти данные
+    [ProducesResponseType(typeof(PagedResult<UserWithMetersAndReadingsDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetPaginatedUsersWithMetersAndReadings(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 20)
+    {
+        _logger.LogInformation("Запрос на получение пагинированных данных для админ-панели: страница {Page}, размер {PageSize}", 
+            page, pageSize);
+        
+        try
+        {
+            // Получаем общее количество пользователей для пагинации
+            var totalUsers = await _query.GetAllUsersCountAsync();
+            
+            // Получаем пользователей с их счетчиками и показаниями
+            var usersWithMeters = await _query.GetUsersWithMetersAndReadingsAsync(page, pageSize);
+            
+            // Формируем результат с метаданными пагинации
+            var result = new PagedResult<UserWithMetersAndReadingsDto>
+            {
+                Items = usersWithMeters,
+                TotalCount = totalUsers,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(totalUsers / (double)pageSize)
+            };
+            
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при получении пагинированных данных для админ-панели");
+            _errorHandlingService.ThrowBusinessLogicException(
+                ErrorType.InvalidDataFormatError401, // Используем существующий тип ошибки
+                "Произошла ошибка при получении данных для админ-панели");
+            return StatusCode(500); // Эта строка не будет выполнена, нужна для компиляции
         }
     }
 }

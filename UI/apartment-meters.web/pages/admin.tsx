@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { getAllMeterReading } from '../services/readingMeterService';
-import { getAllUser, UserRequest } from '../services/userService';
+import { getAllUser, getPaginatedUsersWithMeters, UserRequest, PaginatedUsersResponse, UserWithMetersAndReadings } from '../services/userService';
 import UsersList from '@/components/UserListComponent';
 import { getWaterMetersByUserId } from '../services/waterMeterService';
 import { isAuthenticated, logout } from '../services/authService';
@@ -71,6 +71,12 @@ const AdminPage: React.FC = () => {
     direction: SortDirection;
   } | null>(null);
   
+  // Добавляем состояние для пагинации
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  
   // Устанавливаем флаг клиентского рендеринга
   useEffect(() => {
     setIsClient(true);
@@ -94,13 +100,63 @@ const AdminPage: React.FC = () => {
     // Проверка на наличие роли администратора может быть добавлена здесь
   }, [router, isClient]);
   
-  const fetchReadings = async () => {
+  // Обновленный метод для получения данных с пагинацией
+  const fetchPaginatedData = async () => {
     try {
       setLoading(true);
-      const data = await getAllMeterReading();
-      console.log('Полученные показания:', JSON.stringify(data, null, 2));
-      setReadings(data);
-      setFilteredReadings(data);
+      // Получаем данные с сервера с пагинацией
+      const data: PaginatedUsersResponse = await getPaginatedUsersWithMeters(page, pageSize);
+      console.log('Получены пагинированные данные:', data);
+      
+      // Обновляем метаданные пагинации
+      setTotalPages(data.totalPages);
+      setTotalUsers(data.totalCount);
+      
+      // Извлекаем пользователей
+      const usersList = data.items.map(user => ({
+        id: user.id,
+        apartmentNumber: user.apartmentNumber
+      }));
+      setUsers(usersList);
+      
+      // Извлекаем водомеры
+      const waterMetersList: WaterMeter[] = [];
+      
+      // Извлекаем показания
+      const allReadings: MeterReading[] = [];
+      
+      // Обрабатываем полученные данные
+      data.items.forEach(user => {
+        user.waterMeters.forEach(waterMeter => {
+          // Добавляем водомер
+          waterMetersList.push({
+            id: waterMeter.id,
+            userId: waterMeter.userId,
+            placeOfWaterMeter: waterMeter.placeOfWaterMeter,
+            waterType: waterMeter.waterType,
+            factoryNumber: parseInt(waterMeter.factoryNumber),
+            factoryYear: new Date(waterMeter.factoryYear)
+          });
+          
+          // Добавляем показания
+          waterMeter.readings.forEach(reading => {
+            allReadings.push({
+              id: reading.id,
+              waterMeterId: reading.waterMeterId,
+              waterValue: reading.waterValue,
+              differenceValue: reading.differenceValue,
+              readingDate: new Date(reading.readingDate),
+              placeOfWaterMeter: waterMeter.placeOfWaterMeter,
+              waterType: waterMeter.waterType
+            });
+          });
+        });
+      });
+      
+      // Обновляем состояние
+      setWaterMeters(waterMetersList);
+      setReadings(allReadings);
+      setFilteredReadings(allReadings);
     } 
     catch (err) {
       console.error('Ошибка при загрузке данных:', err);
@@ -111,52 +167,13 @@ const AdminPage: React.FC = () => {
     }
   };
 
-  const fetchUsers = async () => {
-    try {
-      const usersData = await getAllUser();
-      console.log('Загруженные пользователи:', usersData);
-      setUsers(usersData);
-    } 
-    catch (err) {
-      console.error('Ошибка при загрузке пользователей:', err);
-    }
-  };
-
-  const fetchWaterMeters = async () => {
-    try {
-      const allUsers = await getAllUser();
-      const allWaterMeters = await Promise.all(
-        allUsers.map((user: UserRequest) => getWaterMetersByUserId(user.id))
-      );
-      const flatWaterMeters = allWaterMeters.flat();
-      console.log('Все водомеры:', flatWaterMeters);
-      setWaterMeters(flatWaterMeters);
-    } catch (err) {
-      console.error('Ошибка при загрузке водомеров:', err);
-    }
-  };
-
+  // Используем обновленный метод загрузки данных
   useEffect(() => {
     // Проверяем, что мы на клиенте
     if (!isClient) return;
     
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        await Promise.all([
-          fetchReadings(),
-          fetchUsers(),
-          fetchWaterMeters()
-        ]);
-      } catch (err) {
-        console.error('Ошибка при загрузке данных:', err);
-        setError('Не удалось загрузить данные. Попробуйте позже.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [isClient]);
+    fetchPaginatedData();
+  }, [isClient, page, pageSize]);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -209,7 +226,7 @@ const AdminPage: React.FC = () => {
   const handleUpdate = async (id: string, updatedData: Partial<MeterReading>) => {
     try {
     //   await updateUser(id, updatedData);
-      fetchReadings(); // Обновляем данные после редактирования
+      fetchPaginatedData(); // Обновляем данные после редактирования
     } catch (err) {
       console.error('Ошибка при обновлении данных:', err);
       setError('Не удалось обновить данные.');
@@ -353,6 +370,25 @@ const AdminPage: React.FC = () => {
       : <span className="ml-1 text-blue-500">↓</span>;
   };
 
+  // Add pagination controls
+  const handlePrevPage = () => {
+    if (page > 1) {
+      setPage(prev => prev - 1);
+    }
+  };
+  
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      setPage(prev => prev + 1);
+    }
+  };
+  
+  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSize = parseInt(e.target.value);
+    setPageSize(newSize);
+    setPage(1); // Reset to first page when changing page size
+  };
+
   // Если страница еще не загружена на клиенте, показываем пустую разметку
   if (!isClient) {
     return <div className="min-h-screen flex items-center justify-center"></div>;
@@ -458,6 +494,46 @@ const AdminPage: React.FC = () => {
         ) : (
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
             <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">История показаний водомеров</h2>
+            
+            {/* Pagination Controls */}
+            <div className="flex justify-between items-center mb-4">
+              <div className="text-sm text-gray-600">
+                Всего: {totalUsers} пользователей, {readings.length} показаний
+              </div>
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-gray-600">
+                  Элементов на странице:
+                  <select 
+                    value={pageSize} 
+                    onChange={handlePageSizeChange}
+                    className="ml-2 border rounded p-1"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </label>
+                <button 
+                  onClick={handlePrevPage} 
+                  disabled={page === 1}
+                  className={`px-3 py-1 rounded ${page === 1 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                >
+                  &lt; Назад
+                </button>
+                <span className="text-sm">
+                  Страница {page} из {totalPages}
+                </span>
+                <button 
+                  onClick={handleNextPage} 
+                  disabled={page === totalPages}
+                  className={`px-3 py-1 rounded ${page === totalPages ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                >
+                  Вперед &gt;
+                </button>
+              </div>
+            </div>
+            
             <div className="-mx-4 sm:mx-0 overflow-x-auto">
               <table className="w-full border-collapse border border-gray-300 text-xs sm:text-sm">
                 <thead className="bg-gray-100">

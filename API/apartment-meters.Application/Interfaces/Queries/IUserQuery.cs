@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Application.Models.UsersModel;
 using Domain.Entities;
 
 namespace Application.Interfaces.Queries;
@@ -26,4 +30,16 @@ public interface IUserQuery
     /// <param name="apartmentNumber">Номер квартиры</param>
     /// <returns>Задача, содержащая данные пользователя или null, если пользователь не найден</returns>
     Task<UserEntity> GetUserByApartmentNumberAsync(int apartmentNumber);
+    
+    /// <summary>
+    /// Получить общее количество пользователей
+    /// </summary>
+    Task<int> GetAllUsersCountAsync();
+    
+    /// <summary>
+    /// Получить пользователей с их счетчиками и показаниями с пагинацией
+    /// </summary>
+    /// <param name="page">Номер страницы (начиная с 1)</param>
+    /// <param name="pageSize">Размер страницы</param>
+    Task<IEnumerable<UserWithMetersAndReadingsDto>> GetUsersWithMetersAndReadingsAsync(int page, int pageSize);
 }

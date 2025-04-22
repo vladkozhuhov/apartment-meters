@@ -97,7 +97,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         AutoReplenishment = true,
-                        PermitLimit = 5000, // Очень высокий лимит для админов
+                        PermitLimit = 10000, // Увеличиваем лимит в 2 раза
                         Window = TimeSpan.FromMinutes(1)
                     });
             }
@@ -127,7 +127,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         AutoReplenishment = true,
-                        PermitLimit = 3000, // Увеличиваем лимит для админских запросов
+                        PermitLimit = 6000, // Увеличиваем лимит в 2 раза
                         Window = TimeSpan.FromMinutes(1)
                     });
             }
