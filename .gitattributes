@@ -1,0 +1,8 @@
+# Файлы, которые не должны попадать в main при слиянии
+.env.development merge=ours
+.env.production merge=ours
+docker-compose.dev.yml merge=ours
+API/apartment-meters.API/Dockerfile.dev merge=ours
+UI/apartment-meters.web/Dockerfile.dev merge=ours
+choose-env.sh merge=ours
+scripts/setup-env.sh merge=ours 
