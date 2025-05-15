@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # Бэкенд API сервис для разработки
+  api:
+    build:
+      context: ./API
+      dockerfile: apartment-meters.API/Dockerfile.dev
+    container_name: apartment_meters_api_dev
+    depends_on:
+      - db
+    environment:
+      - ConnectionStrings__SecurityDb=Server=db;Port=5432;Database=apartmentmetersdb;User Id=postgres;Password=12341234;Pooling=true;
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5001:8080"  # Маппим порт 5001 для доступа к API напрямую
+    volumes:
+      - ./API/apartment-meters.API:/app/apartment-meters.API
+      - ./API/apartment-meters.Domain:/app/apartment-meters.Domain
+      - ./API/apartment-meters.Application:/app/apartment-meters.Application
+      - ./API/apartment-meters.Infrastructure:/app/apartment-meters.Infrastructure
+      - ./API/apartment-meters.Persistence:/app/apartment-meters.Persistence
+      - ./API/apartment-meters.sln:/app/apartment-meters.sln
+    networks:
+      - apartment_meters_network_dev
+    restart: always
+  
+  # Фронтенд для разработки
+  frontend:
+    build:
+      context: ./UI/apartment-meters.web
+      dockerfile: Dockerfile.dev
+    container_name: apartment_meters_frontend_dev
+    environment:
+      - NEXT_PUBLIC_API_URL=http://api:8080
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"  # Маппим порт для доступа к фронтенду
+    volumes:
+      - ./UI/apartment-meters.web:/app 
+      - /app/node_modules
+    command: npm run dev
+    depends_on:
+      - api
+    networks:
+      - apartment_meters_network_dev
+    restart: always
+  
+  # База данных PostgreSQL
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12341234
+      POSTGRES_DB: apartmentmetersdb
+    ports:
+      - "5432:5432"  # Маппим порт PostgreSQL для доступа из хост-машины
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+    container_name: apartment_meters_db_dev
+    networks:
+      - apartment_meters_network_dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# Сети
+networks:
+  apartment_meters_network_dev:
+    driver: bridge
+
+# Тома для сохранения данных
+volumes:
+  postgres-data-dev: 

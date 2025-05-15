@@ -8,7 +8,7 @@ concurrency:
 on:
   workflow_run:
     workflows: [".NET CI"]
-    branches: [main, master]
+    branches: [main]
     types:
       - completed
   workflow_dispatch:
@@ -17,6 +17,14 @@ on:
         description: 'Ручной запуск деплоя'
         required: false
         default: 'yes'
+      environment:
+        description: 'Окружение для деплоя'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
 
 jobs:
   deploy:

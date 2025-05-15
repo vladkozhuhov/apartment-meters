@@ -2,9 +2,9 @@ name: .NET CI
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [ main, develop ]
 
 jobs:
   build:
@@ -52,7 +52,7 @@ jobs:
     #     path: coveragereport
       
     - name: Publish
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: dotnet publish API/apartment-meters.API/apartment-meters.API.csproj -c Release -o ./publish
     
     # Временно закомментировано из-за проблем с actions/upload-artifact

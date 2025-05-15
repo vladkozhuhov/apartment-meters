@@ -65,6 +65,9 @@ appsettings.Development.json
 # Конфигурационные файлы пользователей
 .env
 .env.*
+# НЕ игнорировать шаблоны для разных сред
+!.env.development
+!.env.production
 
 # Лог-файлы
 *.log
@@ -139,3 +142,8 @@ packages/
 /SETUP-GUIDE.md
 /README-CI-CD.md
 /.github/README-secrets.md
+
+# Файлы, генерируемые средой выполнения
+# Эти файлы должны генерироваться автоматически в зависимости от ветки
+config.env.js
+.env.current
