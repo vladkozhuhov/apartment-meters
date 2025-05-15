@@ -3,7 +3,8 @@
  */
 
 // Базовый URL для API
-export const API_BASE_URL = '';
+// Для доступа из браузера пользователя нужно использовать localhost и внешний порт
+export const API_BASE_URL = 'http://localhost:5001';
 
 // Таймаут для запросов (в миллисекундах)
 export const API_TIMEOUT = 15000; // 15 секунд
@@ -15,4 +16,7 @@ export const API_MAX_RETRIES = 1;
 export const API_DEFAULT_HEADERS = {
   'Content-Type': 'application/json',
   'Accept': 'application/json'
-}; 
+};
+
+// Логгирование для отладки
+console.log('API_BASE_URL:', API_BASE_URL);

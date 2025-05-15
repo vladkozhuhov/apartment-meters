@@ -1,0 +1,22 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+WORKDIR /app
+
+# Создаем папки проектов
+RUN mkdir -p apartment-meters.API \
+    apartment-meters.Domain \
+    apartment-meters.Application \
+    apartment-meters.Infrastructure \
+    apartment-meters.Persistence
+
+# Монтируем все файлы проекта из томов вместо копирования
+
+# Устанавливаем инструменты для разработки
+RUN dotnet tool install --global dotnet-ef
+RUN dotnet tool install --global dotnet-watch
+
+# Добавляем инструменты в PATH
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+# Запускаем приложение
+ENTRYPOINT ["dotnet", "watch", "--project", "apartment-meters.API/apartment-meters.API.csproj", "run", "--urls=http://0.0.0.0:8080"] 
