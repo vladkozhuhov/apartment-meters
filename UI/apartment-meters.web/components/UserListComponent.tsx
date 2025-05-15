@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAllUser, UserRequest, updateUser } from "../services/userService";
+import { getAllUser, getPaginatedUsers, getUserByApartmentNumber, UserRequest, updateUser } from "../services/userService";
 import { getWaterMetersByUserId, WaterMeterRequest, WaterMeterUpdateRequest, updateWaterMeter } from "../services/waterMeterService";
 import { useError } from '../contexts/ErrorContext';
 import { ErrorType } from '../hooks/useErrorHandler';
@@ -71,6 +71,12 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
   const [showEditPassword, setShowEditPassword] = useState(false);
   const { showError, clearError } = useError();
   
+  // Добавляем состояние для пагинации
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(30);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  
   // Состояние для хранения ошибок валидации форм
   const [formErrors, setFormErrors] = useState<{
     apartmentNumber?: string;
@@ -97,12 +103,51 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
     setFilter({ apartment: value });
     
     if (value) {
+      // Если есть поисковый запрос, фильтруем текущие данные
       const filtered = users.filter(user => 
         user.apartmentNumber.toString().includes(value)
       );
       setFilteredUsers(filtered);
     } else {
       setFilteredUsers(users);
+    }
+  };
+
+  // Функция для поиска пользователя по номеру квартиры
+  const searchByApartment = () => {
+    setLoading(true);
+    
+    if (filter.apartment) {
+      getUserByApartmentNumber(filter.apartment)
+        .then((user: UserRequest) => {
+          if (user) {
+            // Если пользователь найден, получаем его счетчики
+            return getWaterMetersByUserId(user.id)
+              .then(waterMeters => {
+                // Создаем объект пользователя со счетчиками
+                const userWithMeters = {
+                  ...user,
+                  waterMeters
+                };
+                setUsers([userWithMeters]);
+                setFilteredUsers([userWithMeters]);
+              });
+          } else {
+            // Если пользователь не найден, показываем пустой список
+            setFilteredUsers([]);
+          }
+        })
+        .catch((err: Error) => {
+          console.error('Ошибка при поиске пользователя:', err);
+          showError("Пользователь с таким номером квартиры не найден", 'warning');
+          setFilteredUsers([]);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      // Если поисковый запрос пуст, возвращаемся к обычной пагинации
+      fetchUsersWithMeters();
     }
   };
 
@@ -561,31 +606,58 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
     }
   };
 
+  // Обновляем fetchUsersWithMeters для возможности вызова из других функций
+  const fetchUsersWithMeters = async () => {
+    try {
+      setLoading(true);
+      
+      // Получаем пользователей с пагинацией
+      const response = await getPaginatedUsers(page, pageSize);
+      
+      // Обновляем метаданные пагинации
+      setTotalPages(response.totalPages);
+      setTotalUsers(response.totalCount);
+      
+      // Получаем счетчики для каждого пользователя на текущей странице
+      const usersWithMeters = await Promise.all(
+        response.items.map(async (user: UserRequest) => {
+          const waterMeters = await getWaterMetersByUserId(user.id);
+          return { ...user, waterMeters };
+        })
+      );
+
+      setUsers(usersWithMeters);
+      setFilteredUsers(usersWithMeters);
+    } catch (err) {
+      showError("Ошибка загрузки данных пользователей.", 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchUsersWithMeters = async () => {
-      try {
-        const usersData = await getAllUser();
-        
-        // Получаем счетчики для каждого пользователя
-        const usersWithMeters = await Promise.all(
-          usersData.map(async (user: UserRequest) => {
-            const waterMeters = await getWaterMetersByUserId(user.id);
-            return { ...user, waterMeters };
-          })
-        );
-
-        setUsers(usersWithMeters);
-        setFilteredUsers(usersWithMeters);
-      } catch (err) {
-        showError("Ошибка загрузки данных пользователей.", 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUsersWithMeters();
     clearError(); // Очищаем ошибки при монтировании
-  }, [clearError]);
+  }, [clearError, page, pageSize]);
+
+  // Обработчики для пагинации
+  const handlePrevPage = () => {
+    if (page > 1) {
+      setPage(prev => prev - 1);
+    }
+  };
+  
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      setPage(prev => prev + 1);
+    }
+  };
+  
+  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSize = parseInt(e.target.value);
+    setPageSize(newSize);
+    setPage(1); // Сбрасываем на первую страницу при изменении размера
+  };
 
   const getMeterTypeText = (type: number) => type === 1 ? "Горячая вода" : "Холодная вода";
   const getMeterLocationText = (location: number) => location === 1 ? "Кухня" : "Ванная";
@@ -729,19 +801,64 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Поиск по номеру квартиры
               </label>
-              <input
-                type="text"
-                value={filter.apartment}
-                onChange={handleFilterChange}
-                placeholder="Введите номер квартиры"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={filter.apartment}
+                  onChange={handleFilterChange}
+                  placeholder="Введите номер квартиры"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                />
+                <button
+                  onClick={searchByApartment}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                >
+                  Найти
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
+        {/* Пагинация */}
+        <div className="px-6 py-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+          <div className="text-sm text-gray-600">
+            Всего: {totalUsers} пользователей. Показано {filteredUsers.length} пользователей.
+          </div>
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-600">
+              Пользователей на странице:
+              <select 
+                value={pageSize} 
+                onChange={handlePageSizeChange}
+                className="ml-2 border rounded p-1"
+              >
+                <option value={10}>10</option>
+                <option value={30}>30</option>
+              </select>
+            </label>
+            <button 
+              onClick={handlePrevPage} 
+              disabled={page === 1}
+              className={`px-3 py-1 rounded ${page === 1 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            >
+              &lt; Назад
+            </button>
+            <span className="text-sm">
+              Страница {page} из {totalPages}
+            </span>
+            <button 
+              onClick={handleNextPage} 
+              disabled={page === totalPages}
+              className={`px-3 py-1 rounded ${page === totalPages ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            >
+              Вперед &gt;
+            </button>
+          </div>
+        </div>
+
         {/* Содержимое */}
-        <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 200px)' }}>
+        <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 250px)' }}>
           {loading ? (
             <div className="p-6 text-center">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
@@ -967,6 +1084,7 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
             </div>
           )}
         </div>
+        
       </div>
     </div>
   );

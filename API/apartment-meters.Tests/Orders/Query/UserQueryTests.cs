@@ -15,6 +15,8 @@ public class UserQueryTests
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<ICachedRepository<UserEntity, Guid>> _cachedRepositoryMock;
     private readonly Mock<ILogger<UserQuery>> _loggerMock;
+    private readonly Mock<IWaterMeterRepository> _waterMeterRepositoryMock;
+    private readonly Mock<IMeterReadingRepository> _meterReadingRepositoryMock;
     private readonly UserQuery _userQuery;
     
     /// <summary>
@@ -22,12 +24,16 @@ public class UserQueryTests
     /// </summary>
     public UserQueryTests()
     {
+        _waterMeterRepositoryMock = new Mock<IWaterMeterRepository>();
+        _meterReadingRepositoryMock = new Mock<IMeterReadingRepository>();
         _userRepositoryMock = new Mock<IUserRepository>();
         _cachedRepositoryMock = new Mock<ICachedRepository<UserEntity, Guid>>();
         _loggerMock = new Mock<ILogger<UserQuery>>();
         _userQuery = new UserQuery(
             _userRepositoryMock.Object, 
             _cachedRepositoryMock.Object,
+            _waterMeterRepositoryMock.Object,
+            _meterReadingRepositoryMock.Object,
             _loggerMock.Object);
     }
     

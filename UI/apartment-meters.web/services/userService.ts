@@ -11,9 +11,70 @@ export interface UserRequest {
     role: number;
 }
 
+export interface PaginatedUsersResponse {
+    items: UserWithMetersAndReadings[];
+    totalCount: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface UserWithMetersAndReadings {
+    id: string;
+    apartmentNumber: number;
+    lastName: string;
+    firstName: string;
+    middleName: string;
+    phoneNumber: string;
+    role: number;
+    waterMeters: WaterMeterWithReadings[];
+}
+
+export interface WaterMeterWithReadings {
+    id: string;
+    userId: string;
+    placeOfWaterMeter: number;
+    waterType: number;
+    factoryNumber: string;
+    factoryYear: Date;
+    readings: MeterReading[];
+}
+
+export interface MeterReading {
+    id: string;
+    waterMeterId: string;
+    waterValue: string;
+    differenceValue: number;
+    readingDate: Date;
+}
+
 export const getAllUser = async () => {
     const response = await api.get('/api/users');
     return response.data;
+};
+
+export const getPaginatedUsers = async (page: number = 1, pageSize: number = 30) => {
+    try {
+        console.log(`Получение пагинированных данных пользователей (страница: ${page}, размер: ${pageSize})`);
+        const response = await api.get(`/api/users/paginated?page=${page}&pageSize=${pageSize}`);
+        return response.data;
+    } catch (error) {
+        console.error('Ошибка при получении пагинированных данных пользователей:', error);
+        throw error;
+    }
+};
+
+export const getPaginatedUsersWithMeters = async (page: number = 1, pageSize: number = 20) => {
+    try {
+        console.log(`Получение пагинированных данных пользователей с их счетчиками (страница: ${page}, размер: ${pageSize})`);
+        const response = await api.get(`/api/users/admin/paginated?page=${page}&pageSize=${pageSize}`);
+        return response.data;
+    } catch (error) {
+        console.error('Ошибка при получении пагинированных данных пользователей:', error);
+        throw error;
+    }
 };
 
 export const getUserById = async (id: string) => {
