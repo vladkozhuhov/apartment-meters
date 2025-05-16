@@ -71,8 +71,23 @@ export const getPaginatedUsersWithMeters = async (page: number = 1, pageSize: nu
         console.log(`Получение пагинированных данных пользователей с их счетчиками (страница: ${page}, размер: ${pageSize})`);
         const response = await api.get(`/api/users/admin/paginated?page=${page}&pageSize=${pageSize}`);
         return response.data;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Ошибка при получении пагинированных данных пользователей:', error);
+        
+        // Если ошибка 404 (данных нет), возвращаем пустой объект с правильной структурой
+        if (error.response && error.response.status === 404) {
+            console.log('Данных нет, возвращаем пустой объект');
+            return {
+                items: [],
+                totalCount: 0,
+                page: page,
+                pageSize: pageSize,
+                totalPages: 1,
+                hasNext: false,
+                hasPrevious: false
+            };
+        }
+        
         throw error;
     }
 };

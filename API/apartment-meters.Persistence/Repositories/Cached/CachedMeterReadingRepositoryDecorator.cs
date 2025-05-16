@@ -243,6 +243,49 @@ public class CachedMeterReadingRepositoryDecorator : IMeterReadingRepository
         await InvalidateMeterReadingCacheAsync(meterReading.Id, meterReading.WaterMeterId);
     }
     
+    /// <inheritdoc />
+    public async Task<IEnumerable<MeterReadingEntity>> GetAllByWaterMeterIdAsync(Guid waterMeterId)
+    {
+        string key = $"{MeterReadingsByWaterMeterIdPrefix}all-{waterMeterId}";
+        
+        // Пытаемся получить данные из кэша
+        string? cachedData = await _distributedCache.GetStringAsync(key);
+        
+        if (!string.IsNullOrEmpty(cachedData))
+        {
+            try
+            {
+                var meterReadings = JsonSerializer.Deserialize<IEnumerable<MeterReadingEntity>>(cachedData);
+                _logger.LogInformation("Все данные показаний для счетчика с ID {WaterMeterId} получены из кэша", waterMeterId);
+                return meterReadings ?? Enumerable.Empty<MeterReadingEntity>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Ошибка при десериализации полного списка показаний счетчика из кэша");
+            }
+        }
+        
+        // Если данных нет в кэше, получаем из репозитория
+        var result = await _decorated.GetAllByWaterMeterIdAsync(waterMeterId);
+        
+        // Если данные найдены, сохраняем в кэш
+        if (result != null && result.Any())
+        {
+            try
+            {
+                string serializedData = JsonSerializer.Serialize(result);
+                await _distributedCache.SetStringAsync(key, serializedData, _options);
+                _logger.LogInformation("Все данные показаний для счетчика с ID {WaterMeterId} сохранены в кэш", waterMeterId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Ошибка при сохранении полного списка показаний счетчика в кэш");
+            }
+        }
+        
+        return result;
+    }
+    
     /// <summary>
     /// Инвалидирует кэш для конкретного показания или для показаний счетчика
     /// </summary>
@@ -263,6 +306,9 @@ public class CachedMeterReadingRepositoryDecorator : IMeterReadingRepository
             {
                 string waterMeterReadingsKey = $"{MeterReadingsByWaterMeterIdPrefix}{waterMeterId}";
                 await _distributedCache.RemoveAsync(waterMeterReadingsKey);
+                
+                string allWaterMeterReadingsKey = $"{MeterReadingsByWaterMeterIdPrefix}all-{waterMeterId}";
+                await _distributedCache.RemoveAsync(allWaterMeterReadingsKey);
                 
                 string lastWaterMeterReadingKey = $"{LastMeterReadingByWaterMeterIdPrefix}{waterMeterId}";
                 await _distributedCache.RemoveAsync(lastWaterMeterReadingKey);

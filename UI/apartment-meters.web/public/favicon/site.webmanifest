@@ -1,14 +1,33 @@
 {
-  "name": "ЖСК-25-А",
-  "short_name": "ЖСК-25-А",
+  "name": "Передача показаний ЖСК-25-А",
+  "short_name": "Передача показаний ЖСК",
   "icons": [
     {
       "src": "/favicon/android-chrome-192x192.png",
       "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon/favicon-16x16.png",
+      "sizes": "16x16",
       "type": "image/png"
     }
   ],
-  "theme_color": "#ffffff",
+  "theme_color": "#3b82f6",
   "background_color": "#ffffff",
-  "display": "standalone"
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/"
 }

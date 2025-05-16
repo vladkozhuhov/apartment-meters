@@ -2,7 +2,6 @@ using Application.Interfaces.Commands;
 using Application.Interfaces.Queries;
 using Application.Models.WaterMeterModel;
 using Application.Services;
-using Application.Exceptions;
 using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;

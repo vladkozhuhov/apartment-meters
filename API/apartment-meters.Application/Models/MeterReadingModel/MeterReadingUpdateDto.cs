@@ -23,8 +23,7 @@ public class MeterReadingUpdateDto
     public string WaterValue { get; set; } = "00000,000";
 
     /// <summary>
-    /// Дата, на которую было зафиксировано показание
+    /// Дата, на которую было зафиксировано показание (необязательно - при отсутствии используется оригинальная дата)
     /// </summary>
-    [Required]
-    public DateTime ReadingDate { get; set; }
+    public DateTime? ReadingDate { get; set; }
 }

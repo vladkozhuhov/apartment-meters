@@ -6,6 +6,7 @@ using Domain.Enums;
 using Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
+using System.Linq;
 
 namespace Application.Orders.Commands;
 
@@ -98,43 +99,105 @@ public class MeterReadingCommand : IMeterReadingCommand
         if (waterReading == null)
         {
             _logger.LogWarning("Показание с ID {MeterReadingId} не найдено", id);
-            throw new MeterReadingValidationException(ErrorType.MeterReadingNotFoundError352);
+            throw new KeyNotFoundException($"Показание счетчика с идентификатором {id} не найдено.");
         }
-
-        var previousReading = await _meterReadingRepository.GetLastByWaterMeterIdAsync(dto.WaterMeterId);
 
         try
         {
             // Форматируем значение в нужный формат (00000,000)
             string formattedValue = FormatWaterValue(dto.WaterValue);
             
-            // Преобразуем строковые значения в double для расчета разницы
+            // Преобразуем строковое значение в double
             double currentValue = ParseWaterValue(formattedValue);
-            double previousValue = previousReading != null ? ParseWaterValue(previousReading.WaterValue) : 0;
-
-            // Проверяем, что новое показание не меньше предыдущего
-            // Исключение: если мы редактируем само предыдущее показание
-            if (previousReading != null && id != previousReading.Id && currentValue < previousValue)
+            
+            try
             {
-                _logger.LogWarning("Попытка обновить показание ({CurrentValue}), которое меньше предыдущего ({PreviousValue})",
-                    formattedValue, previousReading.WaterValue);
-                throw new MeterReadingValidationException(ErrorType.MeterReadingLessThanPreviousError353);
+                // Сохраняем оригинальные идентификатор счетчика и дату
+                Guid waterMeterId = waterReading.WaterMeterId;
+                DateTime readingDate = waterReading.ReadingDate;
+                
+                // Получаем предыдущее показание для корректного расчета разницы
+                var prevReadings = await _meterReadingRepository.GetAllByWaterMeterIdAsync(waterMeterId);
+                
+                if (prevReadings == null || !prevReadings.Any())
+                {
+                    // Если показаний для этого водомера нет, просто обновляем текущее показание без расчета разницы
+                    waterReading.WaterValue = formattedValue;
+                    // DifferenceValue оставляем без изменений
+                    
+                    await _meterReadingRepository.UpdateAsync(waterReading);
+                    _logger.LogInformation("Показание с ID {MeterReadingId} успешно обновлено", id);
+                    return;
+                }
+                
+                var sortedReadings = prevReadings
+                    .OrderBy(r => r.ReadingDate)
+                    .ToList();
+                
+                // Находим индекс текущего показания
+                int currentIndex = sortedReadings.FindIndex(r => r.Id == id);
+                if (currentIndex < 0) 
+                {
+                    _logger.LogWarning("Не удалось найти показание с ID {MeterReadingId} в списке показаний", id);
+                    // Используем переданное значение без изменения differenceValue
+                    waterReading.WaterValue = formattedValue;
+                    // DifferenceValue оставляем без изменений
+                    
+                    await _meterReadingRepository.UpdateAsync(waterReading);
+                    _logger.LogInformation("Показание с ID {MeterReadingId} успешно обновлено", id);
+                    return;
+                }
+                
+                // Расчет разницы исходя из положения показания в последовательности
+                double prevValue = 0;
+                double differenceValue = 0;
+                
+                // Получаем предыдущее значение (если это не первое показание)
+                if (currentIndex > 0)
+                {
+                    prevValue = ParseWaterValue(sortedReadings[currentIndex - 1].WaterValue);
+                    differenceValue = Math.Round(currentValue - prevValue, 3);
+                }
+                
+                // Обновляем только значение показания и разницу
+                waterReading.WaterValue = formattedValue;
+                waterReading.DifferenceValue = differenceValue;
+                
+                await _meterReadingRepository.UpdateAsync(waterReading);
+                _logger.LogInformation("Показание с ID {MeterReadingId} успешно обновлено", id);
+                
+                // Если это не последнее показание, нужно пересчитать разницу для следующего показания
+                if (currentIndex < sortedReadings.Count - 1)
+                {
+                    var nextReading = sortedReadings[currentIndex + 1];
+                    double nextValue = ParseWaterValue(nextReading.WaterValue);
+                    
+                    // Обновляем разницу для следующего показания
+                    nextReading.DifferenceValue = Math.Round(nextValue - currentValue, 3);
+                    await _meterReadingRepository.UpdateAsync(nextReading);
+                    _logger.LogInformation("Также обновлена разница для следующего показания с ID {NextReadingId}", nextReading.Id);
+                }
             }
-
-            // Вычисляем разницу и округляем до 3 десятичных знаков
-            double differenceValue = previousReading != null ? Math.Round(currentValue - previousValue, 3) : 0;
-
-            waterReading.WaterMeterId = dto.WaterMeterId;
-            waterReading.WaterValue = formattedValue;
-            waterReading.DifferenceValue = differenceValue;
-
-            await _meterReadingRepository.UpdateAsync(waterReading);
-            _logger.LogInformation("Показание с ID {MeterReadingId} успешно обновлено", id);
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при получении или обработке показаний при обновлении");
+                // Запасной вариант - просто обновляем значение показания без сложной логики
+                waterReading.WaterValue = formattedValue;
+                
+                await _meterReadingRepository.UpdateAsync(waterReading);
+                _logger.LogInformation("Показание с ID {MeterReadingId} успешно обновлено (запасной способ)", id);
+                return;
+            }
         }
         catch (FormatException ex)
         {
             _logger.LogWarning(ex, "Неверный формат показания: {WaterValue}", dto.WaterValue);
             throw new MeterReadingValidationException(ErrorType.InvalidMeterReadingFormatError354);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Непредвиденная ошибка при обновлении показания {MeterReadingId}", id);
+            throw new BusinessLogicException(ErrorType.InvalidDataFormatError401, "Произошла ошибка при обновлении показания счетчика.");
         }
     }
     

@@ -65,9 +65,9 @@ appsettings.Development.json
 # Конфигурационные файлы пользователей
 .env
 .env.*
-# НЕ игнорировать шаблоны для разных сред
-!.env.development
-!.env.production
+# Удаляем исключения
+# !.env.development
+# !.env.production
 
 # Лог-файлы
 *.log
@@ -93,7 +93,7 @@ secrets.json
 # Docker
 # Dockerfile
 # docker-compose.yml
-# docker-compose.*.yml
+docker-compose.dev.yml
 .dockerignore
 
 # Terraform
@@ -147,3 +147,9 @@ packages/
 # Эти файлы должны генерироваться автоматически в зависимости от ветки
 config.env.js
 .env.current
+
+# Дополнительно игнорируем файлы разработки
+API/apartment-meters.API/Dockerfile.dev
+UI/apartment-meters.web/Dockerfile.dev
+choose-env.sh
+scripts/setup-env.sh

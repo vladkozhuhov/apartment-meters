@@ -1,6 +1,6 @@
 {
-  "name": "Apartment Meters",
-  "short_name": "A-Meters",
+  "name": "Передача показаний ЖСК-25-А",
+  "short_name": "Передача показаний ЖСК",
   "description": "Приложение для учета и контроля показаний счетчиков в квартирах",
   "start_url": "/",
   "display": "standalone",
@@ -8,15 +8,25 @@
   "theme_color": "#3b82f6",
   "icons": [
     {
-      "src": "/vercel.svg",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "/favicon/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
     },
     {
-      "src": "/next.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
+      "src": "/favicon/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
       "purpose": "any"
     }
   ],

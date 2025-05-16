@@ -1,15 +1,6 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 WORKDIR /app
-
-# Создаем папки проектов
-RUN mkdir -p apartment-meters.API \
-    apartment-meters.Domain \
-    apartment-meters.Application \
-    apartment-meters.Infrastructure \
-    apartment-meters.Persistence
-
-# Монтируем все файлы проекта из томов вместо копирования
 
 # Устанавливаем инструменты для разработки
 RUN dotnet tool install --global dotnet-ef
@@ -18,5 +9,23 @@ RUN dotnet tool install --global dotnet-watch
 # Добавляем инструменты в PATH
 ENV PATH="${PATH}:/root/.dotnet/tools"
 
-# Запускаем приложение
-ENTRYPOINT ["dotnet", "watch", "--project", "apartment-meters.API/apartment-meters.API.csproj", "run", "--urls=http://0.0.0.0:8080"] 
+# Создаем папки для проектов
+RUN mkdir -p ./apartment-meters.API/ \
+    ./apartment-meters.Domain/ \
+    ./apartment-meters.Application/ \
+    ./apartment-meters.Infrastructure/ \
+    ./apartment-meters.Persistence/ \
+    ./apartment-meters.Tests/
+
+# Указываем порт 5001
+EXPOSE 5001
+
+# Настраиваем URL API на порт 5001
+ENV ASPNETCORE_URLS=http://+:5001
+ENV ASPNETCORE_HTTP_PORTS=5001
+ENV ASPNETCORE_ENVIRONMENT=Development
+
+# Запускаем скрипт для восстановления пакетов с проверкой наличия файлов проекта
+ENTRYPOINT dotnet restore apartment-meters.API/apartment-meters.API.csproj && \
+           dotnet restore apartment-meters.Application/apartment-meters.Application.csproj && \
+           dotnet watch --project apartment-meters.API/apartment-meters.API.csproj run --urls=http://0.0.0.0:5001 
