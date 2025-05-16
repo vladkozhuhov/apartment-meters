@@ -195,7 +195,7 @@ const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuc
   });
 
   return (
-    <form onSubmit={handleAddReadings} className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center p-4 z-50">
+    <form onSubmit={handleAddReadings} className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-80 backdrop-blur-sm flex justify-center items-center p-4 z-50">
       <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-[480px] max-h-[90vh] overflow-y-auto">
         {Object.entries(groupedMeters).map(([place, meters]) => (
           <div key={place} className="mb-4 sm:mb-6">

@@ -25,7 +25,6 @@ public interface IMeterReadingCommand
     /// <param name="dto">DTO с обновленными данными показания</param>
     /// <exception cref="ArgumentNullException">Если dto равен null</exception>
     /// <exception cref="KeyNotFoundException">Если показание с указанным id не найдено</exception>
-    /// <exception cref="InvalidOperationException">Если новое показание меньше предыдущего</exception>
     /// <exception cref="FormatException">Если формат показания неверный</exception>
     Task UpdateMeterReadingAsync(Guid id, MeterReadingUpdateDto dto);
     

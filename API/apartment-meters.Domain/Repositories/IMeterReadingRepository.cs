@@ -54,4 +54,11 @@ public interface IMeterReadingRepository
     /// <param name="waterMeterId">Идентификатор счетчика</param>
     /// <returns>Последнее показание водомера</returns>
     Task<MeterReadingEntity?> GetLastByWaterMeterIdAsync(Guid waterMeterId);
+    
+    /// <summary>
+    /// Получить все показания водомера по идентификатору счетчика
+    /// </summary>
+    /// <param name="waterMeterId">Идентификатор счетчика</param>
+    /// <returns>Список всех показаний для указанного счетчика</returns>
+    Task<IEnumerable<MeterReadingEntity>> GetAllByWaterMeterIdAsync(Guid waterMeterId);
 }

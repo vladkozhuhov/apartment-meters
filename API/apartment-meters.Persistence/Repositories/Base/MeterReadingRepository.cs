@@ -73,4 +73,13 @@ public class MeterReadingRepository : IMeterReadingRepository
             .OrderByDescending(m => m.ReadingDate)
             .FirstOrDefaultAsync();
     }
+    
+    /// <inheritdoc />
+    public async Task<IEnumerable<MeterReadingEntity>> GetAllByWaterMeterIdAsync(Guid waterMeterId)
+    {
+        return await _dbContext.MeterReadings
+            .Where(m => m.WaterMeterId == waterMeterId)
+            .OrderBy(m => m.ReadingDate)
+            .ToListAsync();
+    }
 }

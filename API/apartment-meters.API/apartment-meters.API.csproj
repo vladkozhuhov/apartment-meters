@@ -25,6 +25,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\apartment-meters.Application\apartment-meters.Application.csproj" />
+      <ProjectReference Include="..\apartment-meters.Domain\apartment-meters.Domain.csproj" />
       <ProjectReference Include="..\apartment-meters.Infrastructure\apartment-meters.Infrastructure.csproj" />
       <ProjectReference Include="..\apartment-meters.Persistence\apartment-meters.Persistence.csproj" />
     </ItemGroup>

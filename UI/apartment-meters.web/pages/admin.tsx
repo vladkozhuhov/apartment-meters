@@ -7,6 +7,8 @@ import UsersList from '@/components/UserListComponent';
 import { getWaterMetersByUserId } from '../services/waterMeterService';
 import { isAuthenticated, logout } from '../services/authService';
 import { useRouter } from 'next/router';
+import EditMeterReadingComponent from '@/components/EditMeterReadingComponent';
+import AdminAddMeterReadingComponent from '@/components/AdminAddMeterReadingComponent';
 
 interface MeterReading {
   id: string;
@@ -84,6 +86,12 @@ const AdminPage: React.FC = () => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [readingsPerPage, setReadingsPerPage] = useState(20);
   const [currentReadingsPage, setCurrentReadingsPage] = useState(1);
+  
+  // Состояние для отслеживания редактируемого показания
+  const [editingReadingId, setEditingReadingId] = useState<string | null>(null);
+  
+  // Состояние для отображения формы добавления показаний
+  const [showAddReadingsForm, setShowAddReadingsForm] = useState(false);
   
   // Устанавливаем флаг клиентского рендеринга
   useEffect(() => {
@@ -186,49 +194,6 @@ const AdminPage: React.FC = () => {
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilter((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const applyFilter = () => {
-    let result = readings;
-
-    if (filter.apartment) {
-      // Сначала находим пользователя по номеру квартиры
-      const filteredUsers = users.filter(
-        user => user.apartmentNumber.toString() === filter.apartment
-      );
-      
-      // Затем находим все водомеры этих пользователей
-      const userIds = filteredUsers.map(user => user.id);
-      const relevantWaterMeterIds = waterMeters
-        .filter(wm => userIds.includes(wm.userId))
-        .map(wm => wm.id);
-      
-      // Фильтруем показания по найденным водомерам
-      result = result.filter(
-        reading => relevantWaterMeterIds.includes(reading.waterMeterId)
-      );
-    }
-
-    if (filter.month) {
-      result = result.filter(
-        (r) => new Date(r.readingDate).getMonth() + 1 === parseInt(filter.month)
-      );
-    }
-
-    if (filter.year) {
-      result = result.filter(
-        (r) => new Date(r.readingDate).getFullYear() === parseInt(filter.year)
-      );
-    }
-
-    setFilteredReadings(result);
-    console.log('Применен фильтр:', {
-      apartment: filter.apartment,
-      month: filter.month,
-      year: filter.year,
-      resultCount: result.length,
-      filteredReadings: result
-    });
   };
 
   const handleUpdate = async (id: string, updatedData: Partial<MeterReading>) => {
@@ -447,6 +412,22 @@ const AdminPage: React.FC = () => {
     }
   }, [readings, filter, waterMeters, users, sortConfig]);
 
+  // Функция для начала редактирования показания
+  const handleEditReading = (readingId: string) => {
+    setEditingReadingId(readingId);
+  };
+
+  // Функция для завершения редактирования
+  const handleEditSuccess = () => {
+    setEditingReadingId(null);
+    fetchPaginatedData(); // Обновляем данные после редактирования
+  };
+
+  // Функция для отмены редактирования
+  const handleEditCancel = () => {
+    setEditingReadingId(null);
+  };
+
   // Если страница еще не загружена на клиенте, показываем пустую разметку
   if (!isClient) {
     return <div className="min-h-screen flex items-center justify-center"></div>;
@@ -463,7 +444,7 @@ const AdminPage: React.FC = () => {
 
         {/* Фильтры */}
         <div className="bg-blue-50 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Квартира:
@@ -522,24 +503,36 @@ const AdminPage: React.FC = () => {
                 </select>
               </label>
             </div>
-            <div className="flex flex-col justify-end gap-2">
-              <button 
-                onClick={applyFilter} 
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 w-full text-sm"
-              >
-                Применить фильтр
-              </button>
-              <button
-                onClick={() => setShowForm(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 w-full text-sm"
-              >
-                Просмотр пользователей
-              </button>
-            </div>
+          </div>
+          
+          {/* Кнопки в одну строку */}
+          <div className="flex flex-wrap gap-2 justify-end">
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+            >
+              Просмотр пользователей
+            </button>
+            <button
+              onClick={() => setShowAddReadingsForm(true)}
+              className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium"
+            >
+              Добавить показания
+            </button>
           </div>
         </div>
 
         {showForm && <UsersList onClose={() => setShowForm(false)} />}
+
+        {showAddReadingsForm && (
+          <AdminAddMeterReadingComponent
+            onSuccess={() => {
+              setShowAddReadingsForm(false);
+              fetchPaginatedData(); // Обновляем данные после добавления
+            }}
+            onCancel={() => setShowAddReadingsForm(false)}
+          />
+        )}
 
         {loading ? (
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
@@ -638,14 +631,140 @@ const AdminPage: React.FC = () => {
                         <td className="border border-gray-300 px-2 py-1 sm:px-4 sm:py-2">
                           {user ? user.apartmentNumber : 'Не найден'}
                         </td>
-                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.bathroomHot}</td>
-                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.bathroomHotDiff}</td>
-                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.bathroomCold}</td>
-                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.bathroomColdDiff}</td>
-                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.kitchenHot}</td>
-                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.kitchenHotDiff}</td>
-                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.kitchenCold}</td>
-                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">{reading.kitchenColdDiff}</td>
+                        
+                        {/* Ванная - горячая вода */}
+                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2 relative group">
+                          {reading.bathroomHot}
+                          {reading.bathroomHot !== '-' && (
+                            <button
+                              onClick={() => {
+                                // Найти показание по водомеру
+                                const bathHotMeter = waterMeters.find(meter => 
+                                  meter.placeOfWaterMeter === 0 && meter.waterType === 1 && meter.userId === reading.userId
+                                );
+                                if (bathHotMeter) {
+                                  // Найти показание по этому водомеру и этой дате
+                                  const readingData = readings.find(r => 
+                                    r.waterMeterId === bathHotMeter.id && 
+                                    new Date(r.readingDate).toDateString() === reading.date.toDateString()
+                                  );
+                                  if (readingData) {
+                                    handleEditReading(readingData.id);
+                                  }
+                                }
+                              }}
+                              className="opacity-0 group-hover:opacity-100 absolute top-1 right-1 p-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200"
+                              title="Редактировать показание"
+                            >
+                              <svg className="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                              </svg>
+                            </button>
+                          )}
+                        </td>
+                        
+                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">
+                          {reading.bathroomHotDiff}
+                        </td>
+                        
+                        {/* Ванная - холодная вода */}
+                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2 relative group">
+                          {reading.bathroomCold}
+                          {reading.bathroomCold !== '-' && (
+                            <button
+                              onClick={() => {
+                                const bathColdMeter = waterMeters.find(meter => 
+                                  meter.placeOfWaterMeter === 0 && meter.waterType === 0 && meter.userId === reading.userId
+                                );
+                                if (bathColdMeter) {
+                                  const readingData = readings.find(r => 
+                                    r.waterMeterId === bathColdMeter.id && 
+                                    new Date(r.readingDate).toDateString() === reading.date.toDateString()
+                                  );
+                                  if (readingData) {
+                                    handleEditReading(readingData.id);
+                                  }
+                                }
+                              }}
+                              className="opacity-0 group-hover:opacity-100 absolute top-1 right-1 p-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200"
+                              title="Редактировать показание"
+                            >
+                              <svg className="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                              </svg>
+                            </button>
+                          )}
+                        </td>
+                        
+                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">
+                          {reading.bathroomColdDiff}
+                        </td>
+                        
+                        {/* Кухня - горячая вода */}
+                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2 relative group">
+                          {reading.kitchenHot}
+                          {reading.kitchenHot !== '-' && (
+                            <button
+                              onClick={() => {
+                                const kitchenHotMeter = waterMeters.find(meter => 
+                                  meter.placeOfWaterMeter === 1 && meter.waterType === 1 && meter.userId === reading.userId
+                                );
+                                if (kitchenHotMeter) {
+                                  const readingData = readings.find(r => 
+                                    r.waterMeterId === kitchenHotMeter.id && 
+                                    new Date(r.readingDate).toDateString() === reading.date.toDateString()
+                                  );
+                                  if (readingData) {
+                                    handleEditReading(readingData.id);
+                                  }
+                                }
+                              }}
+                              className="opacity-0 group-hover:opacity-100 absolute top-1 right-1 p-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200"
+                              title="Редактировать показание"
+                            >
+                              <svg className="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                              </svg>
+                            </button>
+                          )}
+                        </td>
+                        
+                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">
+                          {reading.kitchenHotDiff}
+                        </td>
+                        
+                        {/* Кухня - холодная вода */}
+                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2 relative group">
+                          {reading.kitchenCold}
+                          {reading.kitchenCold !== '-' && (
+                            <button
+                              onClick={() => {
+                                const kitchenColdMeter = waterMeters.find(meter => 
+                                  meter.placeOfWaterMeter === 1 && meter.waterType === 0 && meter.userId === reading.userId
+                                );
+                                if (kitchenColdMeter) {
+                                  const readingData = readings.find(r => 
+                                    r.waterMeterId === kitchenColdMeter.id && 
+                                    new Date(r.readingDate).toDateString() === reading.date.toDateString()
+                                  );
+                                  if (readingData) {
+                                    handleEditReading(readingData.id);
+                                  }
+                                }
+                              }}
+                              className="opacity-0 group-hover:opacity-100 absolute top-1 right-1 p-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200"
+                              title="Редактировать показание"
+                            >
+                              <svg className="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                              </svg>
+                            </button>
+                          )}
+                        </td>
+                        
+                        <td className="border border-gray-300 px-1 py-1 sm:px-4 sm:py-2">
+                          {reading.kitchenColdDiff}
+                        </td>
                       </tr>
                     );
                   })}
@@ -655,6 +774,15 @@ const AdminPage: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Модальное окно редактирования показания */}
+      {editingReadingId && (
+        <EditMeterReadingComponent
+          readingId={editingReadingId}
+          onSuccess={handleEditSuccess}
+          onCancel={handleEditCancel}
+        />
+      )}
     </div>
   );
 };

@@ -154,8 +154,55 @@ public class MeterReadingController : ControllerBase
     public async Task<IActionResult> UpdateMeterReading(Guid id, [FromBody] MeterReadingUpdateDto meterReadingUpdateDto)
     {
         _logger.LogInformation("Запрос на обновление показания с ID {MeterReadingId}", id);
-        await _command.UpdateMeterReadingAsync(id, meterReadingUpdateDto);
-        return NoContent();
+        
+        try
+        {
+            // Проверяем наличие обязательных полей в запросе
+            if (meterReadingUpdateDto == null)
+            {
+                return BadRequest(new { message = "Тело запроса не может быть пустым" });
+            }
+            
+            if (meterReadingUpdateDto.WaterMeterId == Guid.Empty)
+            {
+                return BadRequest(new { message = "Идентификатор водомера не может быть пустым" });
+            }
+
+            await _command.UpdateMeterReadingAsync(id, meterReadingUpdateDto);
+            return NoContent();
+        }
+        catch (BusinessLogicException ex) when (ex.ErrorType == ErrorType.MeterReadingLessThanPreviousError353)
+        {
+            _logger.LogWarning("Попытка установить показание меньше предыдущего: {ErrorMessage}", ex.Message);
+            return BadRequest(new { 
+                errorType = ex.ErrorType,
+                message = "Новое показание не может быть меньше предыдущего."
+            });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning("Не найдено показание: {ErrorMessage}", ex.Message);
+            return NotFound(new { 
+                errorType = ErrorType.MeterReadingNotFoundError352,
+                message = ex.Message
+            });
+        }
+        catch (MeterReadingValidationException ex)
+        {
+            _logger.LogWarning("Ошибка валидации: {ErrorType}, {ErrorMessage}", ex.ErrorType, ex.Message);
+            return BadRequest(new { 
+                errorType = ex.ErrorType,
+                message = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при обновлении показания счетчика {MeterReadingId}", id);
+            return StatusCode(500, new {
+                errorType = ErrorType.InvalidDataFormatError401,
+                message = "Произошла ошибка при обновлении показания счетчика."
+            });
+        }
     }
 
     /// <summary>

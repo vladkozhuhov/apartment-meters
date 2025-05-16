@@ -5,7 +5,13 @@ export interface MeterReadingRequest {
     waterMeterId: string;
     waterValue: string;
     differenceValue: number;
-    readingDate: Date;
+    readingDate: string | Date;
+}
+
+export interface MeterReadingUpdateRequest {
+    waterMeterId: string;
+    waterValue: string;
+    readingDate?: string | Date;
 }
 
 export const getAllMeterReading = async () => {
@@ -28,7 +34,7 @@ export const addMeterReading = async (meterReadingRequest: MeterReadingRequest) 
     return response.data;
 };
 
-export const updateMeterReading = async (id: string, meterReadingRequest: MeterReadingRequest) => {
+export const updateMeterReading = async (id: string, meterReadingRequest: MeterReadingUpdateRequest) => {
     const response = await api.put(`/api/meter-readings/${id}`, meterReadingRequest);
     return response.data;
 };

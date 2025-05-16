@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAllUser, getPaginatedUsers, getUserByApartmentNumber, UserRequest, updateUser } from "../services/userService";
+import { getAllUser, getPaginatedUsers, getPaginatedUsersWithMeters, getUserByApartmentNumber, UserRequest, UserWithMetersAndReadings, updateUser } from "../services/userService";
 import { getWaterMetersByUserId, WaterMeterRequest, WaterMeterUpdateRequest, updateWaterMeter } from "../services/waterMeterService";
 import { useError } from '../contexts/ErrorContext';
 import { ErrorType } from '../hooks/useErrorHandler';
@@ -8,9 +8,8 @@ interface UsersListProps {
   onClose: () => void;
 }
 
-interface UserWithMeters extends UserRequest {
-  waterMeters: WaterMeterRequest[];
-}
+// Для совместимости с существующим кодом
+type UserWithMeters = UserWithMetersAndReadings;
 
 // Группы кодов ошибок для удобства обработки
 const USER_ERRORS = {
@@ -612,24 +611,43 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
       setLoading(true);
       
       // Получаем пользователей с пагинацией
-      const response = await getPaginatedUsers(page, pageSize);
+      const response = await getPaginatedUsersWithMeters(page, pageSize);
       
-      // Обновляем метаданные пагинации
-      setTotalPages(response.totalPages);
-      setTotalUsers(response.totalCount);
+      // Проверяем, что данные пришли и у нас есть массив items
+      if (response && response.items) {
+        // Обновляем метаданные пагинации
+        setTotalPages(response.totalPages || 1);
+        setTotalUsers(response.totalCount || 0);
+        
+        // Если в ответе нет элементов, показываем пустой список
+        if (!response.items.length) {
+          console.log('Получен пустой список пользователей');
+          setUsers([]);
+          setFilteredUsers([]);
+          setLoading(false);
+          return;
+        }
+        
+        // Для каждого пользователя уже есть информация о его счетчиках
+        setUsers(response.items);
+        setFilteredUsers(response.items);
+      } else {
+        // Если нет данных, устанавливаем пустой массив
+        console.warn('Ответ API не содержит данных или отсутствует поле "items"');
+        setUsers([]);
+        setFilteredUsers([]);
+      }
+    } catch (err: any) {
+      console.error('Ошибка загрузки данных пользователей:', err);
       
-      // Получаем счетчики для каждого пользователя на текущей странице
-      const usersWithMeters = await Promise.all(
-        response.items.map(async (user: UserRequest) => {
-          const waterMeters = await getWaterMetersByUserId(user.id);
-          return { ...user, waterMeters };
-        })
-      );
-
-      setUsers(usersWithMeters);
-      setFilteredUsers(usersWithMeters);
-    } catch (err) {
-      showError("Ошибка загрузки данных пользователей.", 'error');
+      // Если это ошибка 404, обрабатываем особым образом - просто показываем пустой список
+      if (err.response && err.response.status === 404) {
+        console.log('Пользователи не найдены (404), показываем пустой список');
+        setUsers([]);
+        setFilteredUsers([]);
+      } else {
+        showError("Ошибка загрузки данных пользователей.", 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -779,7 +797,7 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex justify-center items-center p-4 overflow-y-auto z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
         {/* Заголовок */}
         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
@@ -866,6 +884,32 @@ const UsersList: React.FC<UsersListProps> = ({ onClose }) => {
             </div>
           ) : error ? (
             <div className="p-6 text-center text-red-500">{error}</div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="text-center py-10">
+              <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
+                <svg className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="mt-3 text-lg font-semibold text-gray-900">В системе нет зарегистрированных пользователей</h3>
+              <p className="mt-2 text-sm text-gray-500">
+                В системе присутствует только учетная запись администратора. <br/>
+                Вы можете добавить новых пользователей нажав кнопку ниже.
+              </p>
+              <div className="mt-6">
+                <button
+                  type="button"
+                  onClick={() => alert('Функционал добавления новых пользователей будет доступен в следующей версии')}
+                  className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                >
+                  <svg className="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                  </svg>
+                  Добавить пользователя
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="p-6 space-y-4">
               {filteredUsers.map((user) => (

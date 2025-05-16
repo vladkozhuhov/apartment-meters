@@ -4,7 +4,7 @@
 
 // Базовый URL для API
 // Для доступа из браузера пользователя нужно использовать localhost и внешний порт
-export const API_BASE_URL = 'http://localhost:5001';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
 // Таймаут для запросов (в миллисекундах)
 export const API_TIMEOUT = 15000; // 15 секунд
