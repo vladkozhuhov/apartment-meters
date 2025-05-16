@@ -41,7 +41,7 @@ services:
     volumes:
       - ./UI/apartment-meters.web:/app 
       - /app/node_modules
-    command: npm run dev
+      - /app/.next
     depends_on:
       - api
     networks:
