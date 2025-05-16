@@ -1,10 +1,10 @@
 /**
- * Конфигурация API для приложения
+ * Конфигурация API для приложения (продакшен)
  */
 
 // Базовый URL для API
-// Для доступа из браузера пользователя нужно использовать localhost и внешний порт
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+// Для продакшена оставляем пустым, запросы будут проксироваться через Nginx
+export const API_BASE_URL = '';
 
 // Таймаут для запросов (в миллисекундах)
 export const API_TIMEOUT = 15000; // 15 секунд
@@ -18,5 +18,7 @@ export const API_DEFAULT_HEADERS = {
   'Accept': 'application/json'
 };
 
-// Логгирование для отладки
-console.log('API_BASE_URL:', API_BASE_URL);
+// Логгирование только при отладке в продакшене
+if (process.env.DEBUG === 'true') {
+  console.log('API_BASE_URL (prod):', API_BASE_URL);
+} 
