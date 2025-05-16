@@ -1,0 +1,21 @@
+FROM node:18-alpine
+
+# Оптимизация npm
+ENV NPM_CONFIG_LOGLEVEL=error
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем только необходимые файлы для установки пакетов
+COPY package.json package-lock.json ./
+
+# Устанавливаем зависимости с кэшированием
+RUN npm ci && npm cache clean --force
+
+# Настройка рабочей среды
+ENV NODE_ENV=development
+EXPOSE 3000
+
+# Запуск скрипта настройки API при старте контейнера и запуск сервера разработки
+CMD ["sh", "-c", "./setup-api-config.sh development && npm run dev"] 

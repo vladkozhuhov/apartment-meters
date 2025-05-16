@@ -1,0 +1,11 @@
+# Файлы, которые не должны изменяться при мердже
+UI/apartment-meters.web/config/api.ts merge=ours
+
+# Особые правила для файлов конфигурации
+UI/apartment-meters.web/.env-configs/api.ts.production merge=ours
+UI/apartment-meters.web/.env-configs/api.ts.develop merge=ours
+UI/apartment-meters.web/.env-configs/env.production merge=ours
+UI/apartment-meters.web/.env-configs/env.development merge=ours
+
+# Игнорировать перенос строк
+* text=auto

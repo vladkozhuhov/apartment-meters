@@ -15,6 +15,14 @@ COPY package.json package-lock.json ./
 # Копируем .env.docker и переименовываем
 COPY .env.docker .env
 
+# Копируем конфигурационные файлы API
+COPY .env-configs/ ./.env-configs/
+COPY config/ ./config/
+COPY setup-api-config.sh ./setup-api-config.sh
+
+# Настраиваем API для продакшен окружения
+RUN chmod +x ./setup-api-config.sh && ./setup-api-config.sh production
+
 # Устанавливаем только зависимости, необходимые для запуска
 RUN npm ci --omit=dev --no-audit --no-fund --ignore-scripts --prefer-offline \
     && npm cache clean --force

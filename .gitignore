@@ -65,9 +65,11 @@ appsettings.Development.json
 # Конфигурационные файлы пользователей
 .env
 .env.*
-# Удаляем исключения
-# !.env.development
-# !.env.production
+# Исключаем из игнорирования файлы окружения для разработки и продакшена
+!.env.development
+!.env.production
+!.env.docker
+!.env-configs/
 
 # Лог-файлы
 *.log
@@ -95,6 +97,10 @@ secrets.json
 # docker-compose.yml
 docker-compose.dev.yml
 .dockerignore
+# Исключаем из игнорирования файлы Docker для разработки
+!Dockerfile.dev
+!UI/apartment-meters.web/Dockerfile.dev
+!API/apartment-meters.API/Dockerfile.dev
 
 # Terraform
 .terraform/
