@@ -33,6 +33,14 @@ public interface IUserRepository
     /// <param name="userEntity">Обновленная информация о пользователе</param>
     /// <returns>Задача, которая завершится после обновления</returns>
     Task UpdateAsync(UserEntity userEntity);
+    
+    /// <summary>
+    /// Обновить только номер телефона пользователя без загрузки всей сущности
+    /// </summary>
+    /// <param name="userId">Идентификатор пользователя</param>
+    /// <param name="phoneNumber">Новый номер телефона</param>
+    /// <returns>Задача, которая завершится после обновления</returns>
+    Task UpdatePhoneAsync(Guid userId, string phoneNumber);
 
     /// <summary>
     /// Удалить пользователя

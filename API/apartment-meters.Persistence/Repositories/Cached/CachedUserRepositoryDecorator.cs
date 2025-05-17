@@ -201,6 +201,21 @@ public class CachedUserRepositoryDecorator : IUserRepository
         await InvalidateUserCacheByApartmentNumberAsync(user.ApartmentNumber);
     }
     
+    /// <inheritdoc />
+    public async Task UpdatePhoneAsync(Guid userId, string phoneNumber)
+    {
+        // Вызываем метод базового репозитория
+        await _decorated.UpdatePhoneAsync(userId, phoneNumber);
+        
+        // Инвалидируем кэш для данного пользователя
+        await InvalidateUserCacheAsync(userId);
+        
+        // Инвалидируем общий кэш всех пользователей
+        await _distributedCache.RemoveAsync(AllUsersKey);
+        
+        _logger.LogInformation("Номер телефона для пользователя с ID {UserId} обновлен, кэш очищен", userId);
+    }
+    
     /// <summary>
     /// Инвалидирует кэш для конкретного пользователя или для всех пользователей
     /// </summary>

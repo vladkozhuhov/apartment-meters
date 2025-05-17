@@ -117,6 +117,39 @@ public class UserCommand : IUserCommand
         _logger.LogInformation("Пользователь с ID {UserId} успешно удален", id);
     }
     
+    /// <inheritdoc />
+    public async Task UpdateUserPhoneAsync(Guid userId, PhoneUpdateDto phoneDto)
+    {
+        _logger.LogInformation("Обновление номера телефона для пользователя с ID {UserId}", userId);
+        _logger.LogInformation("Полученный DTO: {@PhoneDto}", phoneDto);
+        
+        if (phoneDto == null)
+        {
+            _logger.LogError("PhoneUpdateDto равен null");
+            throw new ArgumentNullException(nameof(phoneDto));
+        }
+        
+        if (string.IsNullOrEmpty(phoneDto.PhoneNumber))
+        {
+            _logger.LogError("PhoneNumber в DTO равен null или пустой строке");
+            throw new ArgumentException("Номер телефона не может быть пустым", nameof(phoneDto));
+        }
+        
+        try
+        {
+            // Используем прямой SQL-запрос для обновления телефона без загрузки всей сущности
+            // и избегаем проблемы с отслеживанием сущностей
+            await _userRepository.UpdatePhoneAsync(userId, phoneDto.PhoneNumber);
+            _logger.LogInformation("Номер телефона пользователя с ID {UserId} успешно обновлен на {NewPhone}", 
+                userId, phoneDto.PhoneNumber);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при обновлении номера телефона пользователя {UserId}", userId);
+            throw;
+        }
+    }
+    
     /// <summary>
     /// Хеширует пароль с использованием BCrypt
     /// </summary>

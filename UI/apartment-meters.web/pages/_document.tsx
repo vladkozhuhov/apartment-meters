@@ -4,6 +4,7 @@ export default function Document() {
   return (
     <Html lang="ru">
       <Head>
+        <title>Передача показаний ЖСК</title>
         {/* Мета-теги для мобильной версии */}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <meta name="theme-color" content="#3b82f6" />
