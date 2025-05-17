@@ -12,14 +12,8 @@ WORKDIR /app
 # Копируем только необходимые файлы для установки пакетов
 COPY package.json package-lock.json ./
 
-# Копируем скрипты и конфигурационные файлы
-COPY .env-configs/ ./.env-configs/
-COPY config/ ./config/
-COPY setup-api-config.sh ./
+# Копируем файлы окружения
 COPY .env.docker ./.env
-
-# Делаем скрипт исполняемым и настраиваем API для продакшен окружения
-RUN chmod +x ./setup-api-config.sh && ./setup-api-config.sh production
 
 # Устанавливаем только зависимости, необходимые для запуска
 RUN npm ci --omit=dev --no-audit --no-fund --ignore-scripts --prefer-offline \
@@ -29,6 +23,10 @@ RUN npm ci --omit=dev --no-audit --no-fund --ignore-scripts --prefer-offline \
 COPY .next ./.next
 COPY public ./public
 COPY next.config.js ./
+
+# Создаем директорию config и api.ts файл с пустым API_BASE_URL для продакшена
+RUN mkdir -p config && \
+    echo 'export const API_BASE_URL = ""; export const API_TIMEOUT = 15000; export const API_MAX_RETRIES = 1; export const API_DEFAULT_HEADERS = {"Content-Type": "application/json", "Accept": "application/json"};' > config/api.ts
 
 # Настройка рабочей среды
 ENV NODE_ENV=production
