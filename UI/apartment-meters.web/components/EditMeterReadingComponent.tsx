@@ -143,7 +143,7 @@ const EditMeterReadingComponent: React.FC<EditMeterReadingProps> = ({ readingId,
            'Не удалось обновить показания. Пожалуйста, проверьте введенные данные.';
   };
 
-  const getMeterTypeText = (type: number) => type === 1 ? "Горячая вода" : "Холодная вода";
+  const getMeterTypeText = (type: number) => type === 1 ? "Горячее водоснабжение (ГВС)" : "Холодное водоснабжение (ХВС)";
   const getMeterLocationText = (location: number) => location === 1 ? "Кухня" : "Ванная";
 
   const handleSaveReading = async (e: React.FormEvent) => {

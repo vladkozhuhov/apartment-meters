@@ -75,12 +75,21 @@ const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuc
 
   // Переход к следующему инпуту при заполнении первого
   const handleWholeInputKeyDown = (meterId: string, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== 'Tab' && newReadings[meterId].whole.length === 5) {
+    // Перемещаем фокус только если нажата цифровая клавиша и если после ввода длина будет равна 5
+    const isDigit = /^\d$/.test(e.key);
+    const inputElement = e.target as HTMLInputElement;
+    const willReachMaxLength = isDigit && 
+                              inputElement.selectionStart === inputElement.value.length && 
+                              inputElement.value.length === 4;
+    
+    if (e.key !== 'Tab' && willReachMaxLength) {
       // Найти соответствующий инпут для дробной части и сфокусироваться на нем
       const fractionInput = document.getElementById(`fraction-${meterId}`);
       if (fractionInput) {
-        e.preventDefault();
-        fractionInput.focus();
+        // Дожидаемся ввода символа перед переходом
+        setTimeout(() => {
+          fractionInput.focus();
+        }, 10);
       }
     }
   };
@@ -211,7 +220,7 @@ const AddMeterReadingForm: React.FC<AddMeterReadingFormProps> = ({ userId, onSuc
                     )}
                   </div>
                   <h3 className="text-sm sm:text-base font-medium text-gray-700">
-                    {meter.waterType === 1 ? 'ГВС (компонент х/в)' : 'Холодное водоснабжение'}
+                    {meter.waterType === 1 ? 'Горячее водоснабжение (ГВС)' : 'Холодное водоснабжение (ХВС)'}
                   </h3>
                 </div>
                 <div className="ml-5 sm:ml-7 flex items-center">
