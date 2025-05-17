@@ -12,15 +12,13 @@ WORKDIR /app
 # Копируем только необходимые файлы для установки пакетов
 COPY package.json package-lock.json ./
 
-# Копируем .env.docker и переименовываем
-COPY .env.docker .env
-
-# Копируем конфигурационные файлы API
+# Копируем скрипты и конфигурационные файлы
 COPY .env-configs/ ./.env-configs/
 COPY config/ ./config/
-COPY setup-api-config.sh ./setup-api-config.sh
+COPY setup-api-config.sh ./
+COPY .env.docker ./.env
 
-# Настраиваем API для продакшен окружения
+# Делаем скрипт исполняемым и настраиваем API для продакшен окружения
 RUN chmod +x ./setup-api-config.sh && ./setup-api-config.sh production
 
 # Устанавливаем только зависимости, необходимые для запуска
