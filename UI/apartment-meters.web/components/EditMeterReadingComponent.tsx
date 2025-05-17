@@ -174,10 +174,40 @@ const EditMeterReadingComponent: React.FC<EditMeterReadingProps> = ({ readingId,
       };
       
       console.log(`Отправка обновленного показания: ${JSON.stringify(readingToSend)}`);
+      
+      // Отправляем запрос на обновление
       await updateMeterReading(readingId, readingToSend);
       
+      // Ждем 800мс, чтобы сервер точно обработал запрос
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Проверим, что данные обновились, прочитав обновленное показание
+      try {
+        const updatedReading = await getMeterReadingById(readingId);
+        console.log('Показание после обновления:', updatedReading);
+        
+        if (updatedReading.waterValue !== formattedValue) {
+          console.warn('Значение на сервере не обновилось! Повторная отправка через 500мс...');
+          // Если значение не обновилось, повторно отправляем запрос
+          setTimeout(async () => {
+            try {
+              await updateMeterReading(readingId, readingToSend);
+              console.log('Повторная отправка выполнена');
+            } catch (error) {
+              console.error('Ошибка при повторной отправке:', error);
+            }
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Ошибка при проверке обновления показания:', error);
+      }
+      
       showError('Показания успешно обновлены!', 'success');
-      onSuccess();
+      
+      // Добавляем небольшую задержку перед закрытием окна и обновлением данных
+      setTimeout(() => {
+        onSuccess();
+      }, 1000);
     } catch (error: any) {
       const errorMessage = getErrorMessage(error);
       console.error('Ошибка при обновлении показаний:', error?.message || error);
