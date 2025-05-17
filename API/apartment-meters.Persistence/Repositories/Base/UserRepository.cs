@@ -86,4 +86,21 @@ public class UserRepository : IUserRepository
     {
         return await _dbContext.Users.FirstOrDefaultAsync(u => u.ApartmentNumber == apartmentNumber);
     }
+    
+    /// <summary>
+    /// Обновить только номер телефона пользователя без загрузки всей сущности
+    /// </summary>
+    /// <param name="userId">Идентификатор пользователя</param>
+    /// <param name="phoneNumber">Новый номер телефона</param>
+    /// <returns>Задача, которая завершится после обновления</returns>
+    public async Task UpdatePhoneAsync(Guid userId, string phoneNumber)
+    {
+        // Используем прямой SQL-запрос для обновления только номера телефона
+        // без загрузки всей сущности и без проблем с отслеживанием
+        var user = await _dbContext.Users
+            .Where(u => u.Id == userId)
+            .ExecuteUpdateAsync(setter => setter
+                .SetProperty(u => u.PhoneNumber, phoneNumber)
+                .SetProperty(u => u.UpdatedAt, DateTime.UtcNow));
+    }
 }

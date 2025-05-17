@@ -9,6 +9,7 @@ import { isAuthenticated, logout, getCurrentUser } from '../services/authService
 import { getUserByApartmentNumber } from '../services/userService';
 import api from '../services/api'; 
 import { useError } from '../contexts/ErrorContext';
+import PhoneVerificationComponent from '../components/PhoneVerificationComponent';
 
 interface MeterReading {
   id: string;
@@ -36,10 +37,20 @@ interface CombinedReading {
   kitchenColdDiff: string;
 }
 
+interface UserData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  phoneNumber?: string;
+}
+
 const UserPage: React.FC = () => {
   const [waterMeters, setWaterMeters] = useState<WaterMeter[]>([]);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const router = useRouter();
   const [apartmentNumber, setApartmentNumber] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -90,6 +101,15 @@ const UserPage: React.FC = () => {
                 setUserId(userData.id);
                 localStorage.setItem('id', userData.id);
                 console.log('Получен userId по номеру квартиры:', userData.id);
+                
+                // Сохраняем данные пользователя для проверки телефона
+                setUserData({
+                  id: userData.id,
+                  firstName: userData.firstName,
+                  lastName: userData.lastName,
+                  middleName: userData.middleName,
+                  phoneNumber: userData.phoneNumber
+                });
               } else {
                 console.warn('Не удалось получить ID пользователя по номеру квартиры');
               }
@@ -105,6 +125,14 @@ const UserPage: React.FC = () => {
             if (user.username) {
               setApartmentNumber(user.username);
               localStorage.setItem('apartmentNumber', user.username);
+            }
+            
+            // Получаем полные данные пользователя для проверки телефона
+            try {
+              const fullUserData = await api.get(`/api/users/${user.userId}`);
+              setUserData(fullUserData.data);
+            } catch (error) {
+              console.error('Ошибка при получении данных пользователя:', error);
             }
           }
         } else {
@@ -317,7 +345,26 @@ const UserPage: React.FC = () => {
           <p className="text-gray-700">г. Магнитогорск</p>
           <p className="text-gray-700">пр-т Ленина, 90</p>
           <p className="font-medium text-gray-800">{apartmentNumber ? `Квартира ${apartmentNumber}` : 'Загрузка...'}</p>
+          {userData?.phoneNumber && (
+            <p className="text-gray-700 mt-1">Телефон: {userData.phoneNumber}</p>
+          )}
         </div>
+
+        {/* Компонент проверки номера телефона */}
+        {userData?.id && userData?.phoneNumber && !phoneVerified && (
+          <PhoneVerificationComponent 
+            userId={userData.id} 
+            currentPhone={userData.phoneNumber} 
+            onSuccess={(newPhoneNumber) => {
+              setPhoneVerified(true);
+              // Обновляем номер телефона в данных пользователя локально без запроса к API
+              setUserData(prevData => prevData ? {
+                ...prevData,
+                phoneNumber: newPhoneNumber
+              } : null);
+            }} 
+          />
+        )}
 
         {/* Информация о счетчиках */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">

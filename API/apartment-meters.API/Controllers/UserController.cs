@@ -315,4 +315,75 @@ public class UserController : ControllerBase
             return StatusCode(500);
         }
     }
+
+    /// <summary>
+    /// Обновить номер телефона пользователя
+    /// </summary>
+    /// <param name="id">Идентификатор пользователя</param>
+    /// <param name="phoneDto">DTO с новым номером телефона</param>
+    /// <returns>Результат операции</returns>
+    [HttpPut("{id:guid}/phone")]
+    [Authorize(Roles = "Admin,User")] // Разрешаем и пользователям, и админам
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateUserPhone(Guid id, [FromBody] PhoneUpdateDto phoneDto)
+    {
+        _logger.LogInformation("Запрос на обновление номера телефона пользователя с ID {UserId}", id);
+        
+        try 
+        {
+            // Получаем минимальную информацию о пользователе для проверки прав
+            // без загрузки полной сущности пользователя
+            string currentPhone = "";
+            bool isAdmin = User.IsInRole("Admin");
+            bool isOwnProfile = User.HasClaim("id", id.ToString());
+            
+            // Проверка прав доступа: если пользователь не админ и не обновляет свой профиль
+            if (!isAdmin && !isOwnProfile)
+            {
+                // Проверяем, не обновляем ли стартовый номер +79999999999
+                try
+                {
+                    var userInfo = await _query.GetUserByIdAsync(id);
+                    if (userInfo != null)
+                    {
+                        currentPhone = userInfo.PhoneNumber;
+                    }
+                }
+                catch
+                {
+                    // Игнорируем ошибки при получении информации для проверки прав
+                }
+                
+                // Если не обновляем стартовый номер +79999999999, проверяем права
+                if (currentPhone != "+79999999999")
+                {
+                    _errorHandlingService.ThrowBusinessLogicException(
+                        ErrorType.UserPermissionDeniedError203,
+                        "Доступ запрещен. Вы можете обновлять только свой номер телефона.");
+                }
+            }
+            
+            // Вызываем команду обновления номера без дополнительной загрузки пользователя
+            await _command.UpdateUserPhoneAsync(id, phoneDto);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            _errorHandlingService.ThrowNotFoundException(
+                ErrorType.UserDataNotFoundError201,
+                $"Пользователь с ID {id} не найден");
+            return NotFound(); // Эта строка не будет выполнена, нужна для компиляции
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при обновлении номера телефона пользователя");
+            _errorHandlingService.ThrowBusinessLogicException(
+                ErrorType.UserUpdateFailedError202,
+                "Произошла ошибка при обновлении номера телефона");
+            return BadRequest(); // Эта строка не будет выполнена, нужна для компиляции
+        }
+    }
 }

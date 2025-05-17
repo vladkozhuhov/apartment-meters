@@ -13,9 +13,16 @@ COPY package.json package-lock.json ./
 # Устанавливаем зависимости с кэшированием
 RUN npm ci && npm cache clean --force
 
+# Копируем скрипт настройки API и файлы конфигурации
+COPY .env-configs ./.env-configs
+COPY config ./config
+
+# Копируем всё содержимое проекта
+COPY . .
+
 # Настройка рабочей среды
 ENV NODE_ENV=development
 EXPOSE 3000
 
-# Запуск скрипта настройки API при старте контейнера и запуск сервера разработки
-CMD ["sh", "-c", "./setup-api-config.sh development && npm run dev"] 
+# Запуск сервера разработки
+CMD ["npm", "run", "dev"] 

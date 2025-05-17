@@ -28,4 +28,12 @@ public interface IUserCommand
     /// <param name="id">Идентификатор пользователя для удаления</param>
     /// <returns>Task для отслеживания операции</returns>
     Task DeleteUserAsync(Guid id);
+    
+    /// <summary>
+    /// Обновить номер телефона пользователя
+    /// </summary>
+    /// <param name="userId">Идентификатор пользователя</param>
+    /// <param name="phoneDto">DTO с новым номером телефона</param>
+    /// <returns>Task для отслеживания операции</returns>
+    Task UpdateUserPhoneAsync(Guid userId, PhoneUpdateDto phoneDto);
 }
