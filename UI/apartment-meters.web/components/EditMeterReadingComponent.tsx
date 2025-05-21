@@ -30,13 +30,11 @@ interface MeterReadingFullInfo {
 
 // Перечисление кодов ошибок, которые мы обрабатываем
 const METER_READING_ERRORS = {
-  LESS_THAN_PREVIOUS: ErrorType.MeterReadingLessThanPreviousError353,
   INVALID_FORMAT: ErrorType.InvalidMeterReadingFormatError354,
   EMPTY_VALUE: ErrorType.EmptyWaterValueError480,
   INVALID_VALUE_FORMAT: ErrorType.InvalidWaterValueFormatError481,
   EMPTY_DATE: ErrorType.EmptyReadingDateError482,
   FUTURE_DATE: ErrorType.FutureReadingDateError483,
-  OUTSIDE_ALLOWED_PERIOD: ErrorType.MeterReadingOutsideAllowedPeriodError484
 };
 
 const EditMeterReadingComponent: React.FC<EditMeterReadingProps> = ({ readingId, onSuccess, onCancel }) => {
@@ -115,8 +113,6 @@ const EditMeterReadingComponent: React.FC<EditMeterReadingProps> = ({ readingId,
     if (errorCode) {
       // Возвращаем конкретное сообщение для известных кодов ошибок
       switch (errorCode) {
-        case METER_READING_ERRORS.LESS_THAN_PREVIOUS:
-          return 'Новое показание не может быть меньше предыдущего.';
         case METER_READING_ERRORS.INVALID_FORMAT:
         case METER_READING_ERRORS.INVALID_VALUE_FORMAT:
           return 'Неверный формат показания счетчика. Формат должен быть "целое,дробное" (до 5 цифр до запятой и до 3 после).';
@@ -126,8 +122,6 @@ const EditMeterReadingComponent: React.FC<EditMeterReadingProps> = ({ readingId,
           return 'Дата показания не может быть пустой.';
         case METER_READING_ERRORS.FUTURE_DATE:
           return 'Дата показания не может быть в будущем.';
-        case METER_READING_ERRORS.OUTSIDE_ALLOWED_PERIOD:
-          return 'Показания можно подавать только с 23 по 25 число месяца.';
         default:
           // Используем сообщение от сервера, если оно есть
           return error?.response?.data?.message || 
@@ -156,16 +150,6 @@ const EditMeterReadingComponent: React.FC<EditMeterReadingProps> = ({ readingId,
 
       // Форматируем в формат, который ожидает API: целая часть, запятая, дробная часть
       const formattedValue = `${readingValue.whole || '0'},${readingValue.fraction || '0'}`;
-      
-      // Проверяем, не стало ли новое значение меньше текущего
-      const currentValue = parseFloat(meterReadingInfo.waterValue.replace(',', '.'));
-      const newValue = parseFloat(formattedValue.replace(',', '.'));
-      
-      if (newValue < currentValue) {
-        showError('Новое показание не может быть меньше предыдущего', 'warning');
-        setSaving(false);
-        return;
-      }
       
       // Подготавливаем данные для обновления - только значение показания
       const readingToSend = {
