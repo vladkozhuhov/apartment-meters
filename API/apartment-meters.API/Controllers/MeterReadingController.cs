@@ -171,14 +171,6 @@ public class MeterReadingController : ControllerBase
             await _command.UpdateMeterReadingAsync(id, meterReadingUpdateDto);
             return NoContent();
         }
-        catch (BusinessLogicException ex) when (ex.ErrorType == ErrorType.MeterReadingLessThanPreviousError353)
-        {
-            _logger.LogWarning("Попытка установить показание меньше предыдущего: {ErrorMessage}", ex.Message);
-            return BadRequest(new { 
-                errorType = ex.ErrorType,
-                message = "Новое показание не может быть меньше предыдущего."
-            });
-        }
         catch (KeyNotFoundException ex)
         {
             _logger.LogWarning("Не найдено показание: {ErrorMessage}", ex.Message);
